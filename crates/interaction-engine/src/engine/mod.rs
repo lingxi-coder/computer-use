@@ -117,6 +117,11 @@ pub enum Input {
         generation: u64,
         output: Box<PlannerOutput>,
     },
+    /// The connection to the device ended. Nothing more will come from it, and
+    /// nothing it was told to release can be confirmed.
+    DeviceLost {
+        reason: String,
+    },
     /// Time passed. Timeouts are the only thing that needs this.
     Tick,
 }
@@ -210,6 +215,9 @@ pub(crate) struct RootRun {
     pub revalidate_floor: Option<u64>,
     pub permits: Vec<interaction_contracts::desktop::device::PermitRef>,
     pub stop_wait_since: Option<u64>,
+    /// The device session that held the pause, so a resume onto another one
+    /// (a device that restarted) does not wait for a latch that is not there.
+    pub paused_session: Option<u64>,
     /// The latest attempt and intent, for tracing an effect back to its input.
     pub last_attempt: Option<(AttemptId, Option<String>)>,
 }
@@ -335,6 +343,7 @@ impl Engine {
             Input::SourceHealth(health) => self.on_health(health),
             Input::Device { corr, reply } => self.on_device_reply(corr, reply),
             Input::DeviceNotice(notice) => self.on_device_notice(notice),
+            Input::DeviceLost { reason } => self.on_device_lost(&reason),
             Input::Decision(proposal) => self.on_decision(*proposal),
             Input::Planner {
                 request_id,

@@ -1156,3 +1156,104 @@ fn the_operator_view_follows_the_task_from_compilation_to_the_end() {
     );
     assert!(!done.timeline.is_empty());
 }
+
+// ---- A device that dies --------------------------------------------------------------------------------
+
+use interaction_contracts::desktop::device::ReleaseStatus;
+use interaction_engine::engine::Input;
+
+#[test]
+fn a_device_that_dies_suspends_the_task_and_a_new_one_goes_on_only_when_the_operator_says_so() {
+    let mut world = World::new();
+    world.start(TEXT);
+    after_the_switch_is_off(&mut world);
+
+    world.send(Input::DeviceLost {
+        reason: "the device process was killed".into(),
+    });
+    // Nothing can confirm a release now: the task is suspended with its
+    // cleanup unknown, and the view says the stop is unconfirmed.
+    assert_eq!(
+        world.state(),
+        Some(RootState::Suspended),
+        "{}",
+        world.report()
+    );
+    let ui = world.ui.clone().unwrap();
+    assert_eq!(ui.cleanup, ReleaseStatus::Unknown);
+    assert_eq!(ui.stop_status, StopStatus::StopUnconfirmed);
+    assert!(
+        ui.capabilities.is_none(),
+        "there is no device to have capabilities"
+    );
+
+    // Nothing is sent to the dead device, however long it takes.
+    let mark = world.log_len();
+    world.run_for(2_000);
+    assert_eq!(world.log_len(), mark, "{:?}", &world.device_log[mark..]);
+
+    // A new device session introduces itself. That alone resumes nothing.
+    world.core.reconnect();
+    world.introduce_device();
+    world.run_for(1_000);
+    assert_eq!(
+        world.state(),
+        Some(RootState::Suspended),
+        "{}",
+        world.report()
+    );
+    assert_eq!(world.sent_since(mark, "submit"), 0);
+
+    // The operator resumes it. It is registered with the new session,
+    // looked at again, and finishes without setting the switch twice.
+    world.operator(OperatorCommand::ResumeTask {
+        root_task_id: root1(),
+    });
+    world.until(|w| w.finished(), 60_000);
+    assert_eq!(
+        world.outcome(),
+        Some(RootState::Completed),
+        "{}",
+        world.report()
+    );
+    let sets = world
+        .applied()
+        .iter()
+        .filter(|input| input.primitive == set_value("off"))
+        .count();
+    assert_eq!(sets, 1, "{}", world.report());
+}
+
+#[test]
+fn a_cancellation_the_dead_device_could_not_confirm_is_finished_on_its_replacement() {
+    let mut world = World::new();
+    world.start(TEXT);
+    after_the_switch_is_off(&mut world);
+    world.mute_stop = true;
+    world.operator(OperatorCommand::StopTask { root_task_id: None });
+    assert_eq!(world.state(), Some(RootState::Cancelling));
+
+    world.send(Input::DeviceLost {
+        reason: "the device process was killed".into(),
+    });
+    assert_eq!(
+        world.state(),
+        Some(RootState::Cancelling),
+        "it cannot finish without a device"
+    );
+    assert_eq!(world.engine.stop_status(), StopStatus::StopUnconfirmed);
+
+    // The replacement is told again, and confirms.
+    world.mute_stop = false;
+    world.hold_notices = false;
+    world.core.reconnect();
+    world.introduce_device();
+    world.run_for(500);
+    assert_eq!(
+        world.outcome(),
+        Some(RootState::Cancelled),
+        "{}",
+        world.report()
+    );
+    assert_eq!(world.engine.stop_status(), StopStatus::StoppedConfirmed);
+}

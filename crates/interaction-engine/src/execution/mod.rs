@@ -135,9 +135,23 @@ impl DeviceView {
             .is_none_or(|old| old.identity.session_epoch != manifest.identity.session_epoch);
         if new_session {
             self.outstanding.clear();
+            // Stop numbers belong to one device session. A number from the old
+            // one must never count as having handled a stop in the new one.
+            self.acked_stop_seq = 0;
+            self.seen_stop_seq = 0;
         }
         self.dependencies = manifest.identity.dependencies.clone();
         self.manifest = Some(manifest);
+    }
+
+    /// The device is gone. Nothing it said still holds, and nothing is sent to
+    /// it until a new one introduces itself.
+    pub fn forget(&mut self) {
+        self.manifest = None;
+        self.dependencies.clear();
+        self.outstanding.clear();
+        self.acked_stop_seq = 0;
+        self.seen_stop_seq = 0;
     }
 
     pub fn manifest(&self) -> Option<&CapabilityManifest> {
@@ -507,6 +521,33 @@ mod tests {
             None,
             "a timed-out command's reply is ignored"
         );
+    }
+
+    #[test]
+    fn stop_numbers_belong_to_one_device_session() {
+        let (core, mut view) = device();
+        view.stop_processed(5);
+        assert_eq!(view.acked_stop_seq(), 5);
+        let mut identity = core.identity();
+        identity.session_epoch += 1;
+        view.install_manifest(CapabilityManifest {
+            identity,
+            backend: BackendKind::Simulated,
+            policy: PrimitivePolicy::AtomicOnly,
+            human_input: CapabilityState::Available,
+            hit_test: CapabilityState::Available,
+            input: CapabilityState::Available,
+            max_uninterruptible_ms: 100,
+        });
+        assert_eq!(
+            view.acked_stop_seq(),
+            0,
+            "a stop the new device latches must not look already handled"
+        );
+        view.stop_seen(1);
+        assert!(view.behind_on_stops());
+        view.forget();
+        assert!(view.manifest().is_none() && !view.input_available() && !view.behind_on_stops());
     }
 
     #[test]

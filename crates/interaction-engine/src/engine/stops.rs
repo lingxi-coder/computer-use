@@ -110,6 +110,53 @@ impl Engine {
             // was in flight is unknown, and the person decides about going on.
             self.pause_root("the device restarted")?;
         }
+        if self.tasks.active_state() == Some(RootState::Cancelling)
+            && let Some(root) = self.tasks.active().map(|a| a.row.root_id.clone())
+        {
+            // The cancellation could not be confirmed by the device that died.
+            self.send_host_stop(root.as_str(), "finishing a cancellation on the new device");
+        }
+        Ok(())
+    }
+
+    /// The device connection ended. The root cannot wait for a release that
+    /// will never be confirmed: it is suspended with its cleanup unknown, and
+    /// going on needs the operator, a new device session and a fresh look.
+    pub(super) fn on_device_lost(&mut self, reason: &str) -> Result<(), EngineError> {
+        self.note(format!("the device is gone: {reason}"));
+        let session = self.device.session_epoch();
+        self.device.forget();
+        self.cleanup = ReleaseStatus::Unknown;
+        if let Some(run) = self.run.as_mut() {
+            run.registered = false;
+            run.registering = false;
+            run.stop_wait_since = None;
+            run.paused_session = session;
+        }
+        let Some(state) = self.tasks.active_state() else {
+            return Ok(());
+        };
+        match state {
+            RootState::Running
+            | RootState::WaitingEvidence
+            | RootState::WaitingPlan
+            | RootState::NeedsInput => {
+                self.tasks.pause_requested(&mut self.storage, self.now_ms)?;
+                self.abandon_work()?;
+                self.tasks
+                    .suspend_unconfirmed(&mut self.storage, self.now_ms)?;
+                self.stop_status = StopStatus::StopUnconfirmed;
+            }
+            RootState::Pausing => {
+                self.tasks
+                    .suspend_unconfirmed(&mut self.storage, self.now_ms)?;
+                self.stop_status = StopStatus::StopUnconfirmed;
+            }
+            // A cancellation in progress stays that way until a device can
+            // confirm it let go.
+            RootState::Cancelling => self.stop_status = StopStatus::StopUnconfirmed,
+            _ => {}
+        }
         Ok(())
     }
 
@@ -215,6 +262,10 @@ impl Engine {
             self.tasks.pause_requested(&mut self.storage, self.now_ms)?;
             self.abandon_work()?;
         }
+        let session = self.device.session_epoch();
+        if let Some(run) = self.run.as_mut() {
+            run.paused_session = session;
+        }
         if self.tasks.active_state() == Some(RootState::Pausing) {
             self.tasks
                 .inputs_released(&mut self.storage, self.now_ms, ack.cleanup)?;
@@ -232,7 +283,14 @@ impl Engine {
         &mut self,
         ack: interaction_contracts::desktop::device::ResumeAck,
     ) -> Result<(), EngineError> {
-        if !ack.resumed {
+        // A device that restarted holds no pause, so there is nothing for it to
+        // lift. The operator's resume is the authorisation, and the root is
+        // revalidated against the new session before it goes on.
+        let new_device = self
+            .run
+            .as_ref()
+            .is_some_and(|run| run.paused_session != self.device.session_epoch());
+        if !ack.resumed && !new_device {
             self.note(format!(
                 "the device did not resume the task: {}",
                 ack.reason.unwrap_or_default()
@@ -535,6 +593,7 @@ impl Engine {
             revalidate_floor: None,
             permits: Vec::new(),
             stop_wait_since: None,
+            paused_session: None,
             last_attempt: None,
         });
         if cancelling {

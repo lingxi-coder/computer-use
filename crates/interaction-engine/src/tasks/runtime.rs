@@ -1044,6 +1044,23 @@ impl TaskRuntime {
         }
     }
 
+    /// The device is gone, so no release can be confirmed. The root is
+    /// suspended anyway with its cleanup unknown (design 14.6): nothing can
+    /// run without a device, and the person decides about going on.
+    pub fn suspend_unconfirmed(
+        &mut self,
+        storage: &mut Storage,
+        now_ms: u64,
+    ) -> Result<RootState, TaskError> {
+        self.step(
+            storage,
+            now_ms,
+            RootEvent::InputsReleased,
+            |row| row.cleanup = ReleaseStatus::Unknown,
+            |_| Ok(()),
+        )
+    }
+
     pub fn resume_requested(
         &mut self,
         storage: &mut Storage,

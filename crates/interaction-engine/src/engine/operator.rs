@@ -120,6 +120,7 @@ impl Engine {
             revalidate_floor: None,
             permits: Vec::new(),
             stop_wait_since: None,
+            paused_session: None,
             last_attempt: None,
         });
         // The knowledge the root may use is fixed now; a later release changes
@@ -269,6 +270,10 @@ impl Engine {
         let root_id = active.row.root_id.as_str().to_string();
         self.tasks.pause_requested(&mut self.storage, self.now_ms)?;
         self.abandon_work()?;
+        let session = self.device.session_epoch();
+        if let Some(run) = self.run.as_mut() {
+            run.paused_session = session;
+        }
         self.stop_status = StopStatus::Stopping;
         self.send(
             Expect::Stop,
