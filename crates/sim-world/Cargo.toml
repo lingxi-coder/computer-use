@@ -1,0 +1,15 @@
+[package]
+name = "sim-world"
+description = "A simulated settings application and scripted model stand-ins, shared by tests and the fixture processes"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+repository.workspace = true
+
+[dependencies]
+interaction-contracts.workspace = true
+
+[lints]
+workspace = true

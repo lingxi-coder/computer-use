@@ -7,7 +7,8 @@ use interaction_contracts::desktop::device::{SimFault, SimHitTest, SimOp};
 use interaction_contracts::desktop::primitive::Primitive;
 
 use crate::backend::{
-    HeldState, HitTestOutcome, HitTestRequest, InputBackend, ReleaseFailure, SubmitOutcome,
+    HeldState, HitTestOutcome, HitTestRequest, InputBackend, ReleaseFailure, SubmitContext,
+    SubmitOutcome,
 };
 
 /// One input the simulated operating system received.
@@ -16,6 +17,9 @@ pub struct AppliedInput {
     pub at_ms: u64,
     pub primitive: Primitive,
     pub cleanup: bool,
+    /// What the input was aimed at; empty for cleanup releases.
+    pub target_ref: String,
+    pub binding_fingerprint: Option<String>,
 }
 
 #[derive(Debug)]
@@ -88,7 +92,13 @@ impl SimBackend {
         true
     }
 
-    fn apply(&mut self, at_ms: u64, primitive: Primitive, cleanup: bool) {
+    fn apply(
+        &mut self,
+        at_ms: u64,
+        primitive: Primitive,
+        cleanup: bool,
+        context: Option<&SubmitContext<'_>>,
+    ) {
         if let Some((token, down)) = primitive.held_token() {
             if down {
                 self.physical_held.insert(token);
@@ -100,12 +110,21 @@ impl SimBackend {
             at_ms,
             primitive,
             cleanup,
+            target_ref: context
+                .map(|c| c.target_ref.to_string())
+                .unwrap_or_default(),
+            binding_fingerprint: context.and_then(|c| c.binding_fingerprint.map(String::from)),
         });
     }
 }
 
 impl InputBackend for SimBackend {
-    fn submit(&mut self, at_ms: u64, primitive: &Primitive) -> SubmitOutcome {
+    fn submit(
+        &mut self,
+        at_ms: u64,
+        primitive: &Primitive,
+        context: &SubmitContext<'_>,
+    ) -> SubmitOutcome {
         self.submission_calls += 1;
         let fault = self.faults.remove(&self.submission_calls);
         if fault == Some(SimFault::Rejected) {
@@ -113,7 +132,7 @@ impl InputBackend for SimBackend {
         }
         // A down may have reached the backend even when its acknowledgement was lost.
         if fault != Some(SimFault::UnknownNotApplied) {
-            self.apply(at_ms, primitive.clone(), false);
+            self.apply(at_ms, primitive.clone(), false, Some(context));
         }
         if matches!(
             fault,
@@ -129,7 +148,7 @@ impl InputBackend for SimBackend {
         if self.release_failure {
             return Err(ReleaseFailure);
         }
-        self.apply(at_ms, release.clone(), true);
+        self.apply(at_ms, release.clone(), true, None);
         Ok(())
     }
 

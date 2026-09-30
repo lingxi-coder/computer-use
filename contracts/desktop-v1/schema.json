@@ -409,6 +409,9 @@
         "human_input": {
           "$ref": "#/$defs/CapabilityState"
         },
+        "identity": {
+          "$ref": "#/$defs/DeviceIdentity"
+        },
         "input": {
           "$ref": "#/$defs/CapabilityState"
         },
@@ -424,6 +427,7 @@
       },
       "additionalProperties": false,
       "required": [
+        "identity",
         "backend",
         "policy",
         "human_input",
@@ -1133,6 +1137,39 @@
             "kind"
           ]
         }
+      ]
+    },
+    "DeviceIdentity": {
+      "description": "Who the device is in this session. The host builds device evidence from it,\nso it must match what the device itself checks.",
+      "type": "object",
+      "properties": {
+        "clock_domain": {
+          "type": "string"
+        },
+        "dependencies": {
+          "description": "Current dependency revisions. Later changes arrive as device events.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0
+          }
+        },
+        "session_epoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "surface": {
+          "$ref": "#/$defs/SurfaceRef"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "session_epoch",
+        "surface",
+        "clock_domain",
+        "dependencies"
       ]
     },
     "EffectClass": {
@@ -3725,6 +3762,9 @@
         "scope": {
           "$ref": "#/$defs/StopScope"
         },
+        "source": {
+          "$ref": "#/$defs/StopSource"
+        },
         "stop_floor": {
           "type": "integer",
           "format": "uint64",
@@ -3742,6 +3782,7 @@
         "stop_floor",
         "scope",
         "disposition",
+        "source",
         "revoked_permits",
         "cleanup",
         "at_ms"
@@ -3821,15 +3862,24 @@
       ]
     },
     "StopSource": {
-      "type": "string",
-      "enum": [
-        "operator_button",
-        "tray",
-        "global_hotkey",
-        "device_local",
-        "human_input",
-        "supervisor",
-        "host_lease_lost"
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "operator_button",
+            "tray",
+            "global_hotkey",
+            "device_local",
+            "human_input",
+            "supervisor",
+            "host_lease_lost"
+          ]
+        },
+        {
+          "description": "The host stopped on its own: a deadline, the budget or a failure.",
+          "type": "string",
+          "const": "host"
+        }
       ]
     },
     "StopStatus": {

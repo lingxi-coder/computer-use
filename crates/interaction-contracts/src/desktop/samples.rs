@@ -58,6 +58,12 @@ fn root_id() -> RootTaskId {
 
 pub fn manifest() -> CapabilityManifest {
     CapabilityManifest {
+        identity: DeviceIdentity {
+            session_epoch: 1,
+            surface: surface(),
+            clock_domain: "sim/1/monotonic".into(),
+            dependencies: dependencies(),
+        },
         backend: BackendKind::Simulated,
         policy: PrimitivePolicy::AtomicOnly,
         human_input: CapabilityState::Available,
@@ -90,6 +96,7 @@ fn stop_ack() -> StopAck {
         stop_floor: 1,
         scope: StopScope::All,
         disposition: StopDisposition::Pause,
+        source: StopSource::OperatorButton,
         revoked_permits: 1,
         cleanup: ReleaseStatus::NotNeeded,
         at_ms: 120,

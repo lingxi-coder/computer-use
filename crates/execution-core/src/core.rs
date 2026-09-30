@@ -9,15 +9,17 @@
 use std::collections::{BTreeMap, VecDeque};
 
 use interaction_contracts::desktop::device::{
-    ActionIntent, GrantPermit, Observation, PermitRef, Receipt, ReceiptStatus, ReleaseStatus,
-    RenewPermit, ResumeAck, ResumeCommand, RevokeExecution, RootGrant, SourceFreshness, StopAck,
-    StopCommand, StopDisposition, StopScope, StopSource, SubmitIntent, SubmittedPrimitive,
-    SurfaceRef,
+    ActionIntent, DeviceIdentity, GrantPermit, Observation, PermitRef, Receipt, ReceiptStatus,
+    ReleaseStatus, RenewPermit, ResumeAck, ResumeCommand, RevokeExecution, RootGrant,
+    SourceFreshness, StopAck, StopCommand, StopDisposition, StopScope, StopSource, SubmitIntent,
+    SubmittedPrimitive, SurfaceRef,
 };
 use interaction_contracts::desktop::error::FailureCode;
 use interaction_contracts::desktop::primitive::{Primitive, PrimitivePolicy};
 
-use crate::backend::{HeldState, HitTestOutcome, HitTestRequest, InputBackend, SubmitOutcome};
+use crate::backend::{
+    HeldState, HitTestOutcome, HitTestRequest, InputBackend, SubmitContext, SubmitOutcome,
+};
 use crate::latch::{ResumeError, StopLatch};
 use crate::ledger::{InputLedger, Key};
 
@@ -279,6 +281,16 @@ impl<B: InputBackend> ExecutionCore<B> {
 
     pub fn held_input_count(&self) -> usize {
         self.ledger.len()
+    }
+
+    /// Who this device is in the current session.
+    pub fn identity(&self) -> DeviceIdentity {
+        DeviceIdentity {
+            session_epoch: self.session_epoch,
+            surface: self.surface.clone(),
+            clock_domain: self.clock_domain(),
+            dependencies: self.dependency_versions(),
+        }
     }
 
     pub fn dependency_versions(&self) -> BTreeMap<String, u64> {
@@ -712,6 +724,7 @@ impl<B: InputBackend> ExecutionCore<B> {
             stop_floor: self.latch.floor(),
             scope: command.scope.clone(),
             disposition: command.disposition,
+            source: command.source,
             revoked_permits,
             cleanup,
             at_ms: self.now_ms,
@@ -1243,7 +1256,21 @@ impl<B: InputBackend> ExecutionCore<B> {
             // The ledger owes the release from before the down is submitted, so
             // a lost acknowledgement still leaves the input accounted for.
             self.ledger.track_down(&key, &step.primitive);
-            let outcome = self.backend.submit(self.now_ms, &step.primitive);
+            let (target_ref, fingerprint) = {
+                let intent = &self.records[&key].intent;
+                (
+                    intent.target_ref.clone(),
+                    intent.binding_fingerprint.clone(),
+                )
+            };
+            let outcome = self.backend.submit(
+                self.now_ms,
+                &step.primitive,
+                &SubmitContext {
+                    target_ref: &target_ref,
+                    binding_fingerprint: fingerprint.as_deref(),
+                },
+            );
             match outcome {
                 SubmitOutcome::Rejected => {
                     self.ledger.untrack_down(&key, &step.primitive);

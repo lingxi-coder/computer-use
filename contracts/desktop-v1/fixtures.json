@@ -64,6 +64,20 @@
             "backend": "simulated",
             "hit_test": "available",
             "human_input": "available",
+            "identity": {
+              "clock_domain": "sim/1/monotonic",
+              "dependencies": {
+                "authorization": 1,
+                "binding": 1,
+                "focus": 1,
+                "layer": 1
+              },
+              "session_epoch": 1,
+              "surface": {
+                "epoch": 1,
+                "id": "main"
+              }
+            },
             "input": "available",
             "max_uninterruptible_ms": 50,
             "policy": "atomic_only"
@@ -181,6 +195,20 @@
             "backend": "simulated",
             "hit_test": "available",
             "human_input": "available",
+            "identity": {
+              "clock_domain": "sim/1/monotonic",
+              "dependencies": {
+                "authorization": 1,
+                "binding": 1,
+                "focus": 1,
+                "layer": 1
+              },
+              "session_epoch": 1,
+              "surface": {
+                "epoch": 1,
+                "id": "main"
+              }
+            },
             "input": "available",
             "max_uninterruptible_ms": 50,
             "policy": "atomic_only"
@@ -599,6 +627,7 @@
           "scope": {
             "scope": "all"
           },
+          "source": "operator_button",
           "stop_floor": 1,
           "stop_seq": 1
         },
@@ -720,6 +749,7 @@
               "scope": {
                 "scope": "all"
               },
+              "source": "operator_button",
               "stop_floor": 1,
               "stop_seq": 1
             },
@@ -748,6 +778,20 @@
           "backend": "simulated",
           "hit_test": "available",
           "human_input": "available",
+          "identity": {
+            "clock_domain": "sim/1/monotonic",
+            "dependencies": {
+              "authorization": 1,
+              "binding": 1,
+              "focus": 1,
+              "layer": 1
+            },
+            "session_epoch": 1,
+            "surface": {
+              "epoch": 1,
+              "id": "main"
+            }
+          },
           "input": "available",
           "max_uninterruptible_ms": 50,
           "policy": "atomic_only"

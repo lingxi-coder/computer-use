@@ -27,6 +27,14 @@ pub enum HeldState {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ReleaseFailure;
 
+/// What the submission is for. An AX action acts on an element, not on a
+/// point, so the backend needs to know which one.
+pub struct SubmitContext<'a> {
+    pub target_ref: &'a str,
+    /// The digest of the bound instance, when the intent carried a proof.
+    pub binding_fingerprint: Option<&'a str>,
+}
+
 pub struct HitTestRequest<'a> {
     pub target_ref: &'a str,
     /// The digest of the instance the intent was admitted for.
@@ -47,7 +55,12 @@ pub enum HitTestOutcome {
 /// submission whenever the shell's submit gate is closed.
 pub trait InputBackend {
     /// Submit one primitive. Atomic primitives are applied as a single unit.
-    fn submit(&mut self, at_ms: u64, primitive: &Primitive) -> SubmitOutcome;
+    fn submit(
+        &mut self,
+        at_ms: u64,
+        primitive: &Primitive,
+        context: &SubmitContext<'_>,
+    ) -> SubmitOutcome;
 
     /// Undo a held input this system owns. Cleanup never sends new presses.
     fn release(&mut self, at_ms: u64, release: &Primitive) -> Result<(), ReleaseFailure>;

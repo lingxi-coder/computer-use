@@ -302,6 +302,8 @@ pub enum StopSource {
     HumanInput,
     Supervisor,
     HostLeaseLost,
+    /// The host stopped on its own: a deadline, the budget or a failure.
+    Host,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -323,6 +325,7 @@ pub struct StopAck {
     pub stop_floor: u64,
     pub scope: StopScope,
     pub disposition: StopDisposition,
+    pub source: StopSource,
     pub revoked_permits: u32,
     pub cleanup: ReleaseStatus,
     pub at_ms: u64,
@@ -359,11 +362,24 @@ pub enum BackendKind {
     Macos,
 }
 
+/// Who the device is in this session. The host builds device evidence from it,
+/// so it must match what the device itself checks.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct DeviceIdentity {
+    pub session_epoch: u64,
+    pub surface: SurfaceRef,
+    pub clock_domain: String,
+    /// Current dependency revisions. Later changes arrive as device events.
+    pub dependencies: BTreeMap<String, u64>,
+}
+
 /// What this device can really do right now. Never a statement about what the
 /// platform could do in principle.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct CapabilityManifest {
+    pub identity: DeviceIdentity,
     pub backend: BackendKind,
     pub policy: PrimitivePolicy,
     pub human_input: CapabilityState,

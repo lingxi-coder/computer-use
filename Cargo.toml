@@ -13,6 +13,7 @@ repository = "https://github.com/lingxi-coder/computer-user"
 [workspace.dependencies]
 interaction-contracts = { path = "crates/interaction-contracts" }
 execution-core = { path = "crates/execution-core" }
+sim-world = { path = "crates/sim-world" }
 
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.150"
