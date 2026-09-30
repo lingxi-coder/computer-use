@@ -7,8 +7,11 @@
 //! or touches a socket.
 #![forbid(unsafe_code)]
 
+pub mod deliberation;
 pub mod environment;
 pub mod infrastructure;
+pub mod memory;
 pub mod ports;
 pub mod reaction;
 pub mod tasks;
+pub mod verification;
