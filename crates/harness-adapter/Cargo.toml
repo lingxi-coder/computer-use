@@ -1,0 +1,22 @@
+[package]
+name = "harness-adapter"
+description = "Route-independent turn logic for the planner (S2) and the teacher: one structured call, exactly one valid submission, isolated late results"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+repository.workspace = true
+
+[dependencies]
+interaction-contracts.workspace = true
+schemars.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+interaction-engine = { path = "../interaction-engine" }
+sim-world.workspace = true
+
+[lints]
+workspace = true
