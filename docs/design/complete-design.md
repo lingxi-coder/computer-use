@@ -1,10 +1,10 @@
 # Computer User 完整设计文档
 
-- 文档版本：v0.5，2026-09-30（依据 R4 评审修订，见第 30.2、30.4 节）。
+- 文档版本：v0.6，2026-09-30（M1 骨架实现后同步：目录、进程通信、根状态表补充、I0 迁移记录与实施进度；规范性条款未变，见第 27.4、28.1 节；v0.5 依据 R4 评审修订，见第 30.2、30.4 节）。
 - 地位：**唯一主设计文档**；替代 v0.3 通用稿与桌面模块化补充的设计维护职责。游戏、空间与 WoW 的后续扩展章节（第 17–19、25 章）移入[扩展卷](extensions.md)，章号不变，不属于一期交付。评审记录和旧稿仅供追溯。
 - 一期范围：macOS Apple Silicon 上的独立 Electron 桌面产品，截图结合 Accessibility/OCR。架构面向通用应用任务；一期的执行范围限定为已登记环境包的应用白名单（可复位夹具与 TextEdit），其他应用只开放观察与影子模式。
 - 智能分层：MediaPipe 环境神经感知与后续 S0；S1 槽位先由教师模型显式顶替并积累标签，本地 Laya 经领域微调和晋级后接管；Harness Runtime 云端 S2；执行监督独立。
-- 当前状态：设计与评审阶段。外部 I0 是模拟协议参考，尚未迁入本仓库；真实设备、模型、持久恢复、性能和签名产品均未验收。
+- 当前状态：**M1 骨架已实现并可验证，全部基于模拟后端**（模拟设置应用、脚本化规划器与教师、模拟设备与夹具来源）：十个 Rust crate、两个 TypeScript 包与 Electron 壳；七个模块在进程内和三个真实进程之间跑通闭环，以及停止、暂停、重启与设备死亡路径，I0 已迁入并由生产用执行状态机通过原 36 项回归。真实 macOS 设备与来源、Laya/教师/云端模型、MediaPipe、真机时延与性能、在真实窗口中运行的 Electron 和签名产品均**未验收**；S1 离线决策质量实验尚未开始，仍是最大的未知数（第 8.6 节）。边界见第 28.1 节与 [ADR-0004](../architecture/adr-0004-simulated-world-and-its-limits.md)。
 - 阅读约定：核心契约约束一期；涉及游戏、空间、手机、训练和自动发布的内容为后续扩展，即使共享同一契约表也不进入一期交付。所有“必须”描述目标实现要求，不表示已实现。一期验收依赖的条款编号见第 26.10 节。
 
 系统的核心是七个模块组成的可验证交互闭环：Environment 认识当前环境，TaskRuntime 管理目标和预算，Reaction 快速选择并推进技能，Deliberation 处理复杂规划，Execution 独占实际输入，Verification 判断效果，Memory/Experience 保存可复用知识。Electron Operator 提供任务、控制与证据界面。
@@ -224,71 +224,48 @@ Screen Recording 和 Accessibility 权限分别探测，拒绝/撤销后发布�
 
 MediaPipe 原生 worker、Rust sidecar、ONNX 原生库、图与模型按安装包资源布局签名；原生可执行文件和动态库位于 ASAR 外。代码/graph/manifest 入库，权重按哈希从受控来源获得并装入发布包，运行时只做校验、加载与预热，不在任务路径上联网下载；训练工具不随客户端分发。MediaPipe 的 macOS 构建默认依赖 Homebrew 的 OpenCV 动态库，M0 决定静态构建或随包重签名，产品不依赖用户机器上的 Homebrew。每项资源记录代码与模型许可；本仓库 MIT 不自动覆盖第三方权重。
 
-### 3.3 目标文件结构
+### 3.3 目录结构：已实现与拟建
 
-下列为拟建目录，当前仓库仍以设计资料为主。一期用七个 Rust crate 保持构建与依赖边界：七个逻辑模块位于 engine 内；execution-core 单列，使模拟器和真实设备运行同一套执行状态机；来源端与执行端分为两个平台 crate，使 cu-device 不链接采集、OCR 或神经运行时。除此之外，仅在独立发布、平台依赖或构建隔离需要时再拆 crate。
+M1 已建立下列目录，全部基于模拟后端。一期用十个 Rust crate 保持构建与依赖边界，比初版设想的七个多出三个：`sim-world`（测试与夹具进程共用的模拟应用）、`desktop-ipc`（进程间共享的帧读写、私有 socket 与握手）和 `desktop-supervisor`（测试用 supervisor）。七个逻辑模块位于 interaction-engine 内；execution-core 单列，使模拟器和真实设备运行同一套执行状态机；来源端与执行端分为两个平台 crate，使 cu-device 不链接采集、OCR 或神经运行时。除此之外，仅在独立发布、平台依赖或构建隔离需要时再拆 crate。
 
 ```text
 computer-user/
-├── Cargo.toml / Cargo.lock / rust-toolchain.toml
-├── package.json / package-lock.json   # npm workspaces
-├── apps/desktop/
-│   ├── src/main/                     # app、supervisor、权限、窗口、stop bridge
-│   ├── src/preload/                  # contextBridge 的受控 API
-│   ├── src/renderer/                 # 任务、设备画面、证据、设置
-│   ├── resources/                    # 图标及打包资源清单
+├── Cargo.toml / Cargo.lock / rust-toolchain.toml     # Rust 1.94.0、edition 2024
+├── package.json / package-lock.json                  # npm workspaces
+├── apps/desktop/                                     # Electron 壳
+│   ├── src/main/        # supervisor、stop bridge、host bridge、decision relay、ipc 校验、入口
+│   ├── src/preload/     # contextBridge 的固定 API，单文件 CJS
+│   ├── src/renderer/    # 任务输入、目标/效果确认、状态与停止、viewModel
+│   ├── src/shared/      # IPC 通道常量
+│   ├── test/            # Node 级测试，含对真实原生进程的集成
 │   └── electron.vite.config.ts
 ├── packages/
-│   ├── desktop-api/src/              # 由契约生成 DTO + 运行时校验/IPC facade
-│   └── decision-worker/src/          # Laya tokenizer、ONNX、取消、版本
+│   ├── desktop-api/     # 由 Schema 生成的类型 + Ajv 校验 + 帧编解码 + 渲染进程 API 类型
+│   └── decision-worker/ # 决策 worker 语义（代次、取消、epoch）与脚本化教师
 ├── crates/
-│   ├── interaction-contracts/src/    # DTO、ID、错误码、Schema、端口
-│   ├── execution-core/               # 不含 IO 的执行监督核心
-│   │   ├── src/                      # 许可、Guard、仲裁、停止锁存、输入账本；后端与时钟为 trait
-│   │   └── tests/                    # 迁入的 I0 执行回归，面向生产状态机
-│   ├── interaction-engine/
-│   │   ├── src/
-│   │   │   ├── environment/          # source/perception/state/binding
-│   │   │   ├── tasks/                # goal/workflow/budget/plan
-│   │   │   ├── reaction/
-│   │   │   │   ├── compiler/         # DecisionState 与裁剪记录
-│   │   │   │   ├── candidates/       # 候选实例化
-│   │   │   │   ├── decision/         # S1 router、代次与唯一接纳
-│   │   │   │   ├── skills/           # 生命周期与局部恢复
-│   │   │   │   └── controllers/      # 确定性 S0 / 后续神经提议
-│   │   │   ├── deliberation/         # S2 请求与提议端口
-│   │   │   ├── execution/            # 宿主侧监督端口；reference simulator = execution-core + 虚拟后端/时钟
-│   │   │   ├── verification/         # 谓词与效果证据
-│   │   │   ├── memory/               # 检索、release、隔离、经验
-│   │   │   ├── capabilities/ui/      # 跨应用 UI 技能与候选工厂
-│   │   │   └── infrastructure/       # scheduler/storage/trace 端口实现
-│   │   └── tests/                    # 接纳、恢复与验证回归
-│   ├── harness-adapter/src/          # S2 集成（路线 A 或 B）、单次结构化调用端口、取消/退出
-│   ├── source-macos/src/             # capture(ScreenCaptureKit)/ax/vision
-│   │   └── bin/cu-source.rs
-│   ├── device-macos/src/             # input(CGEvent/AX 动作)/hit-test/human-input/watchdog
-│   │   └── bin/cu-device.rs          # 一期仅正常模式；recovery-only 模式随按住类原语交付
-│   └── desktop-host/src/             # composition root、IPC、配置
-│       └── bin/cu-host.rs
-├── native/mediapipe-worker/
-│   ├── src/                         # C++ cu-perception / IPC / lifetime
-│   ├── graphs/                      # 版本化计算图
-│   ├── calculators/                 # 项目输出适配与必要扩展
-│   └── BUILD                        # Bazel target；版本配置随 M0 固定
-├── contracts/                       # I0 v1 与新 desktop/worker 协议分开版本
-├── capabilities/                    # SkillManifest / DecisionProgram 数据
-├── environments/                    # TextEdit、fixture 的识别与兼容规则
-├── assets/model-manifests/          # model/graph/preprocessing/许可与哈希
-├── learning/                        # S1 微调/校准/晋级（M4 起）；其余离线训练后续
-├── fixtures/apps/                   # 设置/表单/列表/模态与隐藏验收真值
-├── tests/                           # 跨进程、真机、性能与打包验收
-├── scripts/                         # 模型校验、类型生成、构建、签名
+│   ├── interaction-contracts/  # i0（冻结）、desktop v1 的类型、帧、握手与 Schema 导出
+│   ├── execution-core/         # 不含 IO 的执行状态机、模拟后端、I0 Simulator 外观
+│   ├── interaction-engine/     # 七个模块、engine 编排、SQLite 账本
+│   ├── harness-adapter/        # 单次结构化调用的回合逻辑与传输 trait（与路线无关）
+│   ├── sim-world/              # 模拟设置应用、脚本化规划器/教师、世界日志
+│   ├── desktop-ipc/            # 共享时钟、帧读写、私有 socket、握手
+│   ├── device-macos/           # cu-device：本期仅模拟后端
+│   ├── source-macos/           # cu-source：本期仅夹具来源
+│   ├── desktop-host/           # cu-host：composition root
+│   └── desktop-supervisor/     # 测试用 supervisor，扮演 Electron main
+├── contracts/
+│   ├── i0-v1/                  # 冻结：schema、fixtures、demo golden、PROVENANCE.md
+│   └── desktop-v1/             # 导出的 schema 与 golden fixtures（Rust 与 TypeScript 共用）
+├── scripts/                    # gen-types.mjs、ensure-binaries.mjs、check-all.sh
 └── docs/
-    ├── design/complete-design.md    # 唯一主设计（核心卷）
-    ├── design/extensions.md         # 扩展卷：游戏、空间、WoW
-    ├── architecture/               # 历史补充与后续 ADR
-    └── reviews/                    # R1–R4 评审记录
+    ├── design/                 # 主设计（核心卷）与扩展卷
+    ├── architecture/           # 历史补充与 ADR-0001 至 ADR-0004
+    └── reviews/                # R1–R4 评审记录
 ```
+
+interaction-engine 的实际结构：`environment/{pack,state_core,binding,read}`、`tasks/{state_machine,budget,goal,store,runtime}`、`reaction/{candidates,compiler,decisions,skills,store}`、`deliberation`、`execution`（宿主侧设备视图）、`verification`、`memory`、`infrastructure/{schema,storage}` 与 `engine/`（编排）。与初版设想的差异：没有单独的 `controllers/`（S0）和 `capabilities/ui/` 目录，通用 UI 技能目前在 `reaction/skills.rs`。
+
+**仍为拟建**（对应里程碑）：`native/mediapipe-worker/`（M0/M2）、`capabilities/` 与 `environments/` 的数据目录（TextEdit 等环境包，M3/M5；目前只有设置夹具的内置 pack）、`assets/model-manifests/`、`learning/`（M4）、`fixtures/apps/` 与真机、性能、打包验收的 `tests/`（M2–M5）。
 
 ### 3.4 编译依赖与扩展装配
 
@@ -312,6 +289,8 @@ flowchart TD
 箭头表示编译依赖或类型生成方向。engine 不依赖 Electron、Harness DesktopRuntime 或 macOS API；adapter 实现 contracts 中端口，desktop-host 注入实现。设备实际输入不依赖神经 worker，device-macos 也不链接 ScreenCaptureKit、Vision 或任何神经运行时。execution-core 不依赖平台 API：输入后端与时钟以 trait 注入，reference simulator 和 cu-device 运行同一套状态机，迁入的 I0 回归因此直接约束生产实现。C++ worker 使用版本化协议和 golden fixtures，不要求与 Rust 共享 ABI。
 
 三个业务扩展轴保持独立：DeviceAdapter 提供来源与输入；Capability 提供状态投影、候选工厂、技能及效果契约；EnvironmentPack 提供应用/领域识别、版本和规则。MediaPipe graph / Laya / Harness 是模型技术适配。注册 manifest 不能获得新的状态写入权限；一期能力实现静态链接并由白名单装配，环境包以版本化数据加载，不支持运行任意插件脚本。
+
+实现说明：desktop-host 目前不依赖 harness-adapter（S2 路线待 M0 定案），规划请求由 sim-world 的脚本化规划器在 cu-host 进程内回答；`PlanningRequest` 与 `PlannerOutput` 不在 wire 消息目录中，S2 始终在 cu-host 进程内运行，只有决策请求经 main 中继。harness-adapter 只依赖 interaction-contracts，并以路线无关的方式实现第 12.4 节的回合规则。
 
 共享基础设施保持窄职责：存储提供事务/恢复，Trace 提供关联记录，Registry 提供已登记类型和版本，Scheduler 提供资源配额；它们不能代替业务 owner 决定完成或授权。
 
@@ -419,6 +398,15 @@ cu-decision 由 Electron utilityProcess 启动；main 仅中继固定 Schema 的
 | UI projection / trace | host → main → renderer / 存储 | 有界投影，可重取快照；不能用 UI ACK 充当业务执行回执 |
 
 接收 ACK 只表示协议接收，业务结果沿 request_id 查询；请求超时不等于没有执行。可幂等请求以稳定 request ID 重发；正常输入、技能与计划分别使用自己的唯一接纳账本。断连后重新握手并提高 epoch，旧响应不可进入新 session；禁止将排队旧意图自动发送到新连接。
+
+**M1 实现的监督通道与本地 IPC**（细节与未解决项见 [ADR-0003](../architecture/adr-0003-supervision-and-local-ipc.md)，实现选择见 [ADR-0002](../architecture/adr-0002-synchronous-state-machines.md)）：
+
+- **监督通道**是子进程的 stdin/stdout，长度前缀 JSON，日志走 stderr；第一帧必须是 `Configure{role, session_epoch, settings}`，一次性凭据随它经继承管道交付，stdin EOF 即 supervisor 租约失效。
+- **进程之间**用私有目录（0700）下的 Unix socket（0600），握手为 Hello → HelloAck → Ready，检查角色、token、会话 epoch 与协议版本区间；Ready 带设备的真实能力清单（模拟后端写 `simulated`）。**对端 PID 校验尚未实现**（需要平台凭据 API，随 M2 在平台 crate 中做）。
+- **停止直达设备**：main 把 `StopCommand` 写入 device 的管道；`StopAck` 发给 main，并作为 `DeviceEvent::Stopped` 发给 host，host 处理完停止后才推进 `acked_stop_seq`。停止序号属于一个设备会话，新会话从零开始。
+- **控制租约**：device 没有 host 的租约就拒绝一切，host 在握手后立即申请并等待确认，之后每半个租约期续期；supervisor 租约与 host 租约任一失效，设备自行关闭提交门。
+- **会话**：新的设备会话必须配新的来源进程（快照带设备身份）；设备连接中断时 root 立即转入 SUSPENDED、清理状态 unknown（第 14.6 节），只有 operator 的显式 resume 才会在新会话上继续。
+- 每个进程是一个单线程事件循环加每条流一个读线程，没有异步运行时；模拟中各进程共享 supervisor 选定的时间起点，真实部署改用声明的单调时钟域（第 4.4、4.7 节）。
 
 ### 4.7 持久 deadline 与重启
 
@@ -1318,6 +1306,18 @@ DRAFT → COMPILING_GOAL → AWAITING_CONFIRMATION → READY → RUNNING
 | 任一非终态 | 根 deadline 到期，或剩余期限无法界定（第 4.7 节） | EXPIRED | 终态；撤销输入 |
 | 任一非终态 | 用户停止 | CANCELLING → CANCELLED | 终态；设备端停止锁存（第 14.8 节） |
 
+**M1 实现相对上表的补充**（规范性转移不变，下列是实现时发现上表没有写出的行，未列出的转移仍被拒绝）：
+
+| 当前状态 | 事件 | 下一状态 | 说明 |
+|---|---|---|---|
+| RUNNING / WAITING_EVIDENCE / WAITING_PLAN | 不可恢复的失败，包括等待超时 | FAILED | 等待超时按失败类别处理；重规划预算耗尽与被拒绝的计划同样属于此类 |
+| RUNNING | 请求新计划 | WAITING_PLAN | 请求时即消耗一次重规划额度，不论是否得到答案；计划在技能边界安装并使 plan_revision 加一，旧修订下的决策因此不能再接纳 |
+| WAITING_PLAN | 计划安装，或评审表示无需改变 | RUNNING | 评审无改变时沿用当前计划；规划器超时时同样沿用，已花的额度不退 |
+| RUNNING / WAITING_* / NEEDS_INPUT | 设备连接中断 | PAUSING → SUSPENDED | 不等设备确认（第 14.6 节）：清理状态 unknown，停止显示为“未确认”；显式 resume 后先重新注册并重新观察 |
+| CANCELLING | 进程重启、期限到达 | CANCELLING | 已在进行的取消不被改成 NEEDS_REVALIDATION 或 EXPIRED，仍需设备确认释放；设备死亡时保持，新设备会话上重新下发停止 |
+| 任一非终态 | 重复的停止请求 | CANCELLING | 幂等 |
+| RUNNING | 所有步骤已执行、必要谓词仍无法确认且新证据已看过 | UNVERIFIED | 只报告已确认的范围；谓词不成立但需要输入时先升级规划，预算耗尽才失败 |
+
 COMPILING_GOAL 与 AWAITING_CONFIRMATION 只允许有界的 S2 目标解释和用户确认，禁止正常输入。RUNNING 只表示根任务 active，不代表当前一定有输入。任务语义状态与 input_cleanup_status 分开：用户可已取消任务但设备释放仍 unknown，此时 UI 显示停止未确认并保持通道隔离。
 
 “停止”默认是根取消，关闭新接纳并撤销所有相关输入；CANCELLED 为终态，不因重连或迟到模型结果恢复。暂停也是停止输入但保留未取消语义进度，只有 SUSPENDED/NEEDS_REVALIDATION 可以在新观察、剩余原预算和明确 resume 授权后继续同 root。resume 建立新 activation/permit，不恢复旧输入序列；根 deadline 已过则任务进入 EXPIRED。
@@ -2178,30 +2178,31 @@ steps 的 offset 严格递增且小于 duration。latest_start_ms 包含边界�
 
 后续提交明确拒绝且已有前缀时报告 Partial，提交或释放不明为 Unknown；未知输入不自动重试。故障恢复只清理，不复活旧许可/队列。重连保留同一内存模拟器中的原截止与取消状态，并要求新证据和明确授权；跨进程持久账本待实现。
 
-### 27.4 历史来源、证据与迁入步骤
+### 27.4 历史来源、证据与迁入记录
 
-当前 computer-user 仓库只有设计资料，尚未迁入 I0 或创建 Cargo workspace。外部历史原型位于上级工作区目录 `lingxi/.local-checkouts/computer-use`（不在本仓库内），用户路径 `/Users/luolingfeng/computer-use` 指向该快照；快照无 Git 元数据和独立 LICENSE，不编造 commit SHA 或许可证。迁入前保留来源及内容哈希，并核对可复用来源说明。
+**迁入已完成**（2026-09-30，分支 `m1-architecture`：前两步在 workspace 迁入提交中完成，第三步在 execution-core 重构提交中完成）。外部历史原型位于上级工作区目录 `lingxi/.local-checkouts/computer-use`（不在本仓库内），用户路径 `/Users/luolingfeng/computer-use` 指向该快照；快照无 Git 元数据和独立 LICENSE，不编造 commit SHA 或许可证，只以内容哈希标识来源。来源文件、哈希、迁入位置与每个文件的改动见 [`contracts/i0-v1/PROVENANCE.md`](../../contracts/i0-v1/PROVENANCE.md)，决定与理由见 [ADR-0001](../architecture/adr-0001-i0-freeze-and-execution-core.md)。
 
-| 历史文件 | SHA-256 基线 | 拟迁入位置 |
+| 历史文件 | SHA-256 基线 | 迁入位置 |
 |---|---|---|
-| src/protocol.rs | 461408da69f493b9685c98fd2c61f0e775e801b9f665234653275b81315c52d1 | interaction-contracts |
-| src/simulator.rs | f0cd9023c270d2bd2e5480c50ce10173e583a1f96734c8d0b3346859f3289890 | execution-core（执行状态机）与 interaction-engine 的 reference simulator（虚拟后端与时钟） |
-| contracts/interaction.schema.json | ed9d51fbfa131fe9979f671b52970eba433126dd5843d2eca3880fd7f2f9bfb2 | contracts/i0-v1 |
+| src/protocol.rs | 461408da69f493b9685c98fd2c61f0e775e801b9f665234653275b81315c52d1 | `crates/interaction-contracts/src/i0.rs`（原样） |
+| src/simulator.rs | f0cd9023c270d2bd2e5480c50ce10173e583a1f96734c8d0b3346859f3289890 | `crates/execution-core`：状态机、账本、停止锁存、后端 trait 与模拟后端；`sim.rs` 是 I0 类型的 Simulator 外观 |
+| contracts/interaction.schema.json | ed9d51fbfa131fe9979f671b52970eba433126dd5843d2eca3880fd7f2f9bfb2 | `contracts/i0-v1/interaction.schema.json`（原样） |
 
-R4 评审在外部快照重跑 `cargo test --offline --locked --all-targets`（构建输出指向临时目录，不改动快照），36 项测试通过。更早的 7 个 demo 记录仅作历史参考，没有本轮复现证据。全部都是模拟协议结果，real_device_input=false，business_effects_verified=false。
+迁入前的基线是 R4 评审在外部快照重跑 `cargo test --offline --locked --all-targets` 的结果：36 项测试通过；更早的 7 个 demo 记录仅作历史参考。迁移三步：① 原样复制并核对哈希，原 36 项通过；② 按 crate 边界机械搬迁，序列化字段、拒绝未知字段、I0 wire version=1、golden fixtures 与时间语义不变；③ 执行监督逻辑分离为 `ExecutionCore<B: InputBackend>`，输入后端与虚拟时间由调用方提供，`Simulator` 保留 I0 方法签名。
 
-迁移先原样复制到临时验证区，核对源码/Schema/fixtures 哈希并运行原 36 测试；再按 crate 边界机械搬迁，保持序列化字段、拒绝未知字段、I0 wire version=1、golden fixtures 和时间语义不变；第三步把执行监督逻辑从模拟器中分离为 execution-core，输入后端与时钟改为 trait，模拟器保留虚拟后端、虚拟时间和故障注入。原 36 项测试改为面向 execution-core 加虚拟后端运行，断言不变。新增桌面/worker 消息使用独立协议 namespace/version，不通过改旧 fixture 来掩盖不兼容。三个阶段均产出可比对的 Schema 和测试报告。
+**验收结果**：`simulator_contract`（20 项）与 `executor_regressions`（6 项）除 import 外断言未改，在 Simulator 外观上全部通过；8 项 protocol 单元测试与 2 项 wire 测试同样通过——合计仍是原 36 项；`i0-demo` 输出与 `contracts/i0-v1/i0-demo.golden.json` 逐字节一致。execution-core 上另有 22 项 desktop 执行测试，覆盖停止锁存、根 epoch、许可状态、命中测试与原子原语策略（第 14.8、26.10 节）。新的桌面消息使用独立命名空间 `desktop` v1（`contracts/desktop-v1/`，36 种消息，共 62 个 golden fixtures，Rust 与 TypeScript 测试共用），没有通过修改旧 fixture 来掩盖不兼容。
 
-原包验证命令应在外部快照或明确标记的迁移验证区执行；以下命令当前不能在 computer-user 根目录直接运行：
+全部仍是模拟结果：real_device_input=false，business_effects_verified=false。backend_truth 只能供模拟验收，不能进入在线策略。
+
+仓库根目录可复现的命令：
 
 ```sh
-cargo test --offline --locked --all-targets
 cargo fmt --all -- --check
-cargo clippy --offline --locked --all-targets -- -D warnings
-cargo run --offline --locked --bin i0-demo
+cargo clippy --workspace --all-targets --locked -- -D warnings
+cargo test --workspace --locked
+cargo run --locked -p execution-core --bin i0-demo     # 输出与 i0-demo.golden.json 一致（demo_golden 测试逐字节核对）
+./scripts/check-all.sh                                 # 以上全部，加上生成类型的一致性、TypeScript 类型检查、测试与构建
 ```
-
-旧源文件 src/protocol.rs、src/simulator.rs、src/bin/i0_demo.rs、contracts 与 tests 是外部快照内的相对路径；本主文档不提供指向当前仓库不存在文件的伪链接。后续迁入后同步实际路径和验证记录。backend_truth 只能供模拟验收，不能进入在线策略。
 
 <a id="sec28"></a>
 
@@ -2233,6 +2234,34 @@ M0 内的各条 spike 可以并行。S1 离线决策质量实验不依赖任何�
 M0 输出最少包括 S1 离线决策质量报告与通过线判定、S2 集成路线定案、build/model manifests、IPC golden fixtures、生命周期/取消证据、CPU 质量与冷热耗时、签名包启动记录，以及有结论的待办列表。阶段预计耗时在 spike 实测后拆分，不以尚未构建的原生依赖估算固定交付日。
 
 一期之后按独立产品范围推进：游戏短路线与 MediaPipe S0；第二设备及跨设备时钟/中断语义；自动经验验证/发布与训练。其验收各自冻结，不用一期 TextEdit 成绩覆盖。
+
+### 28.1 M1 进度（2026-09-30）
+
+**出口标准逐条**（全部基于模拟后端，分支 `m1-architecture`，未推送，`main` 未改动）：
+
+| 出口标准 | 状态 | 证据 |
+|---|---|---|
+| 十个 Rust crate 的 workspace、desktop-api、两个 TS 包 | 完成 | 第 3.3 节；`./scripts/check-all.sh` 全部通过 |
+| 原 36 项在 execution-core 上保持通过，wire fixtures 不变 | 完成 | 第 27.4 节；`demo_golden` 逐字节一致 |
+| 七模块端口与消息目录 Schema | 完成 | 36 种消息、62 个 fixtures，Rust 与 TypeScript 校验器对每个 fixture 的结论一致 |
+| SQLite 账本与单事务接纳 | 完成 | 三个崩溃注入点、重复请求、重启不重放、额度保守保留；引擎级“接纳失败后不留痕并重试” |
+| 预算、决策、恢复的故障测试 | 完成 | 进程内 28 个场景（停止先于 host、人工接管、设备死亡、后端不可用、幻觉候选、动作前的帧、重启不重放、租约等）、14 项接纳测试、20 项生命周期测试 |
+| 最小 Electron 启停、控制通道与停止锁存 | **部分** | 三个真实进程的跨进程测试（8 项，连续运行稳定）；Electron 壳通过类型检查、构建与 30 项 Node 测试（含三条停止入口、host 被冻结时热键停止仍到达设备）。**没有在真实 Electron 窗口中运行过** |
+
+合计：Rust 383 项、TypeScript 52 项测试通过，`cargo fmt`、`clippy -D warnings`、生成类型一致性、`tsc` 与生产构建均通过。
+
+**已实现的技能与范围**：read_value、ensure_value（AX 动作优先、值未变时指针点击一次）、activate、revisit；enter_text、scroll_to、activate_window 在契约中登记但没有运行时，计划校验因此只接受已实现的技能。环境包只有设置夹具（含可复位的开关、Apply 与模态对话框）；TextEdit 包没有做。
+
+**实现者代为选择、待确认的决定**：
+
+1. 十个 crate（比设想多 `sim-world`、`desktop-ipc`、`desktop-supervisor`；`harness-adapter` 按计划独立）。
+2. 进程外壳不用异步运行时（ADR-0002）；监督通道用 stdin/stdout、进程间用私有 socket 加 token（ADR-0003）。
+3. S2 集成路线不定：harness-adapter 只实现路线无关的回合规则；规划器在 cu-host 内由脚本化替身回答。
+4. 引擎默认 observe 模式，execute 由 operator 显式打开；模式下调时已在运行的 root 被暂停。
+5. 第 13.5 节的补充转移行；设备死亡时不等确认直接 SUSPENDED。
+6. host 在握手后先建立控制租约，未确认前不发任何请求；停止序号按设备会话计。
+
+**已知缺口与未验证项**：Electron 在真实窗口中的沙箱、CSP、preload、托盘与全局热键；真实 macOS 设备与来源、TCC、签名；Laya、教师与云端 S2；MediaPipe；对端 PID 校验；帧的二进制通道；时延与性能；睡眠与时钟行为；断电下的 SQLite 持久性（只验证了进程级重启）；shadow 模式尚不记录建议；跨进程测试使用真实时间，超时设得宽松。**S1 离线决策质量实验（第 8.6 节）不依赖本阶段，仍未开始，应尽早并行进行**：本阶段的骨架回答不了 Laya 是否够用。
 
 <a id="sec29"></a>
 
