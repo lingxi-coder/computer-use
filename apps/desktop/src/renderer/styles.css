@@ -1,0 +1,166 @@
+:root {
+  color-scheme: light dark;
+  --bg: #f6f6f4;
+  --panel: #ffffff;
+  --text: #1c1c1a;
+  --muted: #6a6a64;
+  --line: #dcdcd6;
+  --accent: #245fbf;
+  --danger: #b3261e;
+  --ok: #1f7a3a;
+  --warn: #8a5a00;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161615;
+    --panel: #20201e;
+    --text: #ecece8;
+    --muted: #9a9a92;
+    --line: #34342f;
+    --accent: #6fa0f0;
+    --danger: #ff7a70;
+    --ok: #6fd28f;
+    --warn: #f0b84f;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.mode {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+h1,
+h2 {
+  margin: 0;
+  font-size: 15px;
+}
+
+textarea,
+select {
+  width: 100%;
+  padding: 8px;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+button {
+  padding: 8px 12px;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+button.primary {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+button.stop {
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+}
+
+.state {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.headline {
+  color: var(--muted);
+}
+
+progress {
+  width: 100%;
+}
+
+.prompt ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.banner {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+}
+
+.banner.pending {
+  color: var(--warn);
+}
+
+.banner.ok {
+  color: var(--ok);
+}
+
+.banner.warning {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.timeline ol {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 12px;
+}

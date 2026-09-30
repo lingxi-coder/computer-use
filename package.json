@@ -1,0 +1,29 @@
+{
+  "name": "computer-user",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Computer User: the desktop operator, its TypeScript packages and the tooling around the Rust workspace",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "gen-types": "node scripts/gen-types.mjs",
+    "gen-types:check": "node scripts/gen-types.mjs --check",
+    "build:native": "node scripts/ensure-binaries.mjs",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run build:native && npm test --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "json-schema-to-typescript": "^16.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}
