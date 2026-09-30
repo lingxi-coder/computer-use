@@ -480,6 +480,43 @@ impl SimApp {
         Some(instance_fingerprint(&snapshot, object).digest())
     }
 
+    /// The digest of whatever is really under the pointer, or the element an
+    /// accessibility action would hit. `None` means it cannot be told. A modal
+    /// sheet takes every point and every action, so behind one the answer is
+    /// always part of the sheet.
+    pub fn hit_test(
+        &self,
+        meta: &SnapshotMeta,
+        primitive: &Primitive,
+        expected_fingerprint: &str,
+    ) -> Option<String> {
+        let snapshot = self.snapshot(meta);
+        let active = snapshot.active_layer.clone()?;
+        let digest_of = |object: &UiObject| instance_fingerprint(&snapshot, object).digest();
+        let in_layer = || snapshot.objects.iter().filter(|o| o.window_id == active);
+        let modal = snapshot.windows.iter().any(|window| window.modal);
+        match primitive {
+            Primitive::AxAction { .. } => {
+                if in_layer().any(|o| digest_of(o) == expected_fingerprint) {
+                    Some(expected_fingerprint.to_string())
+                } else if modal {
+                    in_layer().find(|o| o.role == "sheet").map(digest_of)
+                } else {
+                    None
+                }
+            }
+            Primitive::Click { x, y, .. } => in_layer()
+                .filter(|o| o.frame.contains(f64::from(*x), f64::from(*y)))
+                .min_by(|a, b| {
+                    (a.frame.width * a.frame.height)
+                        .partial_cmp(&(b.frame.width * b.frame.height))
+                        .expect("finite areas")
+                })
+                .map(digest_of),
+            _ => None,
+        }
+    }
+
     /// React to one input the device applied.
     pub fn apply(&mut self, meta: &SnapshotMeta, applied: &Applied) -> ApplyEffect {
         let snapshot = self.snapshot(meta);
@@ -788,6 +825,40 @@ mod tests {
         let discard = app.fingerprint_of(&meta(5), "modal-discard").unwrap();
         app.apply(&meta(6), &ax(None, discard));
         assert_eq!(app.switch_on("Push", "Daily picks"), Some(true));
+    }
+
+    #[test]
+    fn the_hit_test_reports_what_is_really_there() {
+        let mut app = SimApp::new();
+        let switch = app.fingerprint_of(&meta(1), "sw-push-daily").unwrap();
+        let press = Primitive::AxAction {
+            action: AxActionKind::Press,
+        };
+        assert_eq!(
+            app.hit_test(&meta(2), &press, &switch),
+            Some(switch.clone())
+        );
+        // A click at the switch's centre finds the switch.
+        let click = Primitive::Click {
+            button: interaction_contracts::desktop::primitive::MouseButton::Left,
+            x: 420,
+            y: 70,
+            modifiers: Default::default(),
+        };
+        assert_eq!(
+            app.hit_test(&meta(2), &click, &switch),
+            Some(switch.clone())
+        );
+        // With a sheet in front, the same action finds the sheet instead.
+        app.inject_modal(Modal::UnsavedChanges);
+        let found = app
+            .hit_test(&meta(3), &press, &switch)
+            .expect("the sheet answers");
+        assert_ne!(found, switch);
+        assert_eq!(Some(found), app.fingerprint_of(&meta(3), "modal-root"));
+        // An unknown element behind no sheet cannot be told.
+        app.dismiss_modal();
+        assert_eq!(app.hit_test(&meta(4), &press, "fp1:unknown"), None);
     }
 
     #[test]

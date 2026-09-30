@@ -358,6 +358,10 @@ impl Engine {
         {
             return Ok(false);
         }
+        // A device without the host's lease refuses everything; wait for it.
+        if !self.device.lease_established() {
+            return Ok(false);
+        }
         if !self.evidence_usable() {
             if self.run.as_ref().is_some_and(|run| run.wait.is_some()) {
                 return Ok(false);

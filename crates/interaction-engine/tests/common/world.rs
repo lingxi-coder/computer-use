@@ -16,7 +16,6 @@ use execution_core::backend::{
     SubmitOutcome,
 };
 use execution_core::core::{CoreConfig, CoreEvent, ExecutionCore};
-use interaction_contracts::desktop::binding::instance_fingerprint;
 use interaction_contracts::desktop::decision::{
     DecisionFailure, DecisionProposal, DecisionRequest, DecisionSource, PolicyChoice, Precondition,
 };
@@ -98,58 +97,13 @@ impl InputBackend for WorldBackend {
     }
 
     fn hit_test(&mut self, request: &HitTestRequest<'_>) -> HitTestOutcome {
-        let app = self.app.borrow();
-        let snapshot = app.snapshot(&meta(self.clock.get()));
-        let Some(active) = snapshot.active_layer.clone() else {
-            return HitTestOutcome::Unresolved;
-        };
-        let digest_of = |object: &interaction_contracts::desktop::source::UiObject| {
-            instance_fingerprint(&snapshot, object).digest()
-        };
-        let in_active =
-            |object: &&interaction_contracts::desktop::source::UiObject| object.window_id == active;
-        // A modal sheet takes every point and every action: whatever is under
-        // the pointer is part of the sheet.
-        let modal = snapshot.windows.iter().any(|window| window.modal);
-        let expected_here = snapshot
-            .objects
-            .iter()
-            .filter(in_active)
-            .any(|object| digest_of(object) == request.expected_fingerprint);
-        match request.primitive {
-            Primitive::AxAction { .. } => {
-                if expected_here {
-                    HitTestOutcome::Element(request.expected_fingerprint.to_string())
-                } else if modal {
-                    snapshot
-                        .objects
-                        .iter()
-                        .filter(in_active)
-                        .find(|object| object.role == "sheet")
-                        .map_or(HitTestOutcome::Unresolved, |object| {
-                            HitTestOutcome::Element(digest_of(object))
-                        })
-                } else {
-                    HitTestOutcome::Unresolved
-                }
-            }
-            Primitive::Click { x, y, .. } => {
-                let under = snapshot
-                    .objects
-                    .iter()
-                    .filter(in_active)
-                    .filter(|object| object.frame.contains(f64::from(*x), f64::from(*y)))
-                    .min_by(|a, b| {
-                        (a.frame.width * a.frame.height)
-                            .partial_cmp(&(b.frame.width * b.frame.height))
-                            .expect("finite areas")
-                    });
-                match under {
-                    Some(object) => HitTestOutcome::Element(digest_of(object)),
-                    None => HitTestOutcome::Unresolved,
-                }
-            }
-            _ => HitTestOutcome::Unresolved,
+        match self.app.borrow().hit_test(
+            &meta(self.clock.get()),
+            request.primitive,
+            request.expected_fingerprint,
+        ) {
+            Some(digest) => HitTestOutcome::Element(digest),
+            None => HitTestOutcome::Unresolved,
         }
     }
 }
@@ -192,6 +146,8 @@ pub struct World {
     pub hold_notices: bool,
     /// The device carries out a stop but its answer never arrives.
     pub mute_stop: bool,
+    /// The device does not answer lease renewals, so the host never holds one.
+    pub mute_lease: bool,
     /// Every command the engine sent the device, in order.
     pub device_log: Vec<(u64, &'static str)>,
     path: Option<PathBuf>,
@@ -213,6 +169,14 @@ pub fn engine_config() -> EngineConfig {
 impl World {
     pub fn new() -> Self {
         Self::build(engine_config(), Storage::open_in_memory().unwrap())
+    }
+
+    /// A device that never grants the host's control lease until told to.
+    pub fn with_lease_withheld() -> Self {
+        let mut world = Self::build_with(engine_config(), Storage::open_in_memory().unwrap(), true);
+        world.mute_lease = true;
+        world.introduce_device();
+        world
     }
 
     pub fn with_config(config: EngineConfig) -> Self {
@@ -245,6 +209,12 @@ impl World {
     }
 
     fn build(config: EngineConfig, storage: Storage) -> Self {
+        Self::build_with(config, storage, false)
+    }
+
+    /// `hold_back_introduction` builds the world without the device having said
+    /// hello yet, for tests that change how it behaves first.
+    fn build_with(config: EngineConfig, storage: Storage, hold_back_introduction: bool) -> Self {
         let config_for_restart = config.clone();
         let app = Rc::new(RefCell::new(SimApp::new()));
         let inputs = Rc::new(RefCell::new(Vec::new()));
@@ -278,13 +248,16 @@ impl World {
             delayed: Vec::new(),
             hold_notices: false,
             mute_stop: false,
+            mute_lease: false,
             device_log: Vec::new(),
             path: None,
             config: config_for_restart,
             identity,
             steps: 0,
         };
-        world.introduce_device();
+        if !hold_back_introduction {
+            world.introduce_device();
+        }
         world
     }
 
@@ -433,6 +406,7 @@ impl World {
             }
             DeviceCommand::Stop(stop) => DeviceReply::Stopped(self.core.stop(&stop)),
             DeviceCommand::Resume(resume) => DeviceReply::Resumed(self.core.resume(&resume)),
+            DeviceCommand::RenewLease(_) if self.mute_lease => return,
             DeviceCommand::RenewLease(lease) => {
                 self.core.renew_lease(lease.valid_for_ms);
                 DeviceReply::Ack(CommandAck::ok())

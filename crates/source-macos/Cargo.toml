@@ -1,0 +1,21 @@
+[package]
+name = "source-macos"
+description = "cu-source: the evidence source process. In this build it reports a simulated application from a fixture; real capture arrives in M2"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+repository.workspace = true
+
+[dependencies]
+desktop-ipc = { path = "../desktop-ipc" }
+interaction-contracts.workspace = true
+sim-world.workspace = true
+
+[[bin]]
+name = "cu-source"
+path = "src/bin/cu_source.rs"
+
+[lints]
+workspace = true

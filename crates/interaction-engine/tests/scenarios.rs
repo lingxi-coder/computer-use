@@ -1257,3 +1257,35 @@ fn a_cancellation_the_dead_device_could_not_confirm_is_finished_on_its_replaceme
     );
     assert_eq!(world.engine.stop_status(), StopStatus::StoppedConfirmed);
 }
+
+// ---- The control lease ---------------------------------------------------------------------------------
+
+#[test]
+fn nothing_is_asked_of_a_device_that_has_not_granted_the_control_lease() {
+    let mut world = World::with_lease_withheld();
+    world.start(TEXT);
+    world.run_for(1_500);
+
+    // A device without the lease refuses everything, so the host does not try:
+    // the task waits at the door, having spent nothing.
+    assert_eq!(world.state(), Some(RootState::Ready), "{}", world.report());
+    assert_eq!(world.sent("register_root"), 0);
+    assert_eq!(world.sent("observe"), 0);
+    assert!(world.applied().is_empty());
+
+    // The lease is granted on the next renewal, and the task goes through.
+    world.mute_lease = false;
+    world.until(|w| w.finished(), 60_000);
+    assert_eq!(
+        world.outcome(),
+        Some(RootState::Completed),
+        "{}",
+        world.report()
+    );
+    let conn = world.engine.storage().read();
+    assert_eq!(
+        count(conn, "SELECT recoveries_used FROM budget_ledger"),
+        0,
+        "no recovery was wasted"
+    );
+}

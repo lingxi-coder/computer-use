@@ -1,0 +1,18 @@
+[package]
+name = "desktop-ipc"
+description = "Framed IO, private sockets and the handshake shared by the desktop processes"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+repository.workspace = true
+
+[dependencies]
+interaction-contracts.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

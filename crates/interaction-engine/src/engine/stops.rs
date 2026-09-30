@@ -73,7 +73,17 @@ impl Engine {
             }
             (Expect::Stop, DeviceReply::Stopped(ack)) => self.on_stop_ack(ack),
             (Expect::Resume, DeviceReply::Resumed(ack)) => self.on_resume_ack(ack),
-            (Expect::Revoke | Expect::Lease, DeviceReply::Ack(_)) => Ok(()),
+            (Expect::Lease, DeviceReply::Ack(ack)) => {
+                self.device.note_lease(ack.accepted);
+                if !ack.accepted {
+                    self.note(format!(
+                        "the device refused the control lease: {}",
+                        ack.reason.unwrap_or_default()
+                    ));
+                }
+                Ok(())
+            }
+            (Expect::Revoke, DeviceReply::Ack(_)) => Ok(()),
             (expect, reply) => {
                 self.note(format!("unexpected reply {reply:?} to {expect:?}"));
                 Ok(())
@@ -99,6 +109,10 @@ impl Engine {
         if previous == Some(epoch) {
             return Ok(());
         }
+        // A device refuses everything until it holds the host's control lease,
+        // so it is asked for at once rather than on the next tick.
+        self.last_lease_ms = None;
+        self.renew_lease();
         self.note(format!("the device introduced itself (session {epoch})"));
         if let Some(run) = self.run.as_mut() {
             // Nothing registered with the old session exists in the new one.
@@ -188,7 +202,9 @@ impl Engine {
             DeviceEventKind::CapabilityChanged { manifest } => self.on_manifest(manifest),
             DeviceEventKind::LeaseLost => {
                 self.note("the control lease lapsed; renewing it");
+                self.device.note_lease(false);
                 self.last_lease_ms = None;
+                self.renew_lease();
                 Ok(())
             }
         }

@@ -117,6 +117,9 @@ pub struct DeviceView {
     seen_stop_seq: u64,
     next_corr: u64,
     outstanding: BTreeMap<u64, (Expect, u64)>,
+    /// The device has accepted the host's control lease. Without one it refuses
+    /// everything, so nothing is asked of it until it has.
+    lease_established: bool,
 }
 
 impl DeviceView {
@@ -139,6 +142,7 @@ impl DeviceView {
             // one must never count as having handled a stop in the new one.
             self.acked_stop_seq = 0;
             self.seen_stop_seq = 0;
+            self.lease_established = false;
         }
         self.dependencies = manifest.identity.dependencies.clone();
         self.manifest = Some(manifest);
@@ -152,6 +156,15 @@ impl DeviceView {
         self.outstanding.clear();
         self.acked_stop_seq = 0;
         self.seen_stop_seq = 0;
+        self.lease_established = false;
+    }
+
+    pub fn lease_established(&self) -> bool {
+        self.lease_established
+    }
+
+    pub fn note_lease(&mut self, established: bool) {
+        self.lease_established = established;
     }
 
     pub fn manifest(&self) -> Option<&CapabilityManifest> {

@@ -55,7 +55,10 @@ impl Engine {
         if self.mode != RunMode::Execute || self.run.is_none() {
             return Ok(false);
         }
-        if !self.device.input_available() || self.device.behind_on_stops() {
+        if !self.device.input_available()
+            || self.device.behind_on_stops()
+            || !self.device.lease_established()
+        {
             return Ok(false);
         }
         let (registered, registering) = {
@@ -769,7 +772,7 @@ impl Engine {
         Ok(())
     }
 
-    fn renew_lease(&mut self) {
+    pub(super) fn renew_lease(&mut self) {
         if self.device.manifest().is_none() {
             return;
         }

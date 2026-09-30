@@ -1,0 +1,24 @@
+[package]
+name = "desktop-host"
+description = "cu-host: the composition root. It runs the engine with its SQLite ledger and talks to the device, the source, the decision worker and the operator over the desktop v1 protocol"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+repository.workspace = true
+
+[dependencies]
+desktop-ipc = { path = "../desktop-ipc" }
+interaction-contracts.workspace = true
+interaction-engine = { path = "../interaction-engine" }
+# The planner is scripted in this build; the real S2 adapter replaces it once
+# the integration route is chosen in M0.
+sim-world.workspace = true
+
+[[bin]]
+name = "cu-host"
+path = "src/bin/cu_host.rs"
+
+[lints]
+workspace = true

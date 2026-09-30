@@ -1,0 +1,22 @@
+[package]
+name = "device-macos"
+description = "cu-device: the execution device process. In this build it drives a simulated world; a real macOS backend replaces the input backend in M2"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+repository.workspace = true
+
+[dependencies]
+desktop-ipc = { path = "../desktop-ipc" }
+execution-core.workspace = true
+interaction-contracts.workspace = true
+sim-world.workspace = true
+
+[[bin]]
+name = "cu-device"
+path = "src/bin/cu_device.rs"
+
+[lints]
+workspace = true
