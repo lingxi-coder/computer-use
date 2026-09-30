@@ -1,6 +1,8 @@
 //! Helpers shared by the engine's integration tests.
 #![allow(dead_code)]
 
+pub mod world;
+
 use std::path::Path;
 
 use interaction_contracts::desktop::decision::DecisionSource;

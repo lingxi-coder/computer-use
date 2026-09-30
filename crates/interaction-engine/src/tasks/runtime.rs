@@ -241,6 +241,8 @@ pub struct TaskRuntime {
     config: TaskConfig,
     active: Option<ActiveRoot>,
     finished: Option<RootRow>,
+    /// What the finished root had spent, so its view still tells the truth.
+    finished_budget: Option<BudgetState>,
     queue: VecDeque<String>,
     /// Effect confirmations the user approved, by the decision they covered.
     approved: BTreeSet<DecisionId>,
@@ -253,6 +255,7 @@ impl TaskRuntime {
             config,
             active: None,
             finished: None,
+            finished_budget: None,
             queue: VecDeque::new(),
             approved: BTreeSet::new(),
             fault: None,
@@ -292,7 +295,7 @@ impl TaskRuntime {
     pub fn view(&self) -> Option<RootView> {
         let (row, budget) = match (&self.active, &self.finished) {
             (Some(active), _) => (&active.row, active.budget.as_ref()),
-            (None, Some(row)) => (row, None),
+            (None, Some(row)) => (row, self.finished_budget.as_ref()),
             _ => return None,
         };
         Some(RootView {
@@ -313,6 +316,7 @@ impl TaskRuntime {
     fn finish_active(&mut self) {
         if let Some(active) = self.active.take() {
             self.finished = Some(active.row);
+            self.finished_budget = active.budget;
         }
         self.approved.clear();
     }
@@ -1085,6 +1089,7 @@ impl TaskRuntime {
                 );
                 report.cancelled.push(root_id);
                 self.finished = Some(row);
+                self.finished_budget = None;
                 continue;
             } else {
                 row.state = transition(row.state, RootEvent::ProcessRestarted, row.state_origin)?;

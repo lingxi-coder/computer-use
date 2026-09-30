@@ -214,6 +214,16 @@ impl TaskStore {
         Ok(out)
     }
 
+    /// The number for the next attempt id. Rows are never deleted, so an id is
+    /// never reused.
+    pub fn next_attempt_seq(conn: &Connection) -> Result<u64, StoreError> {
+        Ok(conn.query_row(
+            "SELECT COALESCE(MAX(rowid), 0) + 1 FROM attempts",
+            [],
+            |row| row.get::<_, i64>(0),
+        )? as u64)
+    }
+
     pub fn next_seq(conn: &Connection) -> Result<u64, StoreError> {
         let max: Option<i64> =
             conn.query_row("SELECT MAX(seq) FROM root_tasks", [], |row| row.get(0))?;

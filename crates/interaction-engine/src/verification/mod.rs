@@ -128,6 +128,12 @@ impl Verification {
         }
     }
 
+    /// After a restart the conclusions already stored stay as they are; new
+    /// ones continue the numbering, because history is never rewritten.
+    pub fn resume_after(&mut self, stored_revision: u64) {
+        self.revision = self.revision.max(stored_revision);
+    }
+
     pub fn last_input_end_ms(&self) -> Option<u64> {
         self.last_input_end_ms
     }
@@ -620,6 +626,57 @@ mod tests {
                 },
             );
         }
+    }
+
+    #[test]
+    fn conclusions_after_a_restart_continue_the_numbering_and_never_overwrite() {
+        let mut storage = Storage::open_in_memory().unwrap();
+        let mut first = Rig::new(ConfirmationScope::UiRevisit);
+        first.observe_at(10);
+        first.bind();
+        let root = RootTaskId::new("root-1").unwrap();
+        for _ in 0..2 {
+            let ctx = EvidenceContext {
+                state: &first.state,
+                bindings: &first.bindings,
+                pack: &first.pack,
+                goal: &first.goal,
+            };
+            let verdict = first.verification.verdict(&ctx);
+            first
+                .verification
+                .conclude(&mut storage, &root, &ctx, &verdict, None, 10)
+                .unwrap();
+            first.observe_at(first.sequence * 20 + 50);
+            first.observe_at(first.sequence * 20 + 50);
+        }
+        let stored = VerificationStore::latest(storage.read(), "root-1")
+            .unwrap()
+            .expect("something was concluded")
+            .revision;
+
+        // A new process has a fresh Verification; left alone it would collide.
+        let mut after = Verification::new(0);
+        after.resume_after(stored);
+        first.observe_at(500);
+        let ctx = EvidenceContext {
+            state: &first.state,
+            bindings: &first.bindings,
+            pack: &first.pack,
+            goal: &first.goal,
+        };
+        let verdict = after.verdict(&ctx);
+        let written = after
+            .conclude(&mut storage, &root, &ctx, &verdict, None, 500)
+            .unwrap()
+            .expect("a new conclusion is written");
+        assert_eq!(written.revision, stored + 1);
+        assert_eq!(
+            VerificationStore::history(storage.read(), "root-1")
+                .unwrap()
+                .len() as u64,
+            stored + 1
+        );
     }
 
     #[test]

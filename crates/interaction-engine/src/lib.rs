@@ -8,7 +8,9 @@
 #![forbid(unsafe_code)]
 
 pub mod deliberation;
+pub mod engine;
 pub mod environment;
+pub mod execution;
 pub mod infrastructure;
 pub mod memory;
 pub mod ports;

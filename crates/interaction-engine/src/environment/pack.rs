@@ -77,6 +77,20 @@ impl AppPack {
         }
     }
 
+    /// A pack for an application that is not on the execution whitelist. It
+    /// knows nothing about the application, so every control is of unknown
+    /// effect and nothing in it can be acted on; it only lets the page be read.
+    pub fn observe_only(bundle_id: &str) -> Self {
+        Self {
+            bundle_id: bundle_id.into(),
+            name: bundle_id.into(),
+            rules: vec![],
+            controls: vec![],
+            nav_role: "tab".into(),
+            save_state_description: None,
+        }
+    }
+
     fn role_default(role: &str) -> EffectClass {
         match role {
             "switch" | "checkbox" | "radio" | "popup" | "textfield" | "slider" => {
