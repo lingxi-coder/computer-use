@@ -12,6 +12,7 @@ repository.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 schemars.workspace = true
+sha2.workspace = true
 
 [dev-dependencies]
 jsonschema.workspace = true
@@ -19,6 +20,10 @@ jsonschema.workspace = true
 [[bin]]
 name = "export-schema"
 path = "src/bin/export_schema.rs"
+
+[[bin]]
+name = "export-desktop"
+path = "src/bin/export_desktop.rs"
 
 [lints]
 workspace = true

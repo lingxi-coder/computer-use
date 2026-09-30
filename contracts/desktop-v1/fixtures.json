@@ -1,0 +1,2395 @@
+[
+  {
+    "name": "valid_hello",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "build_revision": "m1-sample",
+          "process": {
+            "pid": 4242,
+            "start_time_ms": 1000
+          },
+          "protocol_max": 1,
+          "protocol_min": 1,
+          "role": "device",
+          "session_epoch": 1,
+          "token": "0123456789abcdef0123456789abcdef",
+          "worker_epoch": 1
+        },
+        "type": "hello"
+      },
+      "message_id": "msg-hello",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_hello_ack",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "negotiated_version": 1,
+          "role": "device",
+          "session_epoch": 1
+        },
+        "type": "hello_ack"
+      },
+      "message_id": "msg-hello_ack",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_ready",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "capabilities": {
+            "backend": "simulated",
+            "hit_test": "available",
+            "human_input": "available",
+            "input": "available",
+            "max_uninterruptible_ms": 50,
+            "policy": "atomic_only"
+          },
+          "notes": [
+            "simulated backend"
+          ],
+          "role": "device"
+        },
+        "type": "ready"
+      },
+      "message_id": "msg-ready",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_configure",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "role": "device",
+          "session_epoch": 1,
+          "settings": {
+            "backend": "sim"
+          }
+        },
+        "type": "configure"
+      },
+      "message_id": "msg-configure",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_shutdown",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "reason": "product closing"
+        },
+        "type": "shutdown"
+      },
+      "message_id": "msg-shutdown",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_lease_renew",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "lease_epoch": 1,
+          "valid_for_ms": 2000
+        },
+        "type": "lease_renew"
+      },
+      "message_id": "msg-lease_renew",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_operator_command",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "command": "create_task",
+          "text": "turn off the daily picks notification"
+        },
+        "type": "operator_command"
+      },
+      "message_id": "msg-operator_command",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_ui_projection",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "capabilities": {
+            "backend": "simulated",
+            "hit_test": "available",
+            "human_input": "available",
+            "input": "available",
+            "max_uninterruptible_ms": 50,
+            "policy": "atomic_only"
+          },
+          "cleanup": "not_needed",
+          "mode": "execute",
+          "pending_confirmation": null,
+          "revision": 3,
+          "root": {
+            "attempts_max": 8,
+            "attempts_used": 1,
+            "headline": "Turning off daily picks",
+            "root_epoch": 1,
+            "root_task_id": "root-1",
+            "state": "running",
+            "task_revision": 1
+          },
+          "stop_status": "not_stopped",
+          "timeline": [
+            {
+              "at_ms": 90,
+              "text": "goal confirmed"
+            }
+          ]
+        },
+        "type": "ui_projection"
+      },
+      "message_id": "msg-ui_projection",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_confirmation_request",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "confirmation_id": "conf-1",
+          "kind": {
+            "goal": {
+              "app": "test.settings",
+              "confirmation_scope": "ui_revisit",
+              "desired": {
+                "type": "bool",
+                "value": false
+              },
+              "group": "Push",
+              "max_effect_class": "reversible_edit",
+              "target_label": "Daily picks",
+              "user_text": "turn off the daily picks notification"
+            },
+            "kind": "goal"
+          },
+          "root_task_id": "root-1",
+          "task_revision": 1
+        },
+        "type": "confirmation_request"
+      },
+      "message_id": "msg-confirmation_request",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_confirmation_result",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "approved": true,
+          "confirmation_id": "conf-1"
+        },
+        "type": "confirmation_result"
+      },
+      "message_id": "msg-confirmation_result",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_register_root",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "deadline_ms": 60000,
+          "revision": 1,
+          "root_epoch": 1,
+          "root_id": "root-1"
+        },
+        "type": "register_root"
+      },
+      "message_id": "msg-register_root",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_grant_permit",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "acked_stop_seq": 0,
+          "evidence_id": "obs-1",
+          "target_ref": "daily-picks",
+          "task_id": "root-1",
+          "valid_until_ms": 5000
+        },
+        "type": "grant_permit"
+      },
+      "message_id": "msg-grant_permit",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_grant_outcome",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "outcome": "granted",
+          "permit": {
+            "generation": 1,
+            "id": "permit-1"
+          }
+        },
+        "type": "grant_outcome"
+      },
+      "message_id": "msg-grant_outcome",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_observation",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "clock_domain": "sim/1/monotonic",
+          "dependencies": {
+            "authorization": 1,
+            "binding": 1,
+            "focus": 1,
+            "layer": 1
+          },
+          "freshness": "verified",
+          "observation_id": "obs-1",
+          "observed_ms": 90,
+          "session_epoch": 1,
+          "source_sequence": 1,
+          "surface": {
+            "epoch": 1,
+            "id": "main"
+          },
+          "target_ref": "daily-picks",
+          "valid_until_ms": 5000
+        },
+        "type": "observation"
+      },
+      "message_id": "msg-observation",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_submit_intent",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "acked_stop_seq": 0,
+          "intent": {
+            "attempt_id": "attempt-1",
+            "binding_fingerprint": "fp1:0123456789abcdef",
+            "coordinate_space": "display_points",
+            "dependencies": {
+              "authorization": 1,
+              "binding": 1,
+              "focus": 1,
+              "layer": 1
+            },
+            "duration_ms": 100,
+            "evidence_id": "obs-1",
+            "intent_id": "intent-1",
+            "latest_start_ms": 200,
+            "permit": {
+              "generation": 1,
+              "id": "permit-1"
+            },
+            "root_epoch": 1,
+            "session_epoch": 1,
+            "steps": [
+              {
+                "offset_ms": 0,
+                "primitive": {
+                  "payload": {
+                    "action": {
+                      "kind": "set_value",
+                      "value": "off"
+                    }
+                  },
+                  "type": "ax_action"
+                }
+              }
+            ],
+            "surface": {
+              "epoch": 1,
+              "id": "main"
+            },
+            "target_ref": "daily-picks",
+            "task_id": "root-1",
+            "task_revision": 1
+          }
+        },
+        "type": "submit_intent"
+      },
+      "message_id": "msg-submit_intent",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_receipt",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "at_ms": 300,
+          "attempt_id": "attempt-1",
+          "command_end_ms": 300,
+          "intent_id": "intent-1",
+          "reason": "bounded input ended; effect not verified",
+          "reason_code": null,
+          "release_status": "not_needed",
+          "session_epoch": 1,
+          "status": "completed",
+          "submitted": [
+            {
+              "at_ms": 210,
+              "cleanup": false,
+              "primitive": {
+                "payload": {
+                  "action": {
+                    "kind": "set_value",
+                    "value": "off"
+                  }
+                },
+                "type": "ax_action"
+              }
+            }
+          ]
+        },
+        "type": "receipt"
+      },
+      "message_id": "msg-receipt",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_query_receipt",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "intent_id": "intent-1",
+          "session_epoch": 1
+        },
+        "type": "query_receipt"
+      },
+      "message_id": "msg-query_receipt",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_renew_permit",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "evidence_id": "obs-2",
+          "permit": {
+            "generation": 1,
+            "id": "permit-1"
+          },
+          "session_epoch": 1,
+          "valid_until_ms": 6000
+        },
+        "type": "renew_permit"
+      },
+      "message_id": "msg-renew_permit",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_revoke_execution",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "permit": {
+            "generation": 1,
+            "id": "permit-1"
+          },
+          "reason": "layer changed",
+          "session_epoch": 1
+        },
+        "type": "revoke_execution"
+      },
+      "message_id": "msg-revoke_execution",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_stop_command",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "disposition": "pause",
+          "reason": "user pressed stop",
+          "scope": {
+            "scope": "all"
+          },
+          "source": "operator_button"
+        },
+        "type": "stop_command"
+      },
+      "message_id": "msg-stop_command",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_stop_ack",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "at_ms": 120,
+          "cleanup": "not_needed",
+          "disposition": "pause",
+          "revoked_permits": 1,
+          "scope": {
+            "scope": "all"
+          },
+          "stop_floor": 1,
+          "stop_seq": 1
+        },
+        "type": "stop_ack"
+      },
+      "message_id": "msg-stop_ack",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_resume_command",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "scope": {
+            "root_id": "root-1",
+            "scope": "root"
+          }
+        },
+        "type": "resume_command"
+      },
+      "message_id": "msg-resume_command",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_resume_ack",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "reason": null,
+          "resumed": true
+        },
+        "type": "resume_ack"
+      },
+      "message_id": "msg-resume_ack",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_dependency_update",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "name": "layer",
+          "valid": false
+        },
+        "type": "dependency_update"
+      },
+      "message_id": "msg-dependency_update",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_dependency_versions",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "versions": {
+            "authorization": 1,
+            "binding": 1,
+            "focus": 1,
+            "layer": 1
+          }
+        },
+        "type": "dependency_versions"
+      },
+      "message_id": "msg-dependency_versions",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_device_event",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "at_ms": 120,
+          "event": {
+            "ack": {
+              "at_ms": 120,
+              "cleanup": "not_needed",
+              "disposition": "pause",
+              "revoked_permits": 1,
+              "scope": {
+                "scope": "all"
+              },
+              "stop_floor": 1,
+              "stop_seq": 1
+            },
+            "kind": "stopped"
+          },
+          "seq": 1
+        },
+        "type": "device_event"
+      },
+      "message_id": "msg-device_event",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_capability_manifest",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "backend": "simulated",
+          "hit_test": "available",
+          "human_input": "available",
+          "input": "available",
+          "max_uninterruptible_ms": 50,
+          "policy": "atomic_only"
+        },
+        "type": "capability_manifest"
+      },
+      "message_id": "msg-capability_manifest",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_command_ack",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "accepted": true,
+          "code": null,
+          "reason": null
+        },
+        "type": "command_ack"
+      },
+      "message_id": "msg-command_ack",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_sim_control",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "op": {
+            "op": "set_hit_test",
+            "result": {
+              "result": "match"
+            }
+          }
+        },
+        "type": "sim_control"
+      },
+      "message_id": "msg-sim_control",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_structure_snapshot",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "active_layer": "w1",
+          "app": {
+            "bundle_id": "test.settings",
+            "name": "Settings",
+            "pid": 4242
+          },
+          "clock_domain": "sim/1/monotonic",
+          "complete": true,
+          "incomplete_reason": null,
+          "objects": [
+            {
+              "actions": [
+                "press",
+                "set_value"
+              ],
+              "description": null,
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 20.0,
+                "width": 40.0,
+                "x": 40.0,
+                "y": 60.0
+              },
+              "group": "Push",
+              "in_view": true,
+              "instance_ref": "obj-1",
+              "parent": null,
+              "role": "switch",
+              "secure": false,
+              "subrole": null,
+              "title": "Daily picks",
+              "value": {
+                "type": "bool",
+                "value": true
+              },
+              "window_id": "w1"
+            }
+          ],
+          "observed_ms": 90,
+          "session_epoch": 1,
+          "snapshot_id": "snap-1",
+          "source_sequence": 1,
+          "surface": {
+            "epoch": 1,
+            "id": "main"
+          },
+          "windows": [
+            {
+              "frame": {
+                "height": 400.0,
+                "width": 600.0,
+                "x": 0.0,
+                "y": 0.0
+              },
+              "kind": "window",
+              "modal": false,
+              "owner_bundle_id": "test.settings",
+              "title": "Notifications",
+              "window_id": "w1",
+              "z_index": 0
+            }
+          ]
+        },
+        "type": "structure_snapshot"
+      },
+      "message_id": "msg-structure_snapshot",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_source_health",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "at_ms": 90,
+          "reason": null,
+          "source": "ax",
+          "state": "available"
+        },
+        "type": "source_health"
+      },
+      "message_id": "msg-source_health",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_frame_meta",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "byte_length": 5184000,
+          "checksum": "sha256:00",
+          "clock_domain": "sim/1/monotonic",
+          "frame_id": "frame-1",
+          "geometry_revision": 1,
+          "height_px": 900,
+          "scale_factor": 2.0,
+          "session_epoch": 1,
+          "source_ms": 90,
+          "source_sequence": 1,
+          "status": "complete",
+          "surface": {
+            "epoch": 1,
+            "id": "main"
+          },
+          "width_px": 1440
+        },
+        "type": "frame_meta"
+      },
+      "message_id": "msg-frame_meta",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_source_command",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "command": "refresh_now"
+        },
+        "type": "source_command"
+      },
+      "message_id": "msg-source_command",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_decision_request",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "calibration_revision": "none",
+          "created_ms": 95,
+          "decision_id": "d-1",
+          "decision_program": "ui.ensure_value@1",
+          "lane_id": "lane-1",
+          "plan_revision": 1,
+          "questions": [
+            {
+              "id": "q1",
+              "kind": "choice",
+              "options": [
+                {
+                  "description": "set the switch off",
+                  "key": "c-1"
+                }
+              ],
+              "prompt": "Which candidate advances the goal?"
+            }
+          ],
+          "request_generation": 1,
+          "result_deadline_ms": 600,
+          "root_epoch": 1,
+          "root_task_id": "root-1",
+          "state": {
+            "candidate_set_digest": "sha:abc",
+            "candidates": [
+              {
+                "binding": "bind-1",
+                "candidate_id": "c-1",
+                "description": "set the switch off",
+                "effect_class": "reversible_edit",
+                "parameters": {
+                  "value": "off"
+                },
+                "precondition": {
+                  "state": "executable"
+                },
+                "semantic_target": "daily-picks",
+                "skill": "ui.ensure_value"
+              }
+            ],
+            "goal_summary": "turn off daily picks",
+            "missing_fields": [],
+            "objects": [
+              {
+                "age_ms": 10,
+                "enabled": true,
+                "group": "Push",
+                "in_view": true,
+                "instance": "obj-1",
+                "label": "Daily picks",
+                "role": "switch",
+                "value": "on"
+              }
+            ],
+            "omitted_items": [],
+            "recent_results": [],
+            "root_task_id": "root-1",
+            "snapshot_revision": 2,
+            "subgoal": "ensure the switch is off",
+            "task_revision": 1
+          },
+          "task_revision": 1
+        },
+        "type": "decision_request"
+      },
+      "message_id": "msg-decision_request",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_decision_proposal",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "answers": [
+            {
+              "confidence_milli": 900,
+              "question_id": "q1",
+              "selected": "c-1"
+            }
+          ],
+          "backend": "teacher-scripted",
+          "candidate_set_digest": "sha:abc",
+          "choice": {
+            "action": "start_skill",
+            "candidate": "c-1"
+          },
+          "decision_id": "d-1",
+          "failure": null,
+          "inference_ms": 20,
+          "model_revision": "scripted-1",
+          "queue_ms": 1,
+          "request_generation": 1,
+          "source": "teacher",
+          "truncated": false
+        },
+        "type": "decision_proposal"
+      },
+      "message_id": "msg-decision_proposal",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "valid_decision_cancel",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "decision_id": "d-1",
+          "request_generation": 1
+        },
+        "type": "decision_cancel"
+      },
+      "message_id": "msg-decision_cancel",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "unknown_field_at_envelope",
+    "schema_valid": false,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "disposition": "pause",
+          "reason": "user pressed stop",
+          "scope": {
+            "scope": "all"
+          },
+          "source": "operator_button"
+        },
+        "type": "stop_command"
+      },
+      "message_id": "msg-stop_command",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1",
+      "unexpected": true
+    }
+  },
+  {
+    "name": "unknown_field_in_payload",
+    "schema_valid": false,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "acked_stop_seq": 0,
+          "intent": {
+            "attempt_id": "attempt-1",
+            "binding_fingerprint": "fp1:0123456789abcdef",
+            "coordinate_space": "display_points",
+            "dependencies": {
+              "authorization": 1,
+              "binding": 1,
+              "focus": 1,
+              "layer": 1
+            },
+            "duration_ms": 100,
+            "evidence_id": "obs-1",
+            "intent_id": "intent-1",
+            "latest_start_ms": 200,
+            "permit": {
+              "generation": 1,
+              "id": "permit-1"
+            },
+            "root_epoch": 1,
+            "session_epoch": 1,
+            "steps": [
+              {
+                "offset_ms": 0,
+                "primitive": {
+                  "payload": {
+                    "action": {
+                      "kind": "set_value",
+                      "value": "off"
+                    }
+                  },
+                  "type": "ax_action"
+                }
+              }
+            ],
+            "surface": {
+              "epoch": 1,
+              "id": "main"
+            },
+            "target_ref": "daily-picks",
+            "task_id": "root-1",
+            "task_revision": 1,
+            "unexpected": true
+          }
+        },
+        "type": "submit_intent"
+      },
+      "message_id": "msg-submit_intent",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "unknown_field_in_nested_primitive",
+    "schema_valid": false,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "acked_stop_seq": 0,
+          "intent": {
+            "attempt_id": "attempt-1",
+            "binding_fingerprint": "fp1:0123456789abcdef",
+            "coordinate_space": "display_points",
+            "dependencies": {
+              "authorization": 1,
+              "binding": 1,
+              "focus": 1,
+              "layer": 1
+            },
+            "duration_ms": 100,
+            "evidence_id": "obs-1",
+            "intent_id": "intent-1",
+            "latest_start_ms": 200,
+            "permit": {
+              "generation": 1,
+              "id": "permit-1"
+            },
+            "root_epoch": 1,
+            "session_epoch": 1,
+            "steps": [
+              {
+                "offset_ms": 0,
+                "primitive": {
+                  "payload": {
+                    "action": {
+                      "kind": "set_value",
+                      "unexpected": true,
+                      "value": "off"
+                    }
+                  },
+                  "type": "ax_action"
+                }
+              }
+            ],
+            "surface": {
+              "epoch": 1,
+              "id": "main"
+            },
+            "target_ref": "daily-picks",
+            "task_id": "root-1",
+            "task_revision": 1
+          }
+        },
+        "type": "submit_intent"
+      },
+      "message_id": "msg-submit_intent",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "unknown_message_type",
+    "schema_valid": false,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "disposition": "pause",
+          "reason": "user pressed stop",
+          "scope": {
+            "scope": "all"
+          },
+          "source": "operator_button"
+        },
+        "type": "format_disk"
+      },
+      "message_id": "msg-stop_command",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "unsupported_protocol_version",
+    "schema_valid": false,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "disposition": "pause",
+          "reason": "user pressed stop",
+          "scope": {
+            "scope": "all"
+          },
+          "source": "operator_button"
+        },
+        "type": "stop_command"
+      },
+      "message_id": "msg-stop_command",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 2,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "empty_message_id",
+    "schema_valid": false,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "disposition": "pause",
+          "reason": "user pressed stop",
+          "scope": {
+            "scope": "all"
+          },
+          "source": "operator_button"
+        },
+        "type": "stop_command"
+      },
+      "message_id": "",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "oversized_message_id",
+    "schema_valid": false,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "disposition": "pause",
+          "reason": "user pressed stop",
+          "scope": {
+            "scope": "all"
+          },
+          "source": "operator_button"
+        },
+        "type": "stop_command"
+      },
+      "message_id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "unknown_primitive_type",
+    "schema_valid": false,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "acked_stop_seq": 0,
+          "intent": {
+            "attempt_id": "attempt-1",
+            "binding_fingerprint": "fp1:0123456789abcdef",
+            "coordinate_space": "display_points",
+            "dependencies": {
+              "authorization": 1,
+              "binding": 1,
+              "focus": 1,
+              "layer": 1
+            },
+            "duration_ms": 100,
+            "evidence_id": "obs-1",
+            "intent_id": "intent-1",
+            "latest_start_ms": 200,
+            "permit": {
+              "generation": 1,
+              "id": "permit-1"
+            },
+            "root_epoch": 1,
+            "session_epoch": 1,
+            "steps": [
+              {
+                "offset_ms": 0,
+                "primitive": {
+                  "payload": {
+                    "action": {
+                      "kind": "set_value",
+                      "value": "off"
+                    }
+                  },
+                  "type": "teleport"
+                }
+              }
+            ],
+            "surface": {
+              "epoch": 1,
+              "id": "main"
+            },
+            "target_ref": "daily-picks",
+            "task_id": "root-1",
+            "task_revision": 1
+          }
+        },
+        "type": "submit_intent"
+      },
+      "message_id": "msg-submit_intent",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "zero_duration",
+    "schema_valid": false,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "acked_stop_seq": 0,
+          "intent": {
+            "attempt_id": "attempt-1",
+            "binding_fingerprint": "fp1:0123456789abcdef",
+            "coordinate_space": "display_points",
+            "dependencies": {
+              "authorization": 1,
+              "binding": 1,
+              "focus": 1,
+              "layer": 1
+            },
+            "duration_ms": 0,
+            "evidence_id": "obs-1",
+            "intent_id": "intent-1",
+            "latest_start_ms": 200,
+            "permit": {
+              "generation": 1,
+              "id": "permit-1"
+            },
+            "root_epoch": 1,
+            "session_epoch": 1,
+            "steps": [
+              {
+                "offset_ms": 0,
+                "primitive": {
+                  "payload": {
+                    "action": {
+                      "kind": "set_value",
+                      "value": "off"
+                    }
+                  },
+                  "type": "ax_action"
+                }
+              }
+            ],
+            "surface": {
+              "epoch": 1,
+              "id": "main"
+            },
+            "target_ref": "daily-picks",
+            "task_id": "root-1",
+            "task_revision": 1
+          }
+        },
+        "type": "submit_intent"
+      },
+      "message_id": "msg-submit_intent",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "no_steps",
+    "schema_valid": false,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "acked_stop_seq": 0,
+          "intent": {
+            "attempt_id": "attempt-1",
+            "binding_fingerprint": "fp1:0123456789abcdef",
+            "coordinate_space": "display_points",
+            "dependencies": {
+              "authorization": 1,
+              "binding": 1,
+              "focus": 1,
+              "layer": 1
+            },
+            "duration_ms": 100,
+            "evidence_id": "obs-1",
+            "intent_id": "intent-1",
+            "latest_start_ms": 200,
+            "permit": {
+              "generation": 1,
+              "id": "permit-1"
+            },
+            "root_epoch": 1,
+            "session_epoch": 1,
+            "steps": [],
+            "surface": {
+              "epoch": 1,
+              "id": "main"
+            },
+            "target_ref": "daily-picks",
+            "task_id": "root-1",
+            "task_revision": 1
+          }
+        },
+        "type": "submit_intent"
+      },
+      "message_id": "msg-submit_intent",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "root_epoch_zero",
+    "schema_valid": false,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "acked_stop_seq": 0,
+          "intent": {
+            "attempt_id": "attempt-1",
+            "binding_fingerprint": "fp1:0123456789abcdef",
+            "coordinate_space": "display_points",
+            "dependencies": {
+              "authorization": 1,
+              "binding": 1,
+              "focus": 1,
+              "layer": 1
+            },
+            "duration_ms": 100,
+            "evidence_id": "obs-1",
+            "intent_id": "intent-1",
+            "latest_start_ms": 200,
+            "permit": {
+              "generation": 1,
+              "id": "permit-1"
+            },
+            "root_epoch": 0,
+            "session_epoch": 1,
+            "steps": [
+              {
+                "offset_ms": 0,
+                "primitive": {
+                  "payload": {
+                    "action": {
+                      "kind": "set_value",
+                      "value": "off"
+                    }
+                  },
+                  "type": "ax_action"
+                }
+              }
+            ],
+            "surface": {
+              "epoch": 1,
+              "id": "main"
+            },
+            "target_ref": "daily-picks",
+            "task_id": "root-1",
+            "task_revision": 1
+          }
+        },
+        "type": "submit_intent"
+      },
+      "message_id": "msg-submit_intent",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "short_handshake_token",
+    "schema_valid": false,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "build_revision": "m1-sample",
+          "process": {
+            "pid": 4242,
+            "start_time_ms": 1000
+          },
+          "protocol_max": 1,
+          "protocol_min": 1,
+          "role": "device",
+          "session_epoch": 1,
+          "token": "abc",
+          "worker_epoch": 1
+        },
+        "type": "hello"
+      },
+      "message_id": "msg-hello",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "unknown_operator_command",
+    "schema_valid": false,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "command": "run_shell",
+          "text": "turn off the daily picks notification"
+        },
+        "type": "operator_command"
+      },
+      "message_id": "msg-operator_command",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "negative_sequence",
+    "schema_valid": false,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "disposition": "pause",
+          "reason": "user pressed stop",
+          "scope": {
+            "scope": "all"
+          },
+          "source": "operator_button"
+        },
+        "type": "stop_command"
+      },
+      "message_id": "msg-stop_command",
+      "producer": "cu-sample",
+      "producer_sequence": -1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "observation_window_inverted",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "clock_domain": "sim/1/monotonic",
+          "dependencies": {
+            "authorization": 1,
+            "binding": 1,
+            "focus": 1,
+            "layer": 1
+          },
+          "freshness": "verified",
+          "observation_id": "obs-1",
+          "observed_ms": 90,
+          "session_epoch": 1,
+          "source_sequence": 1,
+          "surface": {
+            "epoch": 1,
+            "id": "main"
+          },
+          "target_ref": "daily-picks",
+          "valid_until_ms": 10
+        },
+        "type": "observation"
+      },
+      "message_id": "msg-observation",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "offsets_not_strictly_increasing",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "acked_stop_seq": 0,
+          "intent": {
+            "attempt_id": "attempt-1",
+            "binding_fingerprint": "fp1:0123456789abcdef",
+            "coordinate_space": "display_points",
+            "dependencies": {
+              "authorization": 1,
+              "binding": 1,
+              "focus": 1,
+              "layer": 1
+            },
+            "duration_ms": 100,
+            "evidence_id": "obs-1",
+            "intent_id": "intent-1",
+            "latest_start_ms": 200,
+            "permit": {
+              "generation": 1,
+              "id": "permit-1"
+            },
+            "root_epoch": 1,
+            "session_epoch": 1,
+            "steps": [
+              {
+                "offset_ms": 0,
+                "primitive": {
+                  "payload": {
+                    "action": {
+                      "kind": "set_value",
+                      "value": "off"
+                    }
+                  },
+                  "type": "ax_action"
+                }
+              },
+              {
+                "offset_ms": 0,
+                "primitive": {
+                  "payload": {
+                    "action": {
+                      "kind": "set_value",
+                      "value": "off"
+                    }
+                  },
+                  "type": "ax_action"
+                }
+              }
+            ],
+            "surface": {
+              "epoch": 1,
+              "id": "main"
+            },
+            "target_ref": "daily-picks",
+            "task_id": "root-1",
+            "task_revision": 1
+          }
+        },
+        "type": "submit_intent"
+      },
+      "message_id": "msg-submit_intent",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "offset_at_or_beyond_duration",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "acked_stop_seq": 0,
+          "intent": {
+            "attempt_id": "attempt-1",
+            "binding_fingerprint": "fp1:0123456789abcdef",
+            "coordinate_space": "display_points",
+            "dependencies": {
+              "authorization": 1,
+              "binding": 1,
+              "focus": 1,
+              "layer": 1
+            },
+            "duration_ms": 100,
+            "evidence_id": "obs-1",
+            "intent_id": "intent-1",
+            "latest_start_ms": 200,
+            "permit": {
+              "generation": 1,
+              "id": "permit-1"
+            },
+            "root_epoch": 1,
+            "session_epoch": 1,
+            "steps": [
+              {
+                "offset_ms": 100,
+                "primitive": {
+                  "payload": {
+                    "action": {
+                      "kind": "set_value",
+                      "value": "off"
+                    }
+                  },
+                  "type": "ax_action"
+                }
+              }
+            ],
+            "surface": {
+              "epoch": 1,
+              "id": "main"
+            },
+            "target_ref": "daily-picks",
+            "task_id": "root-1",
+            "task_revision": 1
+          }
+        },
+        "type": "submit_intent"
+      },
+      "message_id": "msg-submit_intent",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "key_released_but_never_held",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "acked_stop_seq": 0,
+          "intent": {
+            "attempt_id": "attempt-1",
+            "binding_fingerprint": "fp1:0123456789abcdef",
+            "coordinate_space": "display_points",
+            "dependencies": {
+              "authorization": 1,
+              "binding": 1,
+              "focus": 1,
+              "layer": 1
+            },
+            "duration_ms": 100,
+            "evidence_id": "obs-1",
+            "intent_id": "intent-1",
+            "latest_start_ms": 200,
+            "permit": {
+              "generation": 1,
+              "id": "permit-1"
+            },
+            "root_epoch": 1,
+            "session_epoch": 1,
+            "steps": [
+              {
+                "offset_ms": 0,
+                "primitive": {
+                  "payload": {
+                    "key": "W"
+                  },
+                  "type": "key_up"
+                }
+              }
+            ],
+            "surface": {
+              "epoch": 1,
+              "id": "main"
+            },
+            "target_ref": "daily-picks",
+            "task_id": "root-1",
+            "task_revision": 1
+          }
+        },
+        "type": "submit_intent"
+      },
+      "message_id": "msg-submit_intent",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "blank_typed_text",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "acked_stop_seq": 0,
+          "intent": {
+            "attempt_id": "attempt-1",
+            "binding_fingerprint": "fp1:0123456789abcdef",
+            "coordinate_space": "display_points",
+            "dependencies": {
+              "authorization": 1,
+              "binding": 1,
+              "focus": 1,
+              "layer": 1
+            },
+            "duration_ms": 100,
+            "evidence_id": "obs-1",
+            "intent_id": "intent-1",
+            "latest_start_ms": 200,
+            "permit": {
+              "generation": 1,
+              "id": "permit-1"
+            },
+            "root_epoch": 1,
+            "session_epoch": 1,
+            "steps": [
+              {
+                "offset_ms": 0,
+                "primitive": {
+                  "payload": {
+                    "text": ""
+                  },
+                  "type": "type_text"
+                }
+              }
+            ],
+            "surface": {
+              "epoch": 1,
+              "id": "main"
+            },
+            "target_ref": "daily-picks",
+            "task_id": "root-1",
+            "task_revision": 1
+          }
+        },
+        "type": "submit_intent"
+      },
+      "message_id": "msg-submit_intent",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "receipt_submitted_after_receipt_time",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "at_ms": 300,
+          "attempt_id": "attempt-1",
+          "command_end_ms": 300,
+          "intent_id": "intent-1",
+          "reason": "bounded input ended; effect not verified",
+          "reason_code": null,
+          "release_status": "not_needed",
+          "session_epoch": 1,
+          "status": "completed",
+          "submitted": [
+            {
+              "at_ms": 999,
+              "cleanup": false,
+              "primitive": {
+                "payload": {
+                  "action": {
+                    "kind": "set_value",
+                    "value": "off"
+                  }
+                },
+                "type": "ax_action"
+              }
+            }
+          ]
+        },
+        "type": "receipt"
+      },
+      "message_id": "msg-receipt",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "snapshot_active_layer_unknown",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "active_layer": "ghost",
+          "app": {
+            "bundle_id": "test.settings",
+            "name": "Settings",
+            "pid": 4242
+          },
+          "clock_domain": "sim/1/monotonic",
+          "complete": true,
+          "incomplete_reason": null,
+          "objects": [
+            {
+              "actions": [
+                "press",
+                "set_value"
+              ],
+              "description": null,
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 20.0,
+                "width": 40.0,
+                "x": 40.0,
+                "y": 60.0
+              },
+              "group": "Push",
+              "in_view": true,
+              "instance_ref": "obj-1",
+              "parent": null,
+              "role": "switch",
+              "secure": false,
+              "subrole": null,
+              "title": "Daily picks",
+              "value": {
+                "type": "bool",
+                "value": true
+              },
+              "window_id": "w1"
+            }
+          ],
+          "observed_ms": 90,
+          "session_epoch": 1,
+          "snapshot_id": "snap-1",
+          "source_sequence": 1,
+          "surface": {
+            "epoch": 1,
+            "id": "main"
+          },
+          "windows": [
+            {
+              "frame": {
+                "height": 400.0,
+                "width": 600.0,
+                "x": 0.0,
+                "y": 0.0
+              },
+              "kind": "window",
+              "modal": false,
+              "owner_bundle_id": "test.settings",
+              "title": "Notifications",
+              "window_id": "w1",
+              "z_index": 0
+            }
+          ]
+        },
+        "type": "structure_snapshot"
+      },
+      "message_id": "msg-structure_snapshot",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "snapshot_incomplete_without_reason",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "active_layer": "w1",
+          "app": {
+            "bundle_id": "test.settings",
+            "name": "Settings",
+            "pid": 4242
+          },
+          "clock_domain": "sim/1/monotonic",
+          "complete": false,
+          "incomplete_reason": null,
+          "objects": [
+            {
+              "actions": [
+                "press",
+                "set_value"
+              ],
+              "description": null,
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 20.0,
+                "width": 40.0,
+                "x": 40.0,
+                "y": 60.0
+              },
+              "group": "Push",
+              "in_view": true,
+              "instance_ref": "obj-1",
+              "parent": null,
+              "role": "switch",
+              "secure": false,
+              "subrole": null,
+              "title": "Daily picks",
+              "value": {
+                "type": "bool",
+                "value": true
+              },
+              "window_id": "w1"
+            }
+          ],
+          "observed_ms": 90,
+          "session_epoch": 1,
+          "snapshot_id": "snap-1",
+          "source_sequence": 1,
+          "surface": {
+            "epoch": 1,
+            "id": "main"
+          },
+          "windows": [
+            {
+              "frame": {
+                "height": 400.0,
+                "width": 600.0,
+                "x": 0.0,
+                "y": 0.0
+              },
+              "kind": "window",
+              "modal": false,
+              "owner_bundle_id": "test.settings",
+              "title": "Notifications",
+              "window_id": "w1",
+              "z_index": 0
+            }
+          ]
+        },
+        "type": "structure_snapshot"
+      },
+      "message_id": "msg-structure_snapshot",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "snapshot_object_in_unknown_window",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "active_layer": "w1",
+          "app": {
+            "bundle_id": "test.settings",
+            "name": "Settings",
+            "pid": 4242
+          },
+          "clock_domain": "sim/1/monotonic",
+          "complete": true,
+          "incomplete_reason": null,
+          "objects": [
+            {
+              "actions": [
+                "press",
+                "set_value"
+              ],
+              "description": null,
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 20.0,
+                "width": 40.0,
+                "x": 40.0,
+                "y": 60.0
+              },
+              "group": "Push",
+              "in_view": true,
+              "instance_ref": "obj-1",
+              "parent": null,
+              "role": "switch",
+              "secure": false,
+              "subrole": null,
+              "title": "Daily picks",
+              "value": {
+                "type": "bool",
+                "value": true
+              },
+              "window_id": "ghost"
+            }
+          ],
+          "observed_ms": 90,
+          "session_epoch": 1,
+          "snapshot_id": "snap-1",
+          "source_sequence": 1,
+          "surface": {
+            "epoch": 1,
+            "id": "main"
+          },
+          "windows": [
+            {
+              "frame": {
+                "height": 400.0,
+                "width": 600.0,
+                "x": 0.0,
+                "y": 0.0
+              },
+              "kind": "window",
+              "modal": false,
+              "owner_bundle_id": "test.settings",
+              "title": "Notifications",
+              "window_id": "w1",
+              "z_index": 0
+            }
+          ]
+        },
+        "type": "structure_snapshot"
+      },
+      "message_id": "msg-structure_snapshot",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "decision_deadline_before_creation",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "calibration_revision": "none",
+          "created_ms": 95,
+          "decision_id": "d-1",
+          "decision_program": "ui.ensure_value@1",
+          "lane_id": "lane-1",
+          "plan_revision": 1,
+          "questions": [
+            {
+              "id": "q1",
+              "kind": "choice",
+              "options": [
+                {
+                  "description": "set the switch off",
+                  "key": "c-1"
+                }
+              ],
+              "prompt": "Which candidate advances the goal?"
+            }
+          ],
+          "request_generation": 1,
+          "result_deadline_ms": 1,
+          "root_epoch": 1,
+          "root_task_id": "root-1",
+          "state": {
+            "candidate_set_digest": "sha:abc",
+            "candidates": [
+              {
+                "binding": "bind-1",
+                "candidate_id": "c-1",
+                "description": "set the switch off",
+                "effect_class": "reversible_edit",
+                "parameters": {
+                  "value": "off"
+                },
+                "precondition": {
+                  "state": "executable"
+                },
+                "semantic_target": "daily-picks",
+                "skill": "ui.ensure_value"
+              }
+            ],
+            "goal_summary": "turn off daily picks",
+            "missing_fields": [],
+            "objects": [
+              {
+                "age_ms": 10,
+                "enabled": true,
+                "group": "Push",
+                "in_view": true,
+                "instance": "obj-1",
+                "label": "Daily picks",
+                "role": "switch",
+                "value": "on"
+              }
+            ],
+            "omitted_items": [],
+            "recent_results": [],
+            "root_task_id": "root-1",
+            "snapshot_revision": 2,
+            "subgoal": "ensure the switch is off",
+            "task_revision": 1
+          },
+          "task_revision": 1
+        },
+        "type": "decision_request"
+      },
+      "message_id": "msg-decision_request",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "hello_protocol_range_inverted",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "build_revision": "m1-sample",
+          "process": {
+            "pid": 4242,
+            "start_time_ms": 1000
+          },
+          "protocol_max": 1,
+          "protocol_min": 2,
+          "role": "device",
+          "session_epoch": 1,
+          "token": "0123456789abcdef0123456789abcdef",
+          "worker_epoch": 1
+        },
+        "type": "hello"
+      },
+      "message_id": "msg-hello",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "stop_scope_root_blank",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "disposition": "pause",
+          "reason": "user pressed stop",
+          "scope": {
+            "root_id": " ",
+            "scope": "root"
+          },
+          "source": "operator_button"
+        },
+        "type": "stop_command"
+      },
+      "message_id": "msg-stop_command",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  }
+]
