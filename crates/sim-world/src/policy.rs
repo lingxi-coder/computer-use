@@ -58,7 +58,7 @@ pub struct ScriptedPlanner {
 impl ScriptedPlanner {
     pub fn plan(&self, request: &PlanningRequest) -> PlannerOutput {
         match request.reason {
-            PlanningReason::GoalCompile => self.compile(&request.context.user_text),
+            PlanningReason::GoalCompile => self.plan_text(&request.context.user_text),
             _ => PlannerOutput::Review {
                 proposal: ReviewProposal {
                     notes: vec!["nothing to add".into()],
@@ -68,7 +68,8 @@ impl ScriptedPlanner {
         }
     }
 
-    fn compile(&self, text: &str) -> PlannerOutput {
+    /// The plan for a user's words, without building a request around them.
+    pub fn plan_text(&self, text: &str) -> PlannerOutput {
         let quotes = quoted(text);
         let Some(label) = quotes.first().cloned() else {
             // Nothing to aim at: the planner returns a plan without a goal.
