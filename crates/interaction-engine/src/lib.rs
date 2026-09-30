@@ -15,3 +15,6 @@ pub mod ports;
 pub mod reaction;
 pub mod tasks;
 pub mod verification;
+
+#[cfg(test)]
+pub(crate) mod testkit;

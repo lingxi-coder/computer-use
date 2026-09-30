@@ -124,6 +124,25 @@ impl ReactionStore {
         .transpose()
     }
 
+    /// The number to use for the next decision id. Never reused, because rows
+    /// are never deleted.
+    pub fn next_seq(conn: &Connection) -> Result<u64, StoreError> {
+        Ok(conn.query_row(
+            "SELECT COALESCE(MAX(rowid), 0) + 1 FROM decisions",
+            [],
+            |row| row.get::<_, i64>(0),
+        )? as u64)
+    }
+
+    /// After a restart no answer can be awaited any more: every pending
+    /// decision ends as expired. Consumed ones keep their mapping.
+    pub fn expire_pending(tx: &Transaction<'_>) -> Result<u64, StoreError> {
+        Ok(tx.execute(
+            "UPDATE decisions SET state = 'expired' WHERE state = 'pending'",
+            [],
+        )? as u64)
+    }
+
     pub fn count_mappings(conn: &Connection) -> Result<u64, StoreError> {
         Ok(
             conn.query_row("SELECT COUNT(*) FROM attempt_map", [], |row| {

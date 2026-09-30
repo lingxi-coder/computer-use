@@ -11,7 +11,8 @@ use interaction_engine::tasks::budget::BudgetKind;
 use interaction_engine::tasks::goal::{CompileError, PlanRejection};
 use interaction_engine::tasks::store::TaskStore;
 use interaction_engine::tasks::{
-    ConfirmOutcome, CreateOutcome, DraftError, StopDirective, TaskError, TaskRuntime,
+    ConfirmOutcome, CreateOutcome, DraftError, PlanInstallError, StopDirective, TaskError,
+    TaskRuntime,
 };
 use sim_world::policy::ScriptedPlanner;
 
@@ -422,4 +423,112 @@ fn recovery_never_restores_a_root_to_running_by_itself() {
         "the frozen goal came back intact"
     );
     assert!(runtime.active().unwrap().pack.is_some());
+}
+
+// ---- Waiting for a plan -----------------------------------------------------
+
+#[test]
+fn a_replan_is_paid_for_when_asked_and_installs_under_a_new_revision() {
+    let mut rig = running(None, config());
+    let (_, bundle) = draft_and_bundle(TEXT, &ScriptedPlanner::default());
+
+    assert!(rig.runtime.await_plan(&mut rig.storage, 100).unwrap());
+    assert_eq!(rig.runtime.active_state(), Some(RootState::WaitingPlan));
+    let counts = TaskStore::load_budget(rig.storage.read(), rig.root.as_str()).unwrap();
+    assert_eq!(counts.replans, 1, "asking costs a replan, answer or not");
+
+    let state = rig
+        .runtime
+        .install_plan(&mut rig.storage, 110, Some(&bundle))
+        .unwrap();
+    assert_eq!(state, RootState::Running);
+    let row = TaskStore::load_root(rig.storage.read(), rig.root.as_str())
+        .unwrap()
+        .unwrap();
+    assert_eq!(row.plan_revision, 2);
+    assert_eq!(row.plan.as_ref(), Some(&bundle));
+
+    // A decision made under the old plan can no longer start anything.
+    let old = decision(&mut rig.storage, &rig.root, "d-old", 1);
+    let outcome = rig
+        .runtime
+        .admit_attempt(
+            &mut rig.storage,
+            &interaction_engine::reaction::store::ReactionStore,
+            &request(&rig.root, &old, "a-old", 1),
+            120,
+            "{}",
+        )
+        .unwrap();
+    assert_eq!(
+        outcome,
+        interaction_contracts::desktop::task::AdmitOutcome::Rejected {
+            reason: interaction_contracts::desktop::task::AdmitRejection::VersionMismatch
+        }
+    );
+}
+
+#[test]
+fn a_plan_beyond_the_goal_is_refused_and_the_root_keeps_waiting() {
+    let mut rig = running(None, config());
+    let (_, overreaching) = draft_and_bundle(TEXT, &ScriptedPlanner { overreach: true });
+    rig.runtime.await_plan(&mut rig.storage, 100).unwrap();
+    let refused = rig
+        .runtime
+        .install_plan(&mut rig.storage, 110, Some(&overreaching));
+    assert!(
+        matches!(
+            refused,
+            Err(PlanInstallError::Rejected(
+                PlanRejection::ExceedsGoal { .. }
+            ))
+        ),
+        "{refused:?}"
+    );
+    assert_eq!(rig.runtime.active_state(), Some(RootState::WaitingPlan));
+    let row = TaskStore::load_root(rig.storage.read(), rig.root.as_str())
+        .unwrap()
+        .unwrap();
+    assert_eq!(row.plan_revision, 1, "nothing was installed");
+}
+
+#[test]
+fn a_review_that_changes_nothing_resumes_the_root_on_the_same_plan() {
+    let mut rig = running(None, config());
+    rig.runtime.await_plan(&mut rig.storage, 100).unwrap();
+    rig.runtime
+        .install_plan(&mut rig.storage, 110, None)
+        .unwrap();
+    assert_eq!(rig.runtime.active_state(), Some(RootState::Running));
+    let row = TaskStore::load_root(rig.storage.read(), rig.root.as_str())
+        .unwrap()
+        .unwrap();
+    assert_eq!(row.plan_revision, 1);
+}
+
+#[test]
+fn replans_run_out_and_a_plan_cannot_be_installed_unasked() {
+    let mut rig = running(None, config());
+    let (_, bundle) = draft_and_bundle(TEXT, &ScriptedPlanner::default());
+    assert!(
+        rig.runtime
+            .install_plan(&mut rig.storage, 90, Some(&bundle))
+            .is_err(),
+        "nothing is waiting for a plan"
+    );
+    for round in 0..2 {
+        assert!(
+            rig.runtime
+                .await_plan(&mut rig.storage, 100 + round)
+                .unwrap()
+        );
+        rig.runtime
+            .install_plan(&mut rig.storage, 110 + round, None)
+            .unwrap();
+    }
+    assert!(
+        !rig.runtime.await_plan(&mut rig.storage, 200).unwrap(),
+        "the third replan is refused"
+    );
+    assert_eq!(rig.runtime.active_state(), Some(RootState::Running));
 }

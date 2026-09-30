@@ -4,6 +4,7 @@
 
 use interaction_contracts::desktop::binding::normalize_label;
 use interaction_contracts::desktop::effect::EffectClass;
+use interaction_contracts::desktop::ids::SemanticTargetRef;
 use interaction_contracts::desktop::source::StructureSnapshot;
 
 #[derive(Debug, Clone)]
@@ -15,11 +16,21 @@ pub struct EffectRule {
     pub class: EffectClass,
 }
 
+/// A control the pack knows by name, so a plan step can refer to it without
+/// the model describing it.
+#[derive(Debug, Clone)]
+pub struct ControlDef {
+    pub semantic: String,
+    pub label: String,
+    pub role: String,
+}
+
 #[derive(Debug, Clone)]
 pub struct AppPack {
     pub bundle_id: String,
     pub name: String,
     pub rules: Vec<EffectRule>,
+    pub controls: Vec<ControlDef>,
     /// The role of controls that switch pages.
     pub nav_role: String,
     /// `description` of the control that reports the save state.
@@ -48,6 +59,18 @@ impl AppPack {
                 rule(Some("button"), "reset", EffectClass::Destructive),
                 rule(Some("button"), "discard", EffectClass::Destructive),
                 rule(Some("button"), "cancel", EffectClass::Navigation),
+            ],
+            controls: vec![
+                ControlDef {
+                    semantic: "apply-button".into(),
+                    label: "Apply".into(),
+                    role: "button".into(),
+                },
+                ControlDef {
+                    semantic: "reset-button".into(),
+                    label: "Reset to defaults".into(),
+                    role: "button".into(),
+                },
             ],
             nav_role: "tab".into(),
             save_state_description: Some("save-state".into()),
@@ -98,6 +121,13 @@ impl AppPack {
         trusted.raise(Self::inferred(label))
     }
 
+    /// The registered control a plan step names, if the pack knows it.
+    pub fn control(&self, target: &SemanticTargetRef) -> Option<&ControlDef> {
+        self.controls
+            .iter()
+            .find(|control| control.semantic == target.as_str())
+    }
+
     /// The class for a control known only by a label, such as a plan step.
     pub fn effect_class_for_label(&self, label: &str) -> EffectClass {
         self.registered(None, label)
@@ -146,6 +176,26 @@ mod tests {
             EffectClass::ReversibleEdit
         );
         assert_eq!(pack.effect_class("tab", "General"), EffectClass::Navigation);
+    }
+
+    #[test]
+    fn registered_controls_are_found_by_their_semantic_name() {
+        let pack = AppPack::settings_fixture();
+        let apply = pack
+            .control(&SemanticTargetRef::new("apply-button").unwrap())
+            .unwrap();
+        assert_eq!(
+            (apply.label.as_str(), apply.role.as_str()),
+            ("Apply", "button")
+        );
+        assert_eq!(
+            pack.effect_class(&apply.role, &apply.label),
+            EffectClass::Commit
+        );
+        assert!(
+            pack.control(&SemanticTargetRef::new("nonsense").unwrap())
+                .is_none()
+        );
     }
 
     #[test]

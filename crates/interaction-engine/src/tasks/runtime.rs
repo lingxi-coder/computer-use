@@ -17,7 +17,7 @@ use interaction_contracts::desktop::task::{
 use rusqlite::Transaction;
 
 use super::budget::{BudgetKind, BudgetState};
-use super::goal::{CompileError, compile_goal, confirmation_for, validate_plan};
+use super::goal::{CompileError, PlanRejection, compile_goal, confirmation_for, validate_plan};
 use super::state_machine::{TransitionError, transition};
 use super::store::{AttemptRow, RootRow, TaskStore};
 use crate::environment::pack::AppPack;
@@ -96,6 +96,24 @@ impl From<StoreError> for TaskError {
 impl From<rusqlite::Error> for TaskError {
     fn from(error: rusqlite::Error) -> Self {
         Self::Store(StoreError::Sql(error))
+    }
+}
+
+#[derive(Debug)]
+pub enum PlanInstallError {
+    Rejected(PlanRejection),
+    Task(TaskError),
+}
+
+impl From<TaskError> for PlanInstallError {
+    fn from(error: TaskError) -> Self {
+        Self::Task(error)
+    }
+}
+
+impl From<PlanRejection> for PlanInstallError {
+    fn from(rejection: PlanRejection) -> Self {
+        Self::Rejected(rejection)
     }
 }
 
@@ -581,6 +599,79 @@ impl TaskRuntime {
         now_ms: u64,
     ) -> Result<RootState, TaskError> {
         self.plain_step(storage, now_ms, RootEvent::EvidenceArrived)
+    }
+
+    // ---- Planning -----------------------------------------------------------
+
+    /// The root needs a new plan. A replan is spent when it is asked for, not
+    /// when an answer arrives, so a planner that never answers still costs
+    /// something. `false` means the replan budget is gone and nothing changed.
+    pub fn await_plan(&mut self, storage: &mut Storage, now_ms: u64) -> Result<bool, TaskError> {
+        let active = self.active.as_ref().ok_or(TaskError::NoActiveRoot)?;
+        let budget = active
+            .budget
+            .as_ref()
+            .ok_or_else(|| TaskError::Invalid("the goal is not frozen yet".into()))?;
+        if !budget.can_spend(BudgetKind::Replan, 1) {
+            return Ok(false);
+        }
+        let root = active.row.root_id.clone();
+        self.step(
+            storage,
+            now_ms,
+            RootEvent::AwaitPlan,
+            |_| {},
+            |tx| TaskStore::spend(tx, root.as_str(), BudgetKind::Replan, 1),
+        )?;
+        if let Some(budget) = self.active.as_mut().and_then(|a| a.budget.as_mut()) {
+            budget.spend(BudgetKind::Replan, 1).expect("checked above");
+        }
+        Ok(true)
+    }
+
+    /// The planner answered. A plan is checked against the frozen goal exactly
+    /// like the first one; it may refine the way to the goal, never widen it.
+    /// `None` means the planner reviewed the situation and left the plan as it
+    /// is. A refused plan leaves the root waiting, and the caller decides what
+    /// that means.
+    pub fn install_plan(
+        &mut self,
+        storage: &mut Storage,
+        now_ms: u64,
+        bundle: Option<&PlanBundle>,
+    ) -> Result<RootState, PlanInstallError> {
+        let active = self.active.as_ref().ok_or(TaskError::NoActiveRoot)?;
+        if active.row.state != RootState::WaitingPlan {
+            return Err(TaskError::Invalid("no plan is being waited for".into()).into());
+        }
+        let revision = if let Some(bundle) = bundle {
+            let goal = active
+                .row
+                .goal
+                .as_ref()
+                .ok_or_else(|| TaskError::Invalid("the goal is not frozen yet".into()))?;
+            let pack = active
+                .pack
+                .as_ref()
+                .ok_or_else(|| TaskError::Invalid("the goal has no environment pack".into()))?;
+            validate_plan(goal, bundle, pack, &self.config.registered_skills)?;
+            active.row.plan_revision + 1
+        } else {
+            active.row.plan_revision
+        };
+        let bundle = bundle.cloned();
+        Ok(self.step(
+            storage,
+            now_ms,
+            RootEvent::PlanInstalled,
+            |row| {
+                row.plan_revision = revision;
+                if let Some(bundle) = bundle {
+                    row.plan = Some(bundle);
+                }
+            },
+            |_| Ok(()),
+        )?)
     }
 
     // ---- Budget -------------------------------------------------------------

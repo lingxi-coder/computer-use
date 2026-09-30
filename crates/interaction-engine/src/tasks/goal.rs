@@ -98,12 +98,21 @@ pub fn validate_plan(
             .ok_or_else(|| PlanRejection::UnregisteredSkill(subgoal.skill.clone()))?;
         // An activation is only as harmless as the control it presses.
         let class = if subgoal.skill == "ui.activate" {
-            let label = subgoal
+            match subgoal
                 .target
                 .as_ref()
-                .map(|target| target.as_str().replace(['-', '_', '/'], " "))
-                .unwrap_or_default();
-            pack.effect_class_for_label(&label)
+                .and_then(|target| pack.control(target))
+            {
+                Some(control) => pack.effect_class(&control.role, &control.label),
+                None => {
+                    let label = subgoal
+                        .target
+                        .as_ref()
+                        .map(|target| target.as_str().replace(['-', '_', '/'], " "))
+                        .unwrap_or_default();
+                    pack.effect_class_for_label(&label)
+                }
+            }
         } else {
             base
         };

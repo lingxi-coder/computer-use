@@ -5,10 +5,9 @@
 //! that input, however late it arrives, and unknown never becomes success.
 //! It can only say what it lacks; it has no way to act.
 
-use interaction_contracts::desktop::binding::instance_fingerprint;
 use interaction_contracts::desktop::ids::{AttemptId, RequestId, RootTaskId, SemanticTargetRef};
 use interaction_contracts::desktop::source::UiValue;
-use interaction_contracts::desktop::task::{ExpectedValue, GoalSpec, Predicate};
+use interaction_contracts::desktop::task::{GoalSpec, Predicate};
 use interaction_contracts::desktop::verification::{
     Causality, EffectResult, EffectStatus, EvidenceNeed, TimeSpan, TriState,
 };
@@ -16,6 +15,7 @@ use rusqlite::{Connection, Transaction, params};
 
 use crate::environment::binding::BindingReducer;
 use crate::environment::pack::AppPack;
+use crate::environment::read::{object_for, values_equal};
 use crate::environment::state_core::{EnvSnapshot, StateCore};
 use crate::infrastructure::storage::{Storage, StoreError, enum_to_str};
 
@@ -120,18 +120,6 @@ pub struct Verification {
     need_seq: u64,
 }
 
-fn values_equal(actual: &UiValue, expected: &ExpectedValue) -> Option<bool> {
-    match (actual, expected) {
-        (UiValue::Bool(a), ExpectedValue::Bool { value }) => Some(a == value),
-        (UiValue::Text(a), ExpectedValue::Text { value }) => Some(a == value),
-        (UiValue::Number(a), ExpectedValue::Number { value }) => {
-            Some((*a - *value as f64).abs() < f64::EPSILON)
-        }
-        // A different kind of value proves nothing either way.
-        _ => None,
-    }
-}
-
 impl Verification {
     pub fn new(frozen_ms: u64) -> Self {
         Self {
@@ -182,17 +170,7 @@ impl Verification {
         target: &SemanticTargetRef,
     ) -> Option<UiValue> {
         let binding = ctx.bindings.current(target)?;
-        let active = env.snapshot.active_layer.as_deref()?;
-        env.snapshot
-            .objects
-            .iter()
-            .find(|object| {
-                object.window_id == active
-                    && !object.secure
-                    && instance_fingerprint(&env.snapshot, object).digest()
-                        == binding.fingerprint_digest
-            })
-            .and_then(|object| object.value.clone())
+        object_for(env, &binding.fingerprint_digest).and_then(|object| object.value.clone())
     }
 
     fn leaf(
@@ -467,7 +445,7 @@ mod tests {
     use interaction_contracts::desktop::effect::EffectClass;
     use interaction_contracts::desktop::primitive::{AxActionKind, Primitive};
     use interaction_contracts::desktop::task::{
-        ConfirmationScope, RootBudgetSpec, TargetSpec, TaskScope,
+        ConfirmationScope, ExpectedValue, RootBudgetSpec, TargetSpec, TaskScope,
     };
     use sim_world::app::{Applied, SimApp, SnapshotMeta};
 

@@ -7,6 +7,6 @@ pub mod state_machine;
 pub mod store;
 
 pub use runtime::{
-    ActiveRoot, AdmitFault, ConfirmOutcome, CreateOutcome, DraftError, Pending, RecoveryReport,
-    StopDirective, TaskConfig, TaskError, TaskRuntime,
+    ActiveRoot, AdmitFault, ConfirmOutcome, CreateOutcome, DraftError, Pending, PlanInstallError,
+    RecoveryReport, StopDirective, TaskConfig, TaskError, TaskRuntime,
 };
