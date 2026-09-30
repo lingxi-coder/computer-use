@@ -1,0 +1,27 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.94"
+license = "MIT"
+publish = false
+repository = "https://github.com/lingxi-coder/computer-user"
+
+[workspace.dependencies]
+interaction-contracts = { path = "crates/interaction-contracts" }
+execution-core = { path = "crates/execution-core" }
+
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.150"
+# The exported JSON Schema is a published wire artifact (contracts/*/schema);
+# a different schemars release may render the same types differently.
+schemars = "=1.2.1"
+jsonschema = { version = "0.46.3", default-features = false }
+
+[workspace.lints.rust]
+# Every crate also adds `#![forbid(unsafe_code)]`; the platform crates lift it
+# module by module once they bind OS APIs.
+unsafe_code = "deny"

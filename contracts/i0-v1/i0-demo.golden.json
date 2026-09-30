@@ -1,0 +1,350 @@
+{
+  "business_effects_verified": false,
+  "mode": "deterministic_simulation",
+  "passed": true,
+  "real_device_input": false,
+  "scenarios": [
+    {
+      "backend_truth": [
+        {
+          "at_ms": 0,
+          "cleanup": false,
+          "input": {
+            "payload": {
+              "key": "W"
+            },
+            "type": "key_down"
+          }
+        },
+        {
+          "at_ms": 100,
+          "cleanup": true,
+          "input": {
+            "payload": {
+              "key": "W"
+            },
+            "type": "key_up"
+          }
+        }
+      ],
+      "held_inputs": [],
+      "isolated": false,
+      "passed": true,
+      "receipt": {
+        "at_ms": 100,
+        "command_end_ms": 100,
+        "intent_id": "intent-1",
+        "reason": "bounded input ended; effect not verified",
+        "release_status": "released",
+        "session_epoch": 1,
+        "status": "completed",
+        "submitted": [
+          {
+            "at_ms": 0,
+            "cleanup": false,
+            "input": {
+              "payload": {
+                "key": "W"
+              },
+              "type": "key_down"
+            }
+          },
+          {
+            "at_ms": 100,
+            "cleanup": true,
+            "input": {
+              "payload": {
+                "key": "W"
+              },
+              "type": "key_up"
+            }
+          }
+        ]
+      },
+      "scenario": "bounded_end_on_large_clock_jump"
+    },
+    {
+      "backend_truth": [],
+      "held_inputs": [],
+      "isolated": false,
+      "passed": true,
+      "receipt": {
+        "at_ms": 0,
+        "command_end_ms": null,
+        "intent_id": "intent-1",
+        "reason": "dependency invalid, unknown, or changed: focus",
+        "release_status": "not_needed",
+        "session_epoch": 1,
+        "status": "cancelled",
+        "submitted": []
+      },
+      "scenario": "invalidate_while_queued"
+    },
+    {
+      "backend_truth": [
+        {
+          "at_ms": 0,
+          "cleanup": false,
+          "input": {
+            "payload": {
+              "key": "W"
+            },
+            "type": "key_down"
+          }
+        },
+        {
+          "at_ms": 25,
+          "cleanup": true,
+          "input": {
+            "payload": {
+              "key": "W"
+            },
+            "type": "key_up"
+          }
+        }
+      ],
+      "held_inputs": [],
+      "isolated": false,
+      "passed": true,
+      "receipt": {
+        "at_ms": 25,
+        "command_end_ms": 100,
+        "intent_id": "intent-1",
+        "reason": "dependency invalid, unknown, or changed: layer",
+        "release_status": "released",
+        "session_epoch": 1,
+        "status": "cancelled",
+        "submitted": [
+          {
+            "at_ms": 0,
+            "cleanup": false,
+            "input": {
+              "payload": {
+                "key": "W"
+              },
+              "type": "key_down"
+            }
+          },
+          {
+            "at_ms": 25,
+            "cleanup": true,
+            "input": {
+              "payload": {
+                "key": "W"
+              },
+              "type": "key_up"
+            }
+          }
+        ]
+      },
+      "scenario": "release_after_active_layer_becomes_unknown"
+    },
+    {
+      "backend_truth": [
+        {
+          "at_ms": 0,
+          "cleanup": false,
+          "input": {
+            "payload": {
+              "key": "W"
+            },
+            "type": "key_down"
+          }
+        },
+        {
+          "at_ms": 100,
+          "cleanup": true,
+          "input": {
+            "payload": {
+              "key": "W"
+            },
+            "type": "key_up"
+          }
+        }
+      ],
+      "held_inputs": [],
+      "isolated": false,
+      "passed": true,
+      "receipt": {
+        "at_ms": 100,
+        "command_end_ms": 100,
+        "intent_id": "intent-1",
+        "reason": "bounded input ended; effect not verified",
+        "release_status": "released",
+        "session_epoch": 1,
+        "status": "completed",
+        "submitted": [
+          {
+            "at_ms": 0,
+            "cleanup": false,
+            "input": {
+              "payload": {
+                "key": "W"
+              },
+              "type": "key_down"
+            }
+          },
+          {
+            "at_ms": 100,
+            "cleanup": true,
+            "input": {
+              "payload": {
+                "key": "W"
+              },
+              "type": "key_up"
+            }
+          }
+        ]
+      },
+      "scenario": "renewal_does_not_extend_action"
+    },
+    {
+      "backend_truth": [],
+      "held_inputs": [],
+      "isolated": false,
+      "late_renewal_rejected": true,
+      "passed": true,
+      "receipt": {
+        "at_ms": 0,
+        "command_end_ms": null,
+        "intent_id": "intent-1",
+        "reason": "operator cancellation",
+        "release_status": "not_needed",
+        "session_epoch": 1,
+        "status": "cancelled",
+        "submitted": []
+      },
+      "scenario": "revocation_fences_late_renewal"
+    },
+    {
+      "backend_truth": [
+        {
+          "at_ms": 0,
+          "cleanup": false,
+          "input": {
+            "payload": {
+              "key": "W"
+            },
+            "type": "key_down"
+          }
+        },
+        {
+          "at_ms": 10,
+          "cleanup": false,
+          "input": {
+            "payload": {
+              "key": "A"
+            },
+            "type": "key_down"
+          }
+        },
+        {
+          "at_ms": 10,
+          "cleanup": true,
+          "input": {
+            "payload": {
+              "key": "A"
+            },
+            "type": "key_up"
+          }
+        },
+        {
+          "at_ms": 10,
+          "cleanup": true,
+          "input": {
+            "payload": {
+              "key": "W"
+            },
+            "type": "key_up"
+          }
+        }
+      ],
+      "held_inputs": [],
+      "isolated": false,
+      "passed": true,
+      "receipt": {
+        "at_ms": 10,
+        "command_end_ms": 100,
+        "intent_id": "intent-1",
+        "reason": "backend submission outcome unknown",
+        "release_status": "released",
+        "session_epoch": 1,
+        "status": "unknown",
+        "submitted": [
+          {
+            "at_ms": 0,
+            "cleanup": false,
+            "input": {
+              "payload": {
+                "key": "W"
+              },
+              "type": "key_down"
+            }
+          },
+          {
+            "at_ms": 10,
+            "cleanup": true,
+            "input": {
+              "payload": {
+                "key": "A"
+              },
+              "type": "key_up"
+            }
+          },
+          {
+            "at_ms": 10,
+            "cleanup": true,
+            "input": {
+              "payload": {
+                "key": "W"
+              },
+              "type": "key_up"
+            }
+          }
+        ]
+      },
+      "scenario": "lost_ack_preserves_unknown_and_cleans_inputs"
+    },
+    {
+      "backend_truth": [
+        {
+          "at_ms": 0,
+          "cleanup": false,
+          "input": {
+            "payload": {
+              "key": "W"
+            },
+            "type": "key_down"
+          }
+        }
+      ],
+      "held_inputs": [
+        "key:W"
+      ],
+      "isolated": true,
+      "passed": true,
+      "receipt": {
+        "at_ms": 0,
+        "command_end_ms": 100,
+        "intent_id": "intent-1",
+        "reason": "control channel disconnected; release failed",
+        "release_status": "failed",
+        "session_epoch": 1,
+        "status": "unknown",
+        "submitted": [
+          {
+            "at_ms": 0,
+            "cleanup": false,
+            "input": {
+              "payload": {
+                "key": "W"
+              },
+              "type": "key_down"
+            }
+          }
+        ]
+      },
+      "scenario": "release_failure_isolates_channel"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+/target/
+node_modules/
+/apps/desktop/out/
+/apps/desktop/dist/
+*.tsbuildinfo
+.DS_Store

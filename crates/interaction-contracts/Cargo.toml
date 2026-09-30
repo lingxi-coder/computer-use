@@ -1,0 +1,24 @@
+[package]
+name = "interaction-contracts"
+description = "Wire contracts shared by every process: the frozen I0 v1 protocol and the desktop v1 protocol"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+repository.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+schemars.workspace = true
+
+[dev-dependencies]
+jsonschema.workspace = true
+
+[[bin]]
+name = "export-schema"
+path = "src/bin/export_schema.rs"
+
+[lints]
+workspace = true

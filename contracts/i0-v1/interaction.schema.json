@@ -1,0 +1,681 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WireMessage",
+  "type": "object",
+  "properties": {
+    "message": {
+      "$ref": "#/$defs/Message"
+    },
+    "protocol_version": {
+      "type": "integer",
+      "format": "uint16",
+      "maximum": 1,
+      "minimum": 1
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "protocol_version",
+    "message"
+  ],
+  "$defs": {
+    "ActionIntent": {
+      "type": "object",
+      "properties": {
+        "coordinate_space": {
+          "$ref": "#/$defs/CoordinateSpace"
+        },
+        "dependencies": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0
+          }
+        },
+        "duration_ms": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 1
+        },
+        "evidence_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "intent_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "latest_start_ms": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "permit": {
+          "$ref": "#/$defs/PermitRef"
+        },
+        "session_epoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScheduledInput"
+          },
+          "minItems": 1
+        },
+        "surface": {
+          "$ref": "#/$defs/SurfaceRef"
+        },
+        "target_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "task_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "task_revision": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "intent_id",
+        "task_id",
+        "task_revision",
+        "session_epoch",
+        "permit",
+        "surface",
+        "target_ref",
+        "coordinate_space",
+        "dependencies",
+        "evidence_id",
+        "latest_start_ms",
+        "duration_ms",
+        "steps"
+      ]
+    },
+    "CoordinateSpace": {
+      "type": "string",
+      "enum": [
+        "surface_px"
+      ]
+    },
+    "EffectResult": {
+      "type": "object",
+      "properties": {
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "intent_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "predicate": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "$ref": "#/$defs/EffectStatus"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "intent_id",
+        "predicate",
+        "status",
+        "evidence_refs"
+      ]
+    },
+    "EffectStatus": {
+      "type": "string",
+      "enum": [
+        "satisfied",
+        "unsatisfied",
+        "unknown"
+      ]
+    },
+    "Input": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "payload": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "key"
+              ]
+            },
+            "type": {
+              "type": "string",
+              "const": "key_down"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "payload"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "payload": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "key"
+              ]
+            },
+            "type": {
+              "type": "string",
+              "const": "key_up"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "payload"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "payload": {
+              "type": "object",
+              "properties": {
+                "button": {
+                  "$ref": "#/$defs/MouseButton"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "button"
+              ]
+            },
+            "type": {
+              "type": "string",
+              "const": "pointer_down"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "payload"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "payload": {
+              "type": "object",
+              "properties": {
+                "button": {
+                  "$ref": "#/$defs/MouseButton"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "button"
+              ]
+            },
+            "type": {
+              "type": "string",
+              "const": "pointer_up"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "payload"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "payload": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "integer",
+                  "format": "int32"
+                },
+                "y": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "x",
+                "y"
+              ]
+            },
+            "type": {
+              "type": "string",
+              "const": "pointer_move"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "payload"
+          ]
+        }
+      ]
+    },
+    "Message": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "payload": {
+              "$ref": "#/$defs/Observation"
+            },
+            "type": {
+              "type": "string",
+              "const": "observation"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "payload"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "payload": {
+              "$ref": "#/$defs/ActionIntent"
+            },
+            "type": {
+              "type": "string",
+              "const": "action_intent"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "payload"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "payload": {
+              "$ref": "#/$defs/RevokeExecution"
+            },
+            "type": {
+              "type": "string",
+              "const": "revoke_execution"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "payload"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "payload": {
+              "$ref": "#/$defs/RenewPermit"
+            },
+            "type": {
+              "type": "string",
+              "const": "renew_permit"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "payload"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "payload": {
+              "$ref": "#/$defs/Receipt"
+            },
+            "type": {
+              "type": "string",
+              "const": "action_receipt"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "payload"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "payload": {
+              "$ref": "#/$defs/EffectResult"
+            },
+            "type": {
+              "type": "string",
+              "const": "effect_result"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "payload"
+          ]
+        }
+      ]
+    },
+    "MouseButton": {
+      "type": "string",
+      "enum": [
+        "left",
+        "right"
+      ]
+    },
+    "Observation": {
+      "type": "object",
+      "properties": {
+        "clock_domain": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dependencies": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0
+          }
+        },
+        "freshness": {
+          "$ref": "#/$defs/SourceFreshness"
+        },
+        "observation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "observed_ms": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "session_epoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "source_sequence": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "surface": {
+          "$ref": "#/$defs/SurfaceRef"
+        },
+        "target_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "valid_until_ms": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "observation_id",
+        "session_epoch",
+        "surface",
+        "target_ref",
+        "clock_domain",
+        "source_sequence",
+        "observed_ms",
+        "valid_until_ms",
+        "freshness",
+        "dependencies"
+      ]
+    },
+    "PermitRef": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "generation"
+      ]
+    },
+    "Receipt": {
+      "type": "object",
+      "properties": {
+        "at_ms": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "command_end_ms": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "intent_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "release_status": {
+          "$ref": "#/$defs/ReleaseStatus"
+        },
+        "session_epoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "status": {
+          "$ref": "#/$defs/ReceiptStatus"
+        },
+        "submitted": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SubmittedInput"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "intent_id",
+        "session_epoch",
+        "status",
+        "submitted",
+        "release_status",
+        "at_ms"
+      ]
+    },
+    "ReceiptStatus": {
+      "type": "string",
+      "enum": [
+        "accepted",
+        "running",
+        "completed",
+        "cancelled",
+        "rejected",
+        "partial",
+        "unknown"
+      ]
+    },
+    "ReleaseStatus": {
+      "type": "string",
+      "enum": [
+        "not_needed",
+        "held",
+        "released",
+        "failed",
+        "unknown"
+      ]
+    },
+    "RenewPermit": {
+      "type": "object",
+      "properties": {
+        "evidence_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "permit": {
+          "$ref": "#/$defs/PermitRef"
+        },
+        "session_epoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "valid_until_ms": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "session_epoch",
+        "permit",
+        "evidence_id",
+        "valid_until_ms"
+      ]
+    },
+    "RevokeExecution": {
+      "type": "object",
+      "properties": {
+        "permit": {
+          "$ref": "#/$defs/PermitRef"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "session_epoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "session_epoch",
+        "permit",
+        "reason"
+      ]
+    },
+    "ScheduledInput": {
+      "type": "object",
+      "properties": {
+        "input": {
+          "$ref": "#/$defs/Input"
+        },
+        "offset_ms": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "offset_ms",
+        "input"
+      ]
+    },
+    "SourceFreshness": {
+      "type": "string",
+      "enum": [
+        "verified",
+        "uncertain",
+        "failed"
+      ]
+    },
+    "SubmittedInput": {
+      "type": "object",
+      "properties": {
+        "at_ms": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "cleanup": {
+          "type": "boolean"
+        },
+        "input": {
+          "$ref": "#/$defs/Input"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "at_ms",
+        "input",
+        "cleanup"
+      ]
+    },
+    "SurfaceRef": {
+      "type": "object",
+      "properties": {
+        "epoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "epoch"
+      ]
+    }
+  }
+}

@@ -1,0 +1,590 @@
+[
+  {
+    "name": "valid_observation_with_scoped_evidence",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "protocol_version": 1,
+      "message": {
+        "type": "observation",
+        "payload": {
+          "observation_id": "obs-12",
+          "session_epoch": 4,
+          "surface": {
+            "id": "settings-window",
+            "epoch": 3
+          },
+          "target_ref": "notification-switch",
+          "clock_domain": "device-monotonic",
+          "source_sequence": 12,
+          "observed_ms": 100,
+          "valid_until_ms": 150,
+          "freshness": "verified",
+          "dependencies": {
+            "active_layer": 6,
+            "focus": 2
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "valid_bounded_pointer_action",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "protocol_version": 1,
+      "message": {
+        "type": "action_intent",
+        "payload": {
+          "intent_id": "intent-8",
+          "task_id": "task-1",
+          "task_revision": 1,
+          "session_epoch": 4,
+          "permit": {
+            "id": "permit-7",
+            "generation": 2
+          },
+          "surface": {
+            "id": "settings-window",
+            "epoch": 3
+          },
+          "target_ref": "notification-switch",
+          "coordinate_space": "surface_px",
+          "dependencies": {
+            "active_layer": 6,
+            "focus": 2
+          },
+          "evidence_id": "obs-12",
+          "latest_start_ms": 110,
+          "duration_ms": 20,
+          "steps": [
+            {
+              "offset_ms": 0,
+              "input": {
+                "type": "pointer_move",
+                "payload": {
+                  "x": 120,
+                  "y": 48
+                }
+              }
+            },
+            {
+              "offset_ms": 1,
+              "input": {
+                "type": "pointer_down",
+                "payload": {
+                  "button": "left"
+                }
+              }
+            },
+            {
+              "offset_ms": 2,
+              "input": {
+                "type": "pointer_up",
+                "payload": {
+                  "button": "left"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "valid_explicit_revocation",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "protocol_version": 1,
+      "message": {
+        "type": "revoke_execution",
+        "payload": {
+          "session_epoch": 4,
+          "permit": {
+            "id": "permit-7",
+            "generation": 2
+          },
+          "reason": "active layer changed"
+        }
+      }
+    }
+  },
+  {
+    "name": "valid_renewal_requires_runtime_evidence_lookup",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "protocol_version": 1,
+      "message": {
+        "type": "renew_permit",
+        "payload": {
+          "session_epoch": 4,
+          "permit": {
+            "id": "permit-7",
+            "generation": 2
+          },
+          "evidence_id": "obs-13",
+          "valid_until_ms": 170
+        }
+      }
+    }
+  },
+  {
+    "name": "valid_receipt_records_actual_input",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "protocol_version": 1,
+      "message": {
+        "type": "action_receipt",
+        "payload": {
+          "intent_id": "intent-8",
+          "session_epoch": 4,
+          "status": "completed",
+          "reason": null,
+          "submitted": [
+            {
+              "at_ms": 110,
+              "input": {
+                "type": "pointer_move",
+                "payload": {
+                  "x": 120,
+                  "y": 48
+                }
+              },
+              "cleanup": false
+            },
+            {
+              "at_ms": 111,
+              "input": {
+                "type": "pointer_down",
+                "payload": {
+                  "button": "left"
+                }
+              },
+              "cleanup": false
+            },
+            {
+              "at_ms": 112,
+              "input": {
+                "type": "pointer_up",
+                "payload": {
+                  "button": "left"
+                }
+              },
+              "cleanup": false
+            }
+          ],
+          "release_status": "released",
+          "command_end_ms": 130,
+          "at_ms": 130
+        }
+      }
+    }
+  },
+  {
+    "name": "valid_effect_uses_separate_evidence",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "protocol_version": 1,
+      "message": {
+        "type": "effect_result",
+        "payload": {
+          "intent_id": "intent-8",
+          "predicate": "ui_revisit_value_equals_false",
+          "status": "satisfied",
+          "evidence_refs": [
+            "obs-17"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "structural_unknown_nested_input_field",
+    "schema_valid": false,
+    "decode_valid": false,
+    "message": {
+      "protocol_version": 1,
+      "message": {
+        "type": "action_intent",
+        "payload": {
+          "intent_id": "intent-8",
+          "task_id": "task-1",
+          "task_revision": 1,
+          "session_epoch": 4,
+          "permit": {
+            "id": "permit-7",
+            "generation": 2
+          },
+          "surface": {
+            "id": "settings-window",
+            "epoch": 3
+          },
+          "target_ref": "notification-switch",
+          "coordinate_space": "surface_px",
+          "dependencies": {
+            "active_layer": 6,
+            "focus": 2
+          },
+          "evidence_id": "obs-12",
+          "latest_start_ms": 110,
+          "duration_ms": 20,
+          "steps": [
+            {
+              "offset_ms": 0,
+              "input": {
+                "type": "pointer_move",
+                "payload": {
+                  "x": 120,
+                  "y": 48,
+                  "target_visible": true
+                }
+              }
+            },
+            {
+              "offset_ms": 1,
+              "input": {
+                "type": "pointer_down",
+                "payload": {
+                  "button": "left"
+                }
+              }
+            },
+            {
+              "offset_ms": 2,
+              "input": {
+                "type": "pointer_up",
+                "payload": {
+                  "button": "left"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "structural_unsupported_protocol_version",
+    "schema_valid": false,
+    "decode_valid": false,
+    "message": {
+      "protocol_version": 2,
+      "message": {
+        "type": "action_intent",
+        "payload": {
+          "intent_id": "intent-8",
+          "task_id": "task-1",
+          "task_revision": 1,
+          "session_epoch": 4,
+          "permit": {
+            "id": "permit-7",
+            "generation": 2
+          },
+          "surface": {
+            "id": "settings-window",
+            "epoch": 3
+          },
+          "target_ref": "notification-switch",
+          "coordinate_space": "surface_px",
+          "dependencies": {
+            "active_layer": 6,
+            "focus": 2
+          },
+          "evidence_id": "obs-12",
+          "latest_start_ms": 110,
+          "duration_ms": 20,
+          "steps": [
+            {
+              "offset_ms": 0,
+              "input": {
+                "type": "pointer_move",
+                "payload": {
+                  "x": 120,
+                  "y": 48
+                }
+              }
+            },
+            {
+              "offset_ms": 1,
+              "input": {
+                "type": "pointer_down",
+                "payload": {
+                  "button": "left"
+                }
+              }
+            },
+            {
+              "offset_ms": 2,
+              "input": {
+                "type": "pointer_up",
+                "payload": {
+                  "button": "left"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "structural_empty_key_parameter",
+    "schema_valid": false,
+    "decode_valid": false,
+    "message": {
+      "protocol_version": 1,
+      "message": {
+        "type": "action_intent",
+        "payload": {
+          "intent_id": "intent-8",
+          "task_id": "task-1",
+          "task_revision": 1,
+          "session_epoch": 4,
+          "permit": {
+            "id": "permit-7",
+            "generation": 2
+          },
+          "surface": {
+            "id": "settings-window",
+            "epoch": 3
+          },
+          "target_ref": "notification-switch",
+          "coordinate_space": "surface_px",
+          "dependencies": {
+            "active_layer": 6,
+            "focus": 2
+          },
+          "evidence_id": "obs-12",
+          "latest_start_ms": 110,
+          "duration_ms": 20,
+          "steps": [
+            {
+              "offset_ms": 0,
+              "input": {
+                "type": "key_down",
+                "payload": {
+                  "key": ""
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "semantic_observation_validity_must_end_after_capture",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "protocol_version": 1,
+      "message": {
+        "type": "observation",
+        "payload": {
+          "observation_id": "obs-12",
+          "session_epoch": 4,
+          "surface": {
+            "id": "settings-window",
+            "epoch": 3
+          },
+          "target_ref": "notification-switch",
+          "clock_domain": "device-monotonic",
+          "source_sequence": 12,
+          "observed_ms": 100,
+          "valid_until_ms": 100,
+          "freshness": "verified",
+          "dependencies": {
+            "active_layer": 6,
+            "focus": 2
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "semantic_step_offsets_must_strictly_increase",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "protocol_version": 1,
+      "message": {
+        "type": "action_intent",
+        "payload": {
+          "intent_id": "intent-8",
+          "task_id": "task-1",
+          "task_revision": 1,
+          "session_epoch": 4,
+          "permit": {
+            "id": "permit-7",
+            "generation": 2
+          },
+          "surface": {
+            "id": "settings-window",
+            "epoch": 3
+          },
+          "target_ref": "notification-switch",
+          "coordinate_space": "surface_px",
+          "dependencies": {
+            "active_layer": 6,
+            "focus": 2
+          },
+          "evidence_id": "obs-12",
+          "latest_start_ms": 110,
+          "duration_ms": 20,
+          "steps": [
+            {
+              "offset_ms": 0,
+              "input": {
+                "type": "pointer_move",
+                "payload": {
+                  "x": 120,
+                  "y": 48
+                }
+              }
+            },
+            {
+              "offset_ms": 1,
+              "input": {
+                "type": "pointer_down",
+                "payload": {
+                  "button": "left"
+                }
+              }
+            },
+            {
+              "offset_ms": 1,
+              "input": {
+                "type": "pointer_up",
+                "payload": {
+                  "button": "left"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "semantic_action_end_must_not_overflow",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "protocol_version": 1,
+      "message": {
+        "type": "action_intent",
+        "payload": {
+          "intent_id": "intent-8",
+          "task_id": "task-1",
+          "task_revision": 1,
+          "session_epoch": 4,
+          "permit": {
+            "id": "permit-7",
+            "generation": 2
+          },
+          "surface": {
+            "id": "settings-window",
+            "epoch": 3
+          },
+          "target_ref": "notification-switch",
+          "coordinate_space": "surface_px",
+          "dependencies": {
+            "active_layer": 6,
+            "focus": 2
+          },
+          "evidence_id": "obs-12",
+          "latest_start_ms": 18446744073709551615,
+          "duration_ms": 20,
+          "steps": [
+            {
+              "offset_ms": 0,
+              "input": {
+                "type": "pointer_move",
+                "payload": {
+                  "x": 120,
+                  "y": 48
+                }
+              }
+            },
+            {
+              "offset_ms": 1,
+              "input": {
+                "type": "pointer_down",
+                "payload": {
+                  "button": "left"
+                }
+              }
+            },
+            {
+              "offset_ms": 2,
+              "input": {
+                "type": "pointer_up",
+                "payload": {
+                  "button": "left"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "semantic_receipt_cannot_claim_future_submission",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "protocol_version": 1,
+      "message": {
+        "type": "action_receipt",
+        "payload": {
+          "intent_id": "intent-8",
+          "session_epoch": 4,
+          "status": "completed",
+          "reason": null,
+          "submitted": [
+            {
+              "at_ms": 110,
+              "input": {
+                "type": "pointer_move",
+                "payload": {
+                  "x": 120,
+                  "y": 48
+                }
+              },
+              "cleanup": false
+            },
+            {
+              "at_ms": 111,
+              "input": {
+                "type": "pointer_down",
+                "payload": {
+                  "button": "left"
+                }
+              },
+              "cleanup": false
+            },
+            {
+              "at_ms": 131,
+              "input": {
+                "type": "pointer_up",
+                "payload": {
+                  "button": "left"
+                }
+              },
+              "cleanup": false
+            }
+          ],
+          "release_status": "released",
+          "command_end_ms": 130,
+          "at_ms": 130
+        }
+      }
+    }
+  }
+]

@@ -1,0 +1,20 @@
+[package]
+name = "execution-core"
+description = "IO-free execution supervisor: permits, guards, arbitration and the input ledger"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+repository.workspace = true
+
+[dependencies]
+interaction-contracts.workspace = true
+serde_json.workspace = true
+
+[[bin]]
+name = "i0-demo"
+path = "src/bin/i0_demo.rs"
+
+[lints]
+workspace = true
