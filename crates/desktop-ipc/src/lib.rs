@@ -3,11 +3,15 @@
 //! Everything here is blocking IO over standard streams and Unix sockets, with
 //! a reader thread per stream feeding one channel, so each process can run a
 //! single-threaded loop over the IO-free state machines. The messages are the
-//! desktop v1 envelopes, length-prefixed, exactly as the contract defines them.
+//! desktop v2 envelopes, length-prefixed, exactly as the contract defines them.
 #![forbid(unsafe_code)]
 
+pub mod browser_control;
 pub mod clock;
+pub mod computer_control;
+pub mod computer_image;
 pub mod handshake;
+pub mod image;
 pub mod link;
 pub mod socket;
 

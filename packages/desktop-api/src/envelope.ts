@@ -1,7 +1,7 @@
 import type { Envelope, Message } from './generated/envelope.js';
 
 /** The protocol version this build speaks. */
-export const PROTOCOL_VERSION = 1;
+export const PROTOCOL_VERSION = 2;
 
 /**
  * Builds envelopes for one producer. Message ids and sequence numbers are the

@@ -1,8 +1,8 @@
 {
-  "name": "@computer-user/desktop-api",
+  "name": "@computer-use/desktop-api",
   "version": "0.1.0",
   "private": true,
-  "description": "The desktop v1 protocol for TypeScript: types generated from the published schema, strict validation, framing, and the API the renderer may see",
+  "description": "The desktop v2 protocol for TypeScript: types generated from the published schema, strict validation, framing, and the API the renderer may see",
   "license": "MIT",
   "type": "module",
   "main": "src/index.ts",

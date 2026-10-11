@@ -138,7 +138,7 @@ impl Simulator {
 
     pub fn observe(&mut self, observation: Observation) -> Result<(), String> {
         validate_i0(Message::Observation(observation.clone()))?;
-        let result = self.core.observe(observation.into());
+        let result = self.core.observe(observation);
         self.sync();
         result
     }

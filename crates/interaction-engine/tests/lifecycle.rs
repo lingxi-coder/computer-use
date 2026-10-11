@@ -5,6 +5,7 @@ mod common;
 
 use common::*;
 use interaction_contracts::desktop::device::ReleaseStatus;
+use interaction_contracts::desktop::domain::ExecutionDomain;
 use interaction_contracts::desktop::task::RootState;
 use interaction_engine::infrastructure::storage::Storage;
 use interaction_engine::tasks::budget::BudgetKind;
@@ -38,7 +39,13 @@ fn a_task_compiles_then_waits_for_the_user_and_only_then_freezes() {
 
     let (draft, bundle) = draft_and_bundle(TEXT, &ScriptedPlanner::default());
     let request = runtime
-        .accept_draft(&mut storage, 10, &draft, &bundle)
+        .accept_draft(
+            &mut storage,
+            10,
+            &draft,
+            ExecutionDomain::Simulated,
+            &bundle,
+        )
         .unwrap();
     assert_eq!(
         runtime.active_state(),
@@ -80,7 +87,13 @@ fn a_task_compiles_then_waits_for_the_user_and_only_then_freezes() {
     runtime.admission_passed(&mut storage, 30).unwrap();
     assert!(
         runtime
-            .accept_draft(&mut storage, 40, &draft, &bundle)
+            .accept_draft(
+                &mut storage,
+                40,
+                &draft,
+                ExecutionDomain::Simulated,
+                &bundle,
+            )
             .is_err()
     );
 }
@@ -91,7 +104,13 @@ fn declining_the_goal_cancels_without_anything_reaching_the_device() {
     started(&mut storage, &mut runtime);
     let (draft, bundle) = draft_and_bundle(TEXT, &ScriptedPlanner::default());
     let request = runtime
-        .accept_draft(&mut storage, 10, &draft, &bundle)
+        .accept_draft(
+            &mut storage,
+            10,
+            &draft,
+            ExecutionDomain::Simulated,
+            &bundle,
+        )
         .unwrap();
     let outcome = runtime
         .answer_confirmation(&mut storage, 20, &request.confirmation_id, false)
@@ -107,7 +126,13 @@ fn an_unknown_confirmation_is_refused() {
     started(&mut storage, &mut runtime);
     let (draft, bundle) = draft_and_bundle(TEXT, &ScriptedPlanner::default());
     runtime
-        .accept_draft(&mut storage, 10, &draft, &bundle)
+        .accept_draft(
+            &mut storage,
+            10,
+            &draft,
+            ExecutionDomain::Simulated,
+            &bundle,
+        )
         .unwrap();
     let wrong = interaction_contracts::desktop::ids::ConfirmationId::new("conf-other").unwrap();
     assert!(matches!(
@@ -133,7 +158,12 @@ fn a_second_task_waits_until_the_first_one_ends() {
     assert_eq!(runtime.queue_len(), 1);
     runtime.fail_compile(&mut storage, 10, "give up").unwrap();
     assert!(runtime.active().is_none());
-    assert_eq!(runtime.next_queued().as_deref(), Some("another task"));
+    let queued = runtime
+        .next_queued_task()
+        .expect("the queued task is retained");
+    assert_eq!(queued.text, "another task");
+    assert_eq!(queued.allowed_scope, None);
+    assert_eq!(queued.allowed_scope_app, None);
     assert!(matches!(
         runtime.create_root(&mut storage, 20, "another task").unwrap(),
         CreateOutcome::Started(id) if id.as_str() == "root-2"
@@ -156,7 +186,13 @@ fn a_draft_for_an_app_without_a_pack_does_not_compile() {
     let (mut draft, bundle) = draft_and_bundle(TEXT, &ScriptedPlanner::default());
     draft.app = "com.other.app".into();
     let error = runtime
-        .accept_draft(&mut storage, 10, &draft, &bundle)
+        .accept_draft(
+            &mut storage,
+            10,
+            &draft,
+            ExecutionDomain::Simulated,
+            &bundle,
+        )
         .unwrap_err();
     assert!(
         matches!(
@@ -185,7 +221,13 @@ fn a_plan_that_reaches_beyond_the_goal_is_not_installed() {
     let overreaching = ScriptedPlanner { overreach: true };
     let (draft, bundle) = draft_and_bundle(TEXT, &overreaching);
     let error = runtime
-        .accept_draft(&mut storage, 10, &draft, &bundle)
+        .accept_draft(
+            &mut storage,
+            10,
+            &draft,
+            ExecutionDomain::Simulated,
+            &bundle,
+        )
         .unwrap_err();
     assert!(
         matches!(
@@ -206,10 +248,22 @@ fn a_late_draft_cannot_be_accepted_twice() {
     started(&mut storage, &mut runtime);
     let (draft, bundle) = draft_and_bundle(TEXT, &ScriptedPlanner::default());
     runtime
-        .accept_draft(&mut storage, 10, &draft, &bundle)
+        .accept_draft(
+            &mut storage,
+            10,
+            &draft,
+            ExecutionDomain::Simulated,
+            &bundle,
+        )
         .unwrap();
     assert!(matches!(
-        runtime.accept_draft(&mut storage, 20, &draft, &bundle),
+        runtime.accept_draft(
+            &mut storage,
+            20,
+            &draft,
+            ExecutionDomain::Simulated,
+            &bundle,
+        ),
         Err(DraftError::Task(TaskError::Transition(_)))
     ));
 }

@@ -187,7 +187,7 @@ Verification 结合 ActionReceipt 的实际输入范围、冻结的 expected eff
 三个适配轴：DeviceAdapter 提供来源与输入；Capability 提供通用技能、候选工厂、状态投影和效果契约；EnvironmentPack 提供应用识别/版本/领域规则。模型与 graph 为第四类技术适配，不能新增状态写入或输入权限。
 
 ```text
-computer-user/
+computer-use/
 ├── apps/desktop/                      # Electron main/preload/renderer
 ├── packages/
 │   ├── desktop-api/                   # 类型与受控 IPC

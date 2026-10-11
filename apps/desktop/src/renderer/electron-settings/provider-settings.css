@@ -1,0 +1,367 @@
+/*
+ * Adapted from LingXi Electron
+ * apps/electron/src/renderer/components/settings/rows.tsx Card/Row primitives
+ * and apps/electron/src/renderer/components/settings/pages/ProviderCredentials.tsx
+ * list/detail layout. Tokens map to Computer Use's
+ * desktop palette; all rules stay scoped to this panel for its existing CSP.
+ */
+.provider-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.provider-settings-heading {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.provider-settings-heading p,
+.provider-settings-message,
+.provider-settings-empty,
+.provider-settings-directory-reason {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+  font-size: 12px;
+}
+
+.provider-settings-message {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--panel) 88%, var(--bg));
+}
+
+.provider-settings-error { color: var(--danger); }
+.provider-settings-notice { color: var(--ok); }
+
+.provider-settings-card {
+  margin-bottom: 28px;
+}
+
+.provider-settings-card-title {
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.provider-settings-card-body {
+  overflow: hidden;
+  border: .5px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.provider-settings-row {
+  display: flex;
+  gap: 24px;
+  padding: 16px 18px;
+  align-items: flex-start;
+  border-top: .5px solid var(--line);
+}
+
+.provider-settings-row-center { align-items: center; }
+
+.provider-settings-row-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.provider-settings-row-title {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.provider-settings-row-description {
+  display: block;
+  max-width: 620px;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.provider-settings-row-control {
+  flex: 0 1 320px;
+  min-width: 220px;
+}
+
+.provider-settings-row-control :is(input, select) {
+  width: 100%;
+  min-height: 34px;
+  padding: 6px 10px;
+  border: .5px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+}
+
+.provider-settings-row-control input::placeholder,
+.provider-settings-filter-label input::placeholder {
+  color: var(--muted);
+  opacity: .8;
+}
+
+.provider-settings-row-control :is(input, select):focus-visible,
+.provider-settings-filter-label input:focus-visible,
+.provider-settings :is(button, input, select):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.provider-settings-provider-row {
+  display: flex;
+  width: 100%;
+  min-height: 76px;
+  gap: 16px;
+  padding: 15px 18px;
+  align-items: center;
+  border: 0;
+  border-top: .5px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.provider-settings-provider-row:hover:not(:disabled) { background: color-mix(in srgb, var(--text) 4%, transparent); }
+.provider-settings-provider-row:active:not(:disabled) { background: color-mix(in srgb, var(--text) 7%, transparent); }
+.provider-settings-provider-row:disabled { cursor: default; }
+
+.provider-settings-provider-copy {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.provider-settings-provider-title {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.provider-settings-provider-description {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.provider-settings-provider-status {
+  display: inline-flex;
+  min-width: 96px;
+  gap: 7px;
+  align-items: center;
+  justify-content: flex-end;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.provider-settings-status-ready { color: var(--ok); }
+.provider-settings-status-saved { color: var(--accent); }
+.provider-settings-status-warning { color: var(--warn); }
+
+.provider-settings-status-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.provider-settings-chevron {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+  color: var(--muted);
+}
+
+.provider-settings-detail-bar {
+  display: flex;
+  min-height: 40px;
+  gap: 10px;
+  margin: -8px 0 16px;
+  align-items: center;
+}
+
+.provider-settings-back {
+  display: inline-flex;
+  min-height: 40px;
+  gap: 5px;
+  padding: 0 10px 0 7px;
+  align-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.provider-settings-back:hover:not(:disabled) { background: color-mix(in srgb, var(--text) 5%, transparent); }
+.provider-settings-back .provider-settings-chevron { color: currentColor; }
+.provider-settings-detail-divider { width: 1px; height: 16px; background: var(--line); }
+.provider-settings-detail-name { color: var(--text); font-size: 13px; font-weight: 600; }
+
+.provider-settings-purpose-fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 14px 18px 16px;
+  border: 0;
+  border-top: .5px solid var(--line);
+}
+
+.provider-settings-purpose-heading {
+  padding: 0;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.provider-settings-purpose-option {
+  display: flex;
+  gap: 9px;
+  margin-top: 11px;
+  align-items: flex-start;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.provider-settings-purpose-option input { margin: 2px 0 0; accent-color: var(--accent); }
+.provider-settings-purpose-fieldset:disabled .provider-settings-purpose-option { cursor: default; }
+
+.provider-settings-row-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 7px;
+  align-items: center;
+}
+
+.provider-settings-button {
+  display: inline-flex;
+  min-height: 32px;
+  gap: 6px;
+  padding: 5px 10px;
+  align-items: center;
+  justify-content: center;
+  border: .5px solid var(--line);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.provider-settings-button:hover:not(:disabled) { background: color-mix(in srgb, var(--text) 5%, transparent); }
+.provider-settings-button:disabled { cursor: default; opacity: .48; }
+.provider-settings-button-primary { border-color: var(--accent); background: var(--accent); color: #fff; }
+.provider-settings-button-primary:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 90%, #000); }
+.provider-settings-button-danger { color: var(--danger); }
+
+.provider-settings-directory-toolbar { align-items: center; }
+.provider-settings-filter-label { display: grid; width: min(280px, 35%); min-width: 180px; gap: 4px; color: var(--muted); font-size: 11px; }
+.provider-settings-filter-label input {
+  width: 100%;
+  min-height: 32px;
+  padding: 5px 9px;
+  border: .5px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+}
+
+.provider-settings-directory-meta {
+  display: flex;
+  min-height: 38px;
+  gap: 12px;
+  padding: 10px 18px;
+  align-items: center;
+  justify-content: space-between;
+  border-top: .5px solid var(--line);
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+.provider-settings-directory-reason { padding: 0 18px 12px; }
+.provider-settings-model-list { margin: 0; padding: 0; list-style: none; }
+.provider-settings-model-list li {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(100px, 1fr) minmax(100px, 1.2fr) auto;
+  gap: 12px;
+  padding: 11px 18px;
+  align-items: center;
+  border-top: .5px solid var(--line);
+}
+.provider-settings-model-label { overflow: hidden; color: var(--text); text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; }
+.provider-settings-model-list code { overflow: hidden; color: var(--muted); text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; }
+.provider-settings-model-list small { color: var(--warn); font-size: 11px; text-align: right; }
+.provider-settings-empty { padding: 12px 18px; border-top: .5px solid var(--line); }
+
+.provider-settings :is(button, input, select):focus-visible { outline-offset: 2px; }
+
+@media (max-width: 700px) {
+  .provider-settings-row { gap: 14px; padding-inline: 14px; }
+  .provider-settings-row-control { flex-basis: 45%; min-width: 170px; }
+  .provider-settings-provider-row { gap: 10px; padding-inline: 14px; }
+  .provider-settings-provider-status { min-width: auto; font-size: 11.5px; }
+  .provider-settings-row-actions { flex-wrap: wrap; justify-content: flex-end; }
+  .provider-settings-model-list li { grid-template-columns: minmax(90px, 1fr) minmax(90px, 1.2fr); }
+  .provider-settings-model-list small { grid-column: 1 / -1; text-align: left; }
+}
+
+@media (max-width: 520px) {
+  .provider-settings-row-center { align-items: flex-start; }
+  .provider-settings-row-control { flex-basis: 52%; min-width: 145px; }
+  .provider-settings-provider-description { -webkit-line-clamp: 1; }
+  .provider-settings-detail-bar { margin-bottom: 12px; }
+  .provider-settings-directory-toolbar { align-items: flex-start; flex-direction: column; }
+  .provider-settings-filter-label { width: 100%; min-width: 0; }
+  .provider-settings-directory-meta { align-items: flex-start; flex-direction: column; gap: 4px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .provider-settings-provider-row { transition: none; }
+}
+
+@media (prefers-contrast: more) {
+  .provider-settings-card-body { border-width: 1px; }
+  .provider-settings-row,
+  .provider-settings-provider-row,
+  .provider-settings-purpose-fieldset,
+  .provider-settings-model-list li { border-top-width: 1px; }
+}

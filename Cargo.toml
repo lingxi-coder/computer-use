@@ -8,12 +8,19 @@ edition = "2024"
 rust-version = "1.94"
 license = "MIT"
 publish = false
-repository = "https://github.com/lingxi-coder/computer-user"
+repository = "https://github.com/lingxi-coder/computer-use"
 
 [workspace.dependencies]
 interaction-contracts = { path = "crates/interaction-contracts" }
 execution-core = { path = "crates/execution-core" }
 sim-world = { path = "crates/sim-world" }
+harness-adapter = { path = "crates/harness-adapter" }
+# Route B: one immutable model runtime source; no adjacent working-tree code.
+llm-runtime = { git = "https://github.com/lingxi-coder/harness-runtime", rev = "67aab4512ae2247339ebcb3eb7a98b7f5c51522c", default-features = false }
+lingxi-llm-client = { git = "https://github.com/lingxi-coder/llm-client", rev = "60497015038a656c680587c151be84b3925f5a85", default-features = false }
+tokio = { version = "1", features = ["rt-multi-thread", "sync", "time", "macros"] }
+url = "2"
+zeroize = { version = "1", features = ["serde"] }
 
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.150"

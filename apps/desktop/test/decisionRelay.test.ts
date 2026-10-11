@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import { test } from 'node:test';
 
-import type { DecisionProposal, DecisionRequest } from '@computer-user/desktop-api';
-import { DecisionWorker, ScriptedTeacher } from '@computer-user/decision-worker';
+import type { DecisionProposal, DecisionRequest } from '@computer-use/desktop-api';
+import { DecisionWorker, ScriptedTeacher } from '@computer-use/decision-worker';
 
 import { DecisionRelay, type DecisionTransport } from '../src/main/decisionRelay.js';
 
@@ -94,4 +94,16 @@ test('the relay makes no judgement of its own: a backend that cannot answer stil
   transport.emit('decisionRequest', request());
   await settle();
   assert.equal(transport.sent[0]?.failure, 'unavailable');
+});
+
+test('a replacement worker accepts new-session IDs while an old in-flight answer stays fenced', async () => {
+  const transport = new FakeTransport();
+  const relay = new DecisionRelay(transport, new DecisionWorker(new ScriptedTeacher({ delayMs: 30 })));
+  relay.attach(); transport.emit('decisionRequest', request());
+  relay.replaceWorker(new DecisionWorker(new ScriptedTeacher()));
+  transport.emit('decisionRequest', request());
+  await new Promise((done) => setTimeout(done, 90));
+  assert.equal(transport.sent.length, 1);
+  assert.match(relay.trace[0] ?? '', /stale_epoch/);
+  assert.equal(transport.listenerCount('decisionRequest'), 1);
 });

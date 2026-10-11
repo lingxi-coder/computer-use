@@ -13,6 +13,7 @@ use interaction_contracts::desktop::decision::{
 };
 use interaction_contracts::desktop::error::FailureCode;
 use interaction_contracts::desktop::ids::{AttemptId, BindingRef, DecisionId, RootTaskId};
+use interaction_contracts::desktop::owned_input::OwnedDocumentBindingProof;
 
 use super::candidates::{OBSERVE_MORE, REQUEST_PLANNING, STOP_OR_YIELD};
 use super::store::ReactionStore;
@@ -25,13 +26,16 @@ const LANE: &str = "lane-1";
 
 /// What a decision depended on when it was asked. If any of it changes, the
 /// answer is for a situation that no longer exists.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DecisionBasis {
     pub layer_revision: u64,
     pub plan_revision: u64,
     pub task_revision: u64,
     pub root_epoch: u64,
     pub bindings: Vec<BindingRef>,
+    /// Private document identity only; volatile Source sequence/value changes
+    /// do not invalidate an answer for the same registered receiver.
+    pub owned_document: Option<OwnedDocumentBindingProof>,
 }
 
 impl DecisionBasis {
@@ -51,7 +55,21 @@ impl DecisionBasis {
                 .all()
                 .map(|binding| binding.binding_ref.clone())
                 .collect(),
+            owned_document: None,
         }
+    }
+
+    pub fn capture_with_owned_document(
+        env: &EnvSnapshot,
+        bindings: &BindingReducer,
+        plan_revision: u64,
+        task_revision: u64,
+        root_epoch: u64,
+        owned_document: Option<OwnedDocumentBindingProof>,
+    ) -> Self {
+        let mut basis = Self::capture(env, bindings, plan_revision, task_revision, root_epoch);
+        basis.owned_document = owned_document;
+        basis
     }
 
     /// Why the situation this was asked in no longer holds, if it does not.
@@ -72,6 +90,12 @@ impl DecisionBasis {
             .any(|binding| !now.bindings.contains(binding))
         {
             Some("a binding the decision used is no longer valid")
+        } else if self.owned_document.as_ref().is_some_and(|owned| {
+            now.owned_document
+                .as_ref()
+                .is_none_or(|current| !owned.same_instance(current))
+        }) {
+            Some("the owned document receiver changed")
         } else {
             None
         }
@@ -284,14 +308,25 @@ impl DecisionBook {
         storage: &mut Storage,
         to: DecisionLifecycle,
     ) -> Result<Option<DecisionCancel>, StoreError> {
-        let Some(pending) = self.pending.take() else {
+        let Some(pending) = self.pending.as_ref() else {
             return Ok(None);
         };
-        storage.transaction(|tx| ReactionStore::close(tx, pending.decision_id(), to))?;
-        Ok(Some(DecisionCancel {
-            decision_id: pending.request.decision_id,
+        let cancel = DecisionCancel {
+            decision_id: pending.request.decision_id.clone(),
             request_generation: pending.request.request_generation,
-        }))
+        };
+        storage.transaction(|tx| {
+            if !ReactionStore::close(tx, pending.decision_id(), to)? {
+                return Err(StoreError::Conflict(
+                    "the decision is no longer pending in storage".into(),
+                ));
+            }
+            Ok(())
+        })?;
+        // Retain the exact pending request if the write or commit fails. Only
+        // a durable close can remove it and publish cancellation.
+        self.pending = None;
+        Ok(Some(cancel))
     }
 
     /// The decision was consumed by an admitted attempt; only the in-memory
@@ -361,20 +396,47 @@ impl DecisionBook {
             .and_then(|pending| pending.held.take())
     }
 
-    fn typed_choice(proposal: &DecisionProposal) -> Option<PolicyChoice> {
-        if let Some(choice) = &proposal.choice {
-            return Some(choice.clone());
+    fn typed_choice(
+        pending: &Pending,
+        proposal: &DecisionProposal,
+    ) -> Result<PolicyChoice, String> {
+        pending.request.validate_answers(&proposal.answers)?;
+        // This book constructs exactly one action question in open(). Generic
+        // classification answers need an explicit mapping before they can
+        // enter this lane; an arbitrary selected string is never a fallback.
+        let [question] = pending.request.questions.as_slice() else {
+            return Err("the decision has no single action question".into());
+        };
+        if question.kind != QuestionKind::Choice {
+            return Err("the action question is not a choice".into());
         }
-        // A choice question answered without a typed choice names a candidate.
-        proposal
-            .answers
-            .iter()
-            .find_map(|answer| answer.selected.clone())
-            .and_then(|key| {
-                interaction_contracts::desktop::ids::CandidateId::new(key)
-                    .ok()
-                    .map(|candidate| PolicyChoice::StartSkill { candidate })
-            })
+        let selected = proposal.answers[0].selected.as_deref();
+        if let Some(choice) = &proposal.choice {
+            let control_skill = match choice {
+                PolicyChoice::StartSkill { candidate } => {
+                    if selected != Some(candidate.as_str()) {
+                        return Err("the action answer conflicts with the chosen candidate".into());
+                    }
+                    None
+                }
+                PolicyChoice::ObserveMore { .. } => Some(OBSERVE_MORE),
+                PolicyChoice::RequestPlanning { .. } => Some(REQUEST_PLANNING),
+                PolicyChoice::StopOrYield { .. } => Some(STOP_OR_YIELD),
+                PolicyChoice::ContinueSkill { .. } => None,
+            };
+            if let (Some(skill), Some(key)) = (control_skill, selected)
+                && !pending.candidates.iter().any(|candidate| {
+                    candidate.candidate_id.as_str() == key && candidate.skill == skill
+                })
+            {
+                return Err("the action answer conflicts with the chosen control".into());
+            }
+            return Ok(choice.clone());
+        }
+        let key = selected.ok_or("the proposal chose nothing")?;
+        interaction_contracts::desktop::ids::CandidateId::new(key)
+            .map(|candidate| PolicyChoice::StartSkill { candidate })
+            .map_err(|_| "the action answer is not a candidate ID".into())
     }
 
     /// Check a proposal against the open request. The request ends with the
@@ -433,8 +495,9 @@ impl DecisionBook {
         if proposal.truncated {
             return invalid(self, storage, "the backend saw a truncated state".into());
         }
-        let Some(choice) = Self::typed_choice(proposal) else {
-            return invalid(self, storage, "the proposal chose nothing".into());
+        let choice = match Self::typed_choice(pending, proposal) {
+            Ok(choice) => choice,
+            Err(reason) => return invalid(self, storage, reason),
         };
         let control = |control: Control, reason: String| Verdict::Control {
             decision: decision.clone(),
@@ -522,7 +585,7 @@ mod tests {
         let goal = goal(ConfirmationScope::UiRevisit, EffectClass::ReversibleEdit);
         let bundle = bundle(TEXT);
         let plan_targets = BTreeSet::from([TARGET.to_string()]);
-        let resolution = Resolution::Bound(binding);
+        let resolution = Resolution::Bound(Box::new(binding));
         let candidates = build(
             &Scope {
                 goal: &goal,
@@ -689,6 +752,115 @@ mod tests {
     }
 
     #[test]
+    fn a_failed_answer_rejection_keeps_memory_and_durable_pending_in_sync() {
+        let mut fixture = fixture();
+        fixture.storage.transaction(|tx| {
+            tx.execute_batch("CREATE TRIGGER reject_close BEFORE UPDATE OF state ON decisions
+                WHEN NEW.state = 'superseded' BEGIN SELECT RAISE(ABORT, 'injected close failure'); END;")?;
+            Ok::<(), StoreError>(())
+        }).unwrap();
+        let mut proposal = proposal(&fixture);
+        proposal.answers.clear();
+        let basis = basis_now(&fixture);
+        let result = fixture
+            .book
+            .evaluate(&mut fixture.storage, &proposal, 50, &basis);
+        assert!(matches!(result, Err(StoreError::Sql(_))));
+        assert_eq!(state_of(&fixture), DecisionLifecycle::Pending);
+        assert_eq!(&fixture.book.pending().unwrap().request, &fixture.request);
+        assert!(
+            ReactionStore::mapping(fixture.storage.read(), fixture.request.decision_id.as_str())
+                .unwrap()
+                .is_none()
+        );
+
+        fixture
+            .storage
+            .transaction(|tx| {
+                tx.execute_batch("DROP TRIGGER reject_close")?;
+                Ok::<(), StoreError>(())
+            })
+            .unwrap();
+        assert!(matches!(
+            evaluate(&mut fixture, &proposal, 50),
+            Verdict::Dropped(Dropped::Invalid(_))
+        ));
+        assert_eq!(state_of(&fixture), DecisionLifecycle::Superseded);
+        assert!(fixture.book.pending().is_none());
+    }
+
+    #[test]
+    fn an_unchanged_durable_row_is_not_reported_as_a_successful_close() {
+        let mut fixture = fixture();
+        fixture
+            .storage
+            .transaction(|tx| {
+                ReactionStore::close(tx, &fixture.request.decision_id, DecisionLifecycle::Expired)
+            })
+            .unwrap();
+        assert!(matches!(
+            fixture
+                .book
+                .close(&mut fixture.storage, DecisionLifecycle::Superseded),
+            Err(StoreError::Conflict(_))
+        ));
+        assert!(fixture.book.pending().is_some());
+        assert_eq!(state_of(&fixture), DecisionLifecycle::Expired);
+    }
+
+    #[test]
+    fn a_failed_close_commit_retains_pending_and_rolls_back_the_update() {
+        let mut fixture = fixture();
+        fixture
+            .storage
+            .transaction(|tx| {
+                tx.execute_batch(
+                    "CREATE TABLE close_parent(id INTEGER PRIMARY KEY);
+                CREATE TABLE close_child(parent_id INTEGER REFERENCES close_parent(id)
+                    DEFERRABLE INITIALLY DEFERRED);
+                CREATE TRIGGER defer_close_failure AFTER UPDATE OF state ON decisions
+                WHEN NEW.state = 'superseded' BEGIN INSERT INTO close_child VALUES(999); END;",
+                )?;
+                Ok::<(), StoreError>(())
+            })
+            .unwrap();
+        // The UPDATE succeeds, then the deferred constraint rejects COMMIT.
+        let result = fixture
+            .book
+            .close(&mut fixture.storage, DecisionLifecycle::Superseded);
+        assert!(
+            matches!(result, Err(StoreError::Sql(error)) if error.to_string().contains("FOREIGN KEY"))
+        );
+        assert_eq!(&fixture.book.pending().unwrap().request, &fixture.request);
+        assert_eq!(state_of(&fixture), DecisionLifecycle::Pending);
+        assert_eq!(
+            fixture
+                .storage
+                .read()
+                .query_row("SELECT COUNT(*) FROM close_child", [], |row| row
+                    .get::<_, i64>(0))
+                .unwrap(),
+            0
+        );
+
+        fixture
+            .storage
+            .transaction(|tx| {
+                tx.execute_batch("DROP TRIGGER defer_close_failure")?;
+                Ok::<(), StoreError>(())
+            })
+            .unwrap();
+        let cancel = fixture
+            .book
+            .close(&mut fixture.storage, DecisionLifecycle::Superseded)
+            .unwrap()
+            .unwrap();
+        assert_eq!(cancel.decision_id, fixture.request.decision_id);
+        assert_eq!(state_of(&fixture), DecisionLifecycle::Superseded);
+        assert!(fixture.book.pending().is_none());
+    }
+
+    #[test]
     fn unknown_inexecutable_and_unsupported_choices_are_invalid() {
         for choice in [
             PolicyChoice::StartSkill {
@@ -743,6 +915,18 @@ mod tests {
     fn the_control_paths_map_to_their_own_verdicts() {
         let mut fixture = fixture();
         let mut proposal = proposal(&fixture);
+        proposal.answers[0].selected = Some(
+            fixture
+                .request
+                .state
+                .candidates
+                .iter()
+                .find(|candidate| candidate.skill == REQUEST_PLANNING)
+                .unwrap()
+                .candidate_id
+                .as_str()
+                .into(),
+        );
         proposal.choice = Some(PolicyChoice::RequestPlanning {
             reason: "the page is unfamiliar".into(),
         });
@@ -768,6 +952,7 @@ mod tests {
             .candidate_id
             .clone();
         let mut proposal = self::proposal(&fixture);
+        proposal.answers[0].selected = Some(observe.as_str().into());
         proposal.choice = Some(PolicyChoice::StartSkill { candidate: observe });
         assert!(matches!(
             evaluate(&mut fixture, &proposal, 50),
@@ -792,6 +977,138 @@ mod tests {
             evaluate(&mut fixture, &proposal, 50),
             Verdict::Start { .. }
         ));
+    }
+
+    #[test]
+    fn every_backend_must_answer_the_actual_action_question() {
+        for source in [
+            DecisionSource::S1,
+            DecisionSource::Teacher,
+            DecisionSource::Llm,
+        ] {
+            for invalid in [
+                "foreign_question",
+                "missing_answer",
+                "duplicate_answer",
+                "unoffered_option",
+            ] {
+                let mut fixture = fixture();
+                let mut proposal = proposal(&fixture);
+                proposal.source = source;
+                match invalid {
+                    "foreign_question" => proposal.answers[0].question_id = "other-question".into(),
+                    "missing_answer" => proposal.answers.clear(),
+                    "duplicate_answer" => proposal.answers.push(proposal.answers[0].clone()),
+                    "unoffered_option" => {
+                        proposal.answers[0].selected = Some("not-an-option".into())
+                    }
+                    _ => unreachable!(),
+                }
+                assert!(
+                    matches!(
+                        evaluate(&mut fixture, &proposal, 50),
+                        Verdict::Dropped(Dropped::Invalid(_))
+                    ),
+                    "accepted {source:?} {invalid}"
+                );
+                assert_eq!(state_of(&fixture), DecisionLifecycle::Superseded);
+                assert!(fixture.book.pending().is_none());
+            }
+        }
+    }
+
+    #[test]
+    fn a_valid_explicit_candidate_cannot_override_a_different_answer() {
+        let mut fixture = fixture();
+        let mut proposal = proposal(&fixture);
+        let selected = proposal.answers[0].selected.as_deref().unwrap();
+        let other = fixture
+            .request
+            .state
+            .candidates
+            .iter()
+            .find(|candidate| {
+                candidate.precondition == Precondition::Executable
+                    && candidate.candidate_id.as_str() != selected
+            })
+            .unwrap()
+            .candidate_id
+            .clone();
+        assert!(
+            fixture.request.questions[0]
+                .options
+                .iter()
+                .any(|option| option.key == other.as_str())
+        );
+        proposal.choice = Some(PolicyChoice::StartSkill { candidate: other });
+        assert!(
+            matches!(evaluate(&mut fixture, &proposal, 50), Verdict::Dropped(Dropped::Invalid(reason))
+            if reason.contains("conflicts"))
+        );
+        assert_eq!(state_of(&fixture), DecisionLifecycle::Superseded);
+    }
+
+    #[test]
+    fn explicit_controls_must_match_the_offered_action_answer() {
+        for (skill, choice) in [
+            (
+                OBSERVE_MORE,
+                PolicyChoice::ObserveMore {
+                    facts: vec!["new evidence".into()],
+                },
+            ),
+            (
+                REQUEST_PLANNING,
+                PolicyChoice::RequestPlanning {
+                    reason: "new plan".into(),
+                },
+            ),
+            (
+                STOP_OR_YIELD,
+                PolicyChoice::StopOrYield {
+                    reason: "yield".into(),
+                },
+            ),
+        ] {
+            let mut fixture = fixture();
+            let mut proposal = proposal(&fixture);
+            proposal.choice = Some(choice.clone());
+            assert!(
+                matches!(evaluate(&mut fixture, &proposal, 50), Verdict::Dropped(Dropped::Invalid(reason))
+                if reason.contains("conflicts"))
+            );
+            let mut fixture = self::fixture();
+            let mut proposal = self::proposal(&fixture);
+            proposal.answers[0].selected = Some(
+                fixture
+                    .request
+                    .state
+                    .candidates
+                    .iter()
+                    .find(|candidate| candidate.skill == skill)
+                    .unwrap()
+                    .candidate_id
+                    .as_str()
+                    .into(),
+            );
+            proposal.choice = Some(choice);
+            assert!(matches!(
+                evaluate(&mut fixture, &proposal, 50),
+                Verdict::Control { .. }
+            ));
+        }
+    }
+
+    #[test]
+    fn a_score_answer_cannot_be_used_as_a_candidate_fallback() {
+        let mut fixture = fixture();
+        fixture.book.pending.as_mut().unwrap().request.questions[0].kind = QuestionKind::Score;
+        let mut proposal = proposal(&fixture);
+        proposal.choice = None;
+        assert!(
+            matches!(evaluate(&mut fixture, &proposal, 50), Verdict::Dropped(Dropped::Invalid(reason))
+            if reason.contains("not a choice"))
+        );
     }
 
     #[test]

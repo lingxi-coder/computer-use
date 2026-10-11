@@ -1,6 +1,6 @@
 [package]
 name = "source-macos"
-description = "cu-source: the evidence source process. In this build it reports a simulated application from a fixture; real capture arrives in M2"
+description = "cu-source: fixture or bounded native macOS observation process"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -11,7 +11,15 @@ repository.workspace = true
 [dependencies]
 desktop-ipc = { path = "../desktop-ipc" }
 interaction-contracts.workspace = true
+libc = "=0.2.189"
+rustix = { version = "=1.1.5", features = ["fs"] }
 sim-world.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
 
 [[bin]]
 name = "cu-source"

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'none'; connect-src 'none'">
+  <title>Owned checkbox state fixture</title>
+  <style>body { font: 16px system-ui; padding: 32px; } label, fieldset { display: block; margin: 12px 0; }</style>
+</head>
+<body>
+  <h1>Owned checkbox state fixture</h1>
+  <label><input type="checkbox">Background option</label>
+  <label><input type="checkbox" disabled>Direct disabled</label>
+  <fieldset disabled>
+    <legend><label><input type="checkbox">Legend enabled</label></legend>
+    <label><input type="checkbox">Fieldset disabled</label>
+  </fieldset>
+  <div aria-disabled="true"><label><input type="checkbox">Aria blocked</label></div>
+  <div inert><label><input type="checkbox">Inert blocked</label></div>
+  <div role="checkbox" aria-checked="false" aria-label="Custom checkbox">Custom checkbox</div>
+  <button disabled>Disabled action</button>
+</body>
+</html>

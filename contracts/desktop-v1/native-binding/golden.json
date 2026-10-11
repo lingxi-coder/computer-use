@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "fingerprints": [
+    {
+      "fingerprint": {
+        "app": "test/应用",
+        "app_pid": 42,
+        "window_id": "window-7",
+        "ancestor_roles": [
+          "AXWindow",
+          "AXGroup"
+        ],
+        "group": "配置 \"组\"",
+        "role": "AXButton",
+        "subrole": null,
+        "label": "保存/confirm",
+        "sibling_index": 2,
+        "frame": [
+          -11,
+          21,
+          40,
+          20
+        ],
+        "scroll_container": null
+      },
+      "canonical": "{\"app\":\"test/应用\",\"app_pid\":42,\"window_id\":\"window-7\",\"ancestor_roles\":[\"AXWindow\",\"AXGroup\"],\"group\":\"配置 \\\"组\\\"\",\"role\":\"AXButton\",\"subrole\":null,\"label\":\"保存/confirm\",\"sibling_index\":2,\"frame\":[-11,21,40,20],\"scroll_container\":null}",
+      "digest": "fp1:383de6847175f964d62b68757a494d9a2a7af06235872d7acde76e3807828839"
+    },
+    {
+      "fingerprint": {
+        "app": "test.app",
+        "app_pid": 42,
+        "window_id": "window-7",
+        "ancestor_roles": [
+          "AXWindow"
+        ],
+        "group": null,
+        "role": "AXButton",
+        "subrole": "AXToggle",
+        "label": "a\\b \"c\"",
+        "sibling_index": 0,
+        "frame": [
+          10,
+          -21,
+          41,
+          20
+        ],
+        "scroll_container": null
+      },
+      "canonical": "{\"app\":\"test.app\",\"app_pid\":42,\"window_id\":\"window-7\",\"ancestor_roles\":[\"AXWindow\"],\"group\":null,\"role\":\"AXButton\",\"subrole\":\"AXToggle\",\"label\":\"a\\\\b \\\"c\\\"\",\"sibling_index\":0,\"frame\":[10,-21,41,20],\"scroll_container\":null}",
+      "digest": "fp1:346b50fffc0abcaf98406e20ebe4c35f6ba914676cfbe1aebb7527f411bd7523"
+    }
+  ],
+  "labels": [
+    {
+      "raw": "  Daily\t Picks\n",
+      "normalized": "daily picks"
+    },
+    {
+      "raw": "　保存 设置",
+      "normalized": "保存 设置"
+    },
+    {
+      "raw": "ΟΣ İ",
+      "normalized": "ος i̇"
+    },
+    {
+      "raw": "​ABC﻿",
+      "normalized": "​abc﻿"
+    }
+  ],
+  "rounding": [
+    {
+      "raw": [
+        10.5,
+        -20.5,
+        40.5,
+        20.49
+      ],
+      "rounded": [
+        11,
+        -21,
+        41,
+        20
+      ]
+    },
+    {
+      "raw": [
+        -10.49,
+        20.49,
+        40.49,
+        20.5
+      ],
+      "rounded": [
+        -10,
+        20,
+        40,
+        21
+      ]
+    }
+  ]
+}

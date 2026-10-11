@@ -1,5 +1,5 @@
-import type { DecisionCancel, DecisionProposal, DecisionRequest } from '@computer-user/desktop-api';
-import type { Delivery } from '@computer-user/decision-worker';
+import type { DecisionCancel, DecisionProposal, DecisionRequest } from '@computer-use/desktop-api';
+import type { Delivery } from '@computer-use/decision-worker';
 
 /** What the relay needs of the supervisor: requests in, proposals out. */
 export interface DecisionTransport {
@@ -26,7 +26,7 @@ export class DecisionRelay {
 
   constructor(
     private readonly transport: DecisionTransport,
-    private readonly worker: DecisionRunner,
+    private worker: DecisionRunner,
   ) {}
 
   attach(): void {
@@ -46,5 +46,10 @@ export class DecisionRelay {
   /** The worker process died or the relay was cut: nothing in flight may be delivered. */
   workerLost(): void {
     this.worker.invalidate();
+  }
+
+  replaceWorker(worker: DecisionRunner): void {
+    this.workerLost();
+    this.worker = worker;
   }
 }

@@ -62,6 +62,36 @@
         "payload": {
           "capabilities": {
             "backend": "simulated",
+            "domains": [
+              {
+                "actions": [],
+                "domain": "foreground_native",
+                "state": "unavailable"
+              },
+              {
+                "actions": [],
+                "domain": "background_ax",
+                "state": "unavailable"
+              },
+              {
+                "actions": [],
+                "domain": "headless_browser",
+                "state": "unavailable"
+              },
+              {
+                "actions": [],
+                "domain": "app_integration",
+                "state": "unavailable"
+              },
+              {
+                "actions": [
+                  "simulated_action"
+                ],
+                "domain": "simulated",
+                "state": "available"
+              }
+            ],
+            "execution_domain": "simulated",
             "hit_test": "available",
             "human_input": "available",
             "identity": {
@@ -193,6 +223,36 @@
         "payload": {
           "capabilities": {
             "backend": "simulated",
+            "domains": [
+              {
+                "actions": [],
+                "domain": "foreground_native",
+                "state": "unavailable"
+              },
+              {
+                "actions": [],
+                "domain": "background_ax",
+                "state": "unavailable"
+              },
+              {
+                "actions": [],
+                "domain": "headless_browser",
+                "state": "unavailable"
+              },
+              {
+                "actions": [],
+                "domain": "app_integration",
+                "state": "unavailable"
+              },
+              {
+                "actions": [
+                  "simulated_action"
+                ],
+                "domain": "simulated",
+                "state": "available"
+              }
+            ],
+            "execution_domain": "simulated",
             "hit_test": "available",
             "human_input": "available",
             "identity": {
@@ -215,6 +275,7 @@
           },
           "cleanup": "not_needed",
           "mode": "execute",
+          "observation": null,
           "pending_confirmation": null,
           "revision": 3,
           "root": {
@@ -263,6 +324,7 @@
               },
               "group": "Push",
               "max_effect_class": "reversible_edit",
+              "row": null,
               "target_label": "Daily picks",
               "user_text": "turn off the daily picks notification"
             },
@@ -381,6 +443,130 @@
       "in_reply_to": null,
       "message": {
         "payload": {
+          "binding_proof": {
+            "binding": "daily-picks",
+            "continuity": {
+              "context_digest": "bc1:0000000000000000000000000000000000000000000000000000000000000000",
+              "kind": "notification_covered",
+              "scope": {
+                "kind": "whole_structure"
+              },
+              "source_sequence": 1
+            },
+            "device_context": {
+              "active_layer": "window-1",
+              "ancestry": [
+                {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "label": "settings",
+                  "role": "AXWindow",
+                  "subrole": "AXStandardWindow"
+                },
+                {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "label": "push",
+                  "role": "AXGroup",
+                  "subrole": null
+                }
+              ],
+              "app": {
+                "bundle_id": "test.settings",
+                "pid": 42
+              },
+              "focus": null,
+              "menu": null,
+              "nearest_labelled_group_ancestry_index": 1,
+              "scope": "whole_structure_v1",
+              "scroll_ancestors": [],
+              "sibling_parent_ancestry_index": 1,
+              "siblings": [
+                {
+                  "frame": {
+                    "height": 20.0,
+                    "width": 40.0,
+                    "x": 10.0,
+                    "y": 10.0
+                  },
+                  "label": "daily picks",
+                  "role": "AXSwitch",
+                  "subrole": null
+                }
+              ],
+              "table_column": null,
+              "target": {
+                "group": "push",
+                "object": {
+                  "frame": {
+                    "height": 20.0,
+                    "width": 40.0,
+                    "x": 10.0,
+                    "y": 10.0
+                  },
+                  "label": "daily picks",
+                  "role": "AXSwitch",
+                  "subrole": null
+                },
+                "scroll": null
+              },
+              "target_sibling_index": 0,
+              "window": {
+                "frame": {
+                  "height": 100.0,
+                  "width": 100.0,
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "kind": "window",
+                "modal": false,
+                "owner_bundle_id": "test.settings",
+                "title": "settings",
+                "window_id": "window-1"
+              }
+            },
+            "display_frame": {
+              "height": 20.0,
+              "width": 40.0,
+              "x": 10.0,
+              "y": 10.0
+            },
+            "environment_revision": 1,
+            "fingerprint": {
+              "ancestor_roles": [
+                "AXWindow",
+                "AXGroup"
+              ],
+              "app": "test.settings",
+              "app_pid": 42,
+              "frame": [
+                10,
+                10,
+                40,
+                20
+              ],
+              "group": "push",
+              "label": "daily picks",
+              "role": "AXSwitch",
+              "scroll_container": null,
+              "sibling_index": 0,
+              "subrole": null,
+              "window_id": "window-1"
+            },
+            "focus_scope": null,
+            "instance": "toggle-1",
+            "layer_revision": 1,
+            "menu_scope": null,
+            "snapshot_id": "snap-1"
+          },
           "clock_domain": "sim/1/monotonic",
           "dependencies": {
             "authorization": 1,
@@ -388,6 +574,7 @@
             "focus": 1,
             "layer": 1
           },
+          "execution_domain": "simulated",
           "freshness": "verified",
           "observation_id": "obs-1",
           "observed_ms": 90,
@@ -421,7 +608,131 @@
           "acked_stop_seq": 0,
           "intent": {
             "attempt_id": "attempt-1",
-            "binding_fingerprint": "fp1:0123456789abcdef",
+            "binding_fingerprint": "fp1:082c7987f8e6d4bf0a28615b3521dce620408784913eae2830e5aeb6b1d53052",
+            "binding_proof": {
+              "binding": "daily-picks",
+              "continuity": {
+                "context_digest": "bc1:0000000000000000000000000000000000000000000000000000000000000000",
+                "kind": "notification_covered",
+                "scope": {
+                  "kind": "whole_structure"
+                },
+                "source_sequence": 1
+              },
+              "device_context": {
+                "active_layer": "window-1",
+                "ancestry": [
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "settings",
+                    "role": "AXWindow",
+                    "subrole": "AXStandardWindow"
+                  },
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "push",
+                    "role": "AXGroup",
+                    "subrole": null
+                  }
+                ],
+                "app": {
+                  "bundle_id": "test.settings",
+                  "pid": 42
+                },
+                "focus": null,
+                "menu": null,
+                "nearest_labelled_group_ancestry_index": 1,
+                "scope": "whole_structure_v1",
+                "scroll_ancestors": [],
+                "sibling_parent_ancestry_index": 1,
+                "siblings": [
+                  {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  }
+                ],
+                "table_column": null,
+                "target": {
+                  "group": "push",
+                  "object": {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  },
+                  "scroll": null
+                },
+                "target_sibling_index": 0,
+                "window": {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "kind": "window",
+                  "modal": false,
+                  "owner_bundle_id": "test.settings",
+                  "title": "settings",
+                  "window_id": "window-1"
+                }
+              },
+              "display_frame": {
+                "height": 20.0,
+                "width": 40.0,
+                "x": 10.0,
+                "y": 10.0
+              },
+              "environment_revision": 1,
+              "fingerprint": {
+                "ancestor_roles": [
+                  "AXWindow",
+                  "AXGroup"
+                ],
+                "app": "test.settings",
+                "app_pid": 42,
+                "frame": [
+                  10,
+                  10,
+                  40,
+                  20
+                ],
+                "group": "push",
+                "label": "daily picks",
+                "role": "AXSwitch",
+                "scroll_container": null,
+                "sibling_index": 0,
+                "subrole": null,
+                "window_id": "window-1"
+              },
+              "focus_scope": null,
+              "instance": "toggle-1",
+              "layer_revision": 1,
+              "menu_scope": null,
+              "snapshot_id": "snap-1"
+            },
             "coordinate_space": "display_points",
             "dependencies": {
               "authorization": 1,
@@ -431,6 +742,7 @@
             },
             "duration_ms": 100,
             "evidence_id": "obs-1",
+            "execution_domain": "simulated",
             "intent_id": "intent-1",
             "latest_start_ms": 200,
             "permit": {
@@ -776,6 +1088,36 @@
       "message": {
         "payload": {
           "backend": "simulated",
+          "domains": [
+            {
+              "actions": [],
+              "domain": "foreground_native",
+              "state": "unavailable"
+            },
+            {
+              "actions": [],
+              "domain": "background_ax",
+              "state": "unavailable"
+            },
+            {
+              "actions": [],
+              "domain": "headless_browser",
+              "state": "unavailable"
+            },
+            {
+              "actions": [],
+              "domain": "app_integration",
+              "state": "unavailable"
+            },
+            {
+              "actions": [
+                "simulated_action"
+              ],
+              "domain": "simulated",
+              "state": "available"
+            }
+          ],
+          "execution_domain": "simulated",
           "hit_test": "available",
           "human_input": "available",
           "identity": {
@@ -861,7 +1203,6 @@
       "in_reply_to": null,
       "message": {
         "payload": {
-          "active_layer": "w1",
           "app": {
             "bundle_id": "test.settings",
             "name": "Settings",
@@ -869,7 +1210,25 @@
           },
           "clock_domain": "sim/1/monotonic",
           "complete": true,
+          "focus_context": null,
+          "global_focus": {
+            "app": {
+              "state": "known",
+              "value": {
+                "bundle_id": "test.settings",
+                "name": "Settings",
+                "pid": 4242
+              }
+            },
+            "window_id": {
+              "state": "known",
+              "value": "w1"
+            }
+          },
+          "identity_boundary": null,
           "incomplete_reason": null,
+          "menu_anchors": [],
+          "menu_context": null,
           "objects": [
             {
               "actions": [
@@ -886,10 +1245,12 @@
                 "y": 60.0
               },
               "group": "Push",
+              "identity_continuity": "notification_covered",
               "in_view": true,
               "instance_ref": "obj-1",
               "parent": null,
               "role": "switch",
+              "scroll": null,
               "secure": false,
               "subrole": null,
               "title": "Daily picks",
@@ -901,6 +1262,13 @@
             }
           ],
           "observed_ms": 90,
+          "observer_coverage": {
+            "covered_objects": 1,
+            "failed_registrations": 0,
+            "failures": [],
+            "read_scoped_objects": 0,
+            "state": "available"
+          },
           "session_epoch": 1,
           "snapshot_id": "snap-1",
           "source_sequence": 1,
@@ -908,6 +1276,9 @@
             "epoch": 1,
             "id": "main"
           },
+          "table_viewports": [],
+          "target_context": null,
+          "window_context": null,
           "windows": [
             {
               "frame": {
@@ -944,6 +1315,11 @@
       "message": {
         "payload": {
           "at_ms": 90,
+          "provenance": {
+            "session_epoch": 1,
+            "source_sequence": 1,
+            "stream_id": "native-stream-1"
+          },
           "reason": null,
           "source": "ax",
           "state": "available"
@@ -972,6 +1348,37 @@
           "frame_id": "frame-1",
           "geometry_revision": 1,
           "height_px": 900,
+          "provenance": {
+            "kind": "stream",
+            "stream": {
+              "callback_ms": 95,
+              "capture_interval_ms": 200,
+              "content_rect": {
+                "height": 900.0,
+                "width": 1440.0,
+                "x": 0.0,
+                "y": 0.0
+              },
+              "content_scale": 1.0,
+              "dirty_rects": [],
+              "display_time_ns": 90000000,
+              "display_time_ticks": 90000000,
+              "dropped_frames": 0,
+              "image_frame_id": "frame-1",
+              "pid": 42,
+              "received_unix_ms": 1700000000095,
+              "received_uptime_ns": 95000000,
+              "source_clock": "mach_absolute",
+              "stream_id": "native-stream-1",
+              "window_frame": {
+                "height": 450.0,
+                "width": 720.0,
+                "x": -720.0,
+                "y": 0.0
+              },
+              "window_id": "w1"
+            }
+          },
           "scale_factor": 2.0,
           "session_epoch": 1,
           "source_ms": 90,
@@ -1156,6 +1563,2223 @@
     }
   },
   {
+    "name": "valid_scoped_source_refresh",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "command": "refresh_now",
+          "table_scope": {
+            "column_headers": [
+              "Name",
+              "Owner"
+            ],
+            "scroll_path": [
+              {
+                "label": "Projects",
+                "role": "ax_scroll_area"
+              }
+            ]
+          }
+        },
+        "type": "source_command"
+      },
+      "message_id": "msg-source_command",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "source_refresh_rejects_row_conditions",
+    "schema_valid": false,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "command": "refresh_now",
+          "table_scope": {
+            "column_headers": [
+              "Name"
+            ],
+            "conditions": [
+              {
+                "value": "Secret"
+              }
+            ],
+            "scroll_path": [
+              {
+                "label": "Projects",
+                "role": "ax_scroll_area"
+              }
+            ]
+          }
+        },
+        "type": "source_command"
+      },
+      "message_id": "msg-source_command",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "window_activation_observation",
+    "schema_valid": true,
+    "decode_valid": true,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "binding_proof": {
+            "binding": "daily-picks",
+            "continuity": {
+              "context_digest": "bc1:0000000000000000000000000000000000000000000000000000000000000000",
+              "kind": "notification_covered",
+              "scope": {
+                "kind": "whole_structure"
+              },
+              "source_sequence": 1
+            },
+            "device_context": {
+              "active_layer": "window-1",
+              "ancestry": [],
+              "app": {
+                "bundle_id": "test.settings",
+                "pid": 42
+              },
+              "focus": null,
+              "menu": null,
+              "nearest_labelled_group_ancestry_index": null,
+              "scope": "whole_structure_v1",
+              "scroll_ancestors": [],
+              "sibling_parent_ancestry_index": null,
+              "siblings": [
+                {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "label": "settings",
+                  "role": "AXWindow",
+                  "subrole": "AXStandardWindow"
+                }
+              ],
+              "table_column": null,
+              "target": {
+                "group": null,
+                "object": {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "label": "settings",
+                  "role": "AXWindow",
+                  "subrole": "AXStandardWindow"
+                },
+                "scroll": null
+              },
+              "target_sibling_index": 0,
+              "window": {
+                "frame": {
+                  "height": 100.0,
+                  "width": 100.0,
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "kind": "window",
+                "modal": false,
+                "owner_bundle_id": "test.settings",
+                "title": "settings",
+                "window_id": "window-1"
+              }
+            },
+            "display_frame": {
+              "height": 100.0,
+              "width": 100.0,
+              "x": 0.0,
+              "y": 0.0
+            },
+            "environment_revision": 1,
+            "fingerprint": {
+              "ancestor_roles": [],
+              "app": "test.settings",
+              "app_pid": 42,
+              "frame": [
+                0,
+                0,
+                100,
+                100
+              ],
+              "group": null,
+              "label": "settings",
+              "role": "AXWindow",
+              "scroll_container": null,
+              "sibling_index": 0,
+              "subrole": "AXStandardWindow",
+              "window_id": "window-1"
+            },
+            "focus_scope": null,
+            "instance": "toggle-1",
+            "layer_revision": 1,
+            "menu_scope": null,
+            "snapshot_id": "snap-1"
+          },
+          "clock_domain": "sim/1/monotonic",
+          "dependencies": {
+            "authorization": 1,
+            "window": 1
+          },
+          "execution_domain": "simulated",
+          "freshness": "verified",
+          "observation_id": "obs-1",
+          "observed_ms": 90,
+          "purpose": "window_activation",
+          "session_epoch": 1,
+          "source_sequence": 1,
+          "surface": {
+            "epoch": 1,
+            "id": "main"
+          },
+          "target_ref": "daily-picks",
+          "valid_until_ms": 5000
+        },
+        "type": "observation"
+      },
+      "message_id": "msg-observation",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "window_activation_rejects_control_proof",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "binding_proof": {
+            "binding": "daily-picks",
+            "continuity": {
+              "context_digest": "bc1:0000000000000000000000000000000000000000000000000000000000000000",
+              "kind": "notification_covered",
+              "scope": {
+                "kind": "whole_structure"
+              },
+              "source_sequence": 1
+            },
+            "device_context": {
+              "active_layer": "window-1",
+              "ancestry": [
+                {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "label": "settings",
+                  "role": "AXWindow",
+                  "subrole": "AXStandardWindow"
+                },
+                {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "label": "push",
+                  "role": "AXGroup",
+                  "subrole": null
+                }
+              ],
+              "app": {
+                "bundle_id": "test.settings",
+                "pid": 42
+              },
+              "focus": null,
+              "menu": null,
+              "nearest_labelled_group_ancestry_index": 1,
+              "scope": "whole_structure_v1",
+              "scroll_ancestors": [],
+              "sibling_parent_ancestry_index": 1,
+              "siblings": [
+                {
+                  "frame": {
+                    "height": 20.0,
+                    "width": 40.0,
+                    "x": 10.0,
+                    "y": 10.0
+                  },
+                  "label": "daily picks",
+                  "role": "AXSwitch",
+                  "subrole": null
+                }
+              ],
+              "table_column": null,
+              "target": {
+                "group": "push",
+                "object": {
+                  "frame": {
+                    "height": 20.0,
+                    "width": 40.0,
+                    "x": 10.0,
+                    "y": 10.0
+                  },
+                  "label": "daily picks",
+                  "role": "AXSwitch",
+                  "subrole": null
+                },
+                "scroll": null
+              },
+              "target_sibling_index": 0,
+              "window": {
+                "frame": {
+                  "height": 100.0,
+                  "width": 100.0,
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "kind": "window",
+                "modal": false,
+                "owner_bundle_id": "test.settings",
+                "title": "settings",
+                "window_id": "window-1"
+              }
+            },
+            "display_frame": {
+              "height": 20.0,
+              "width": 40.0,
+              "x": 10.0,
+              "y": 10.0
+            },
+            "environment_revision": 1,
+            "fingerprint": {
+              "ancestor_roles": [
+                "AXWindow",
+                "AXGroup"
+              ],
+              "app": "test.settings",
+              "app_pid": 42,
+              "frame": [
+                10,
+                10,
+                40,
+                20
+              ],
+              "group": "push",
+              "label": "daily picks",
+              "role": "AXSwitch",
+              "scroll_container": null,
+              "sibling_index": 0,
+              "subrole": null,
+              "window_id": "window-1"
+            },
+            "focus_scope": null,
+            "instance": "toggle-1",
+            "layer_revision": 1,
+            "menu_scope": null,
+            "snapshot_id": "snap-1"
+          },
+          "clock_domain": "sim/1/monotonic",
+          "dependencies": {
+            "authorization": 1,
+            "binding": 1,
+            "focus": 1,
+            "layer": 1
+          },
+          "execution_domain": "simulated",
+          "freshness": "verified",
+          "observation_id": "obs-1",
+          "observed_ms": 90,
+          "purpose": "window_activation",
+          "session_epoch": 1,
+          "source_sequence": 1,
+          "surface": {
+            "epoch": 1,
+            "id": "main"
+          },
+          "target_ref": "daily-picks",
+          "valid_until_ms": 5000
+        },
+        "type": "observation"
+      },
+      "message_id": "msg-observation",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "unknown_binding_proof_field",
+    "schema_valid": false,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "acked_stop_seq": 0,
+          "intent": {
+            "attempt_id": "attempt-1",
+            "binding_fingerprint": "fp1:082c7987f8e6d4bf0a28615b3521dce620408784913eae2830e5aeb6b1d53052",
+            "binding_proof": {
+              "binding": "daily-picks",
+              "continuity": {
+                "context_digest": "bc1:0000000000000000000000000000000000000000000000000000000000000000",
+                "kind": "notification_covered",
+                "scope": {
+                  "kind": "whole_structure"
+                },
+                "source_sequence": 1
+              },
+              "device_context": {
+                "active_layer": "window-1",
+                "ancestry": [
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "settings",
+                    "role": "AXWindow",
+                    "subrole": "AXStandardWindow"
+                  },
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "push",
+                    "role": "AXGroup",
+                    "subrole": null
+                  }
+                ],
+                "app": {
+                  "bundle_id": "test.settings",
+                  "pid": 42
+                },
+                "focus": null,
+                "menu": null,
+                "nearest_labelled_group_ancestry_index": 1,
+                "scope": "whole_structure_v1",
+                "scroll_ancestors": [],
+                "sibling_parent_ancestry_index": 1,
+                "siblings": [
+                  {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  }
+                ],
+                "table_column": null,
+                "target": {
+                  "group": "push",
+                  "object": {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  },
+                  "scroll": null
+                },
+                "target_sibling_index": 0,
+                "window": {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "kind": "window",
+                  "modal": false,
+                  "owner_bundle_id": "test.settings",
+                  "title": "settings",
+                  "window_id": "window-1"
+                }
+              },
+              "display_frame": {
+                "height": 20.0,
+                "width": 40.0,
+                "x": 10.0,
+                "y": 10.0
+              },
+              "environment_revision": 1,
+              "fingerprint": {
+                "ancestor_roles": [
+                  "AXWindow",
+                  "AXGroup"
+                ],
+                "app": "test.settings",
+                "app_pid": 42,
+                "frame": [
+                  10,
+                  10,
+                  40,
+                  20
+                ],
+                "group": "push",
+                "label": "daily picks",
+                "role": "AXSwitch",
+                "scroll_container": null,
+                "sibling_index": 0,
+                "subrole": null,
+                "window_id": "window-1"
+              },
+              "focus_scope": null,
+              "instance": "toggle-1",
+              "layer_revision": 1,
+              "menu_scope": null,
+              "snapshot_id": "snap-1",
+              "unexpected": true
+            },
+            "coordinate_space": "display_points",
+            "dependencies": {
+              "authorization": 1,
+              "binding": 1,
+              "focus": 1,
+              "layer": 1
+            },
+            "duration_ms": 100,
+            "evidence_id": "obs-1",
+            "execution_domain": "simulated",
+            "intent_id": "intent-1",
+            "latest_start_ms": 200,
+            "permit": {
+              "generation": 1,
+              "id": "permit-1"
+            },
+            "root_epoch": 1,
+            "session_epoch": 1,
+            "steps": [
+              {
+                "offset_ms": 0,
+                "primitive": {
+                  "payload": {
+                    "action": {
+                      "kind": "set_value",
+                      "value": "off"
+                    }
+                  },
+                  "type": "ax_action"
+                }
+              }
+            ],
+            "surface": {
+              "epoch": 1,
+              "id": "main"
+            },
+            "target_ref": "daily-picks",
+            "task_id": "root-1",
+            "task_revision": 1
+          }
+        },
+        "type": "submit_intent"
+      },
+      "message_id": "msg-submit_intent",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "binding_digest_mismatch",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "acked_stop_seq": 0,
+          "intent": {
+            "attempt_id": "attempt-1",
+            "binding_fingerprint": "fp1:wrong",
+            "binding_proof": {
+              "binding": "daily-picks",
+              "continuity": {
+                "context_digest": "bc1:0000000000000000000000000000000000000000000000000000000000000000",
+                "kind": "notification_covered",
+                "scope": {
+                  "kind": "whole_structure"
+                },
+                "source_sequence": 1
+              },
+              "device_context": {
+                "active_layer": "window-1",
+                "ancestry": [
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "settings",
+                    "role": "AXWindow",
+                    "subrole": "AXStandardWindow"
+                  },
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "push",
+                    "role": "AXGroup",
+                    "subrole": null
+                  }
+                ],
+                "app": {
+                  "bundle_id": "test.settings",
+                  "pid": 42
+                },
+                "focus": null,
+                "menu": null,
+                "nearest_labelled_group_ancestry_index": 1,
+                "scope": "whole_structure_v1",
+                "scroll_ancestors": [],
+                "sibling_parent_ancestry_index": 1,
+                "siblings": [
+                  {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  }
+                ],
+                "table_column": null,
+                "target": {
+                  "group": "push",
+                  "object": {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  },
+                  "scroll": null
+                },
+                "target_sibling_index": 0,
+                "window": {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "kind": "window",
+                  "modal": false,
+                  "owner_bundle_id": "test.settings",
+                  "title": "settings",
+                  "window_id": "window-1"
+                }
+              },
+              "display_frame": {
+                "height": 20.0,
+                "width": 40.0,
+                "x": 10.0,
+                "y": 10.0
+              },
+              "environment_revision": 1,
+              "fingerprint": {
+                "ancestor_roles": [
+                  "AXWindow",
+                  "AXGroup"
+                ],
+                "app": "test.settings",
+                "app_pid": 42,
+                "frame": [
+                  10,
+                  10,
+                  40,
+                  20
+                ],
+                "group": "push",
+                "label": "daily picks",
+                "role": "AXSwitch",
+                "scroll_container": null,
+                "sibling_index": 0,
+                "subrole": null,
+                "window_id": "window-1"
+              },
+              "focus_scope": null,
+              "instance": "toggle-1",
+              "layer_revision": 1,
+              "menu_scope": null,
+              "snapshot_id": "snap-1"
+            },
+            "coordinate_space": "display_points",
+            "dependencies": {
+              "authorization": 1,
+              "binding": 1,
+              "focus": 1,
+              "layer": 1
+            },
+            "duration_ms": 100,
+            "evidence_id": "obs-1",
+            "execution_domain": "simulated",
+            "intent_id": "intent-1",
+            "latest_start_ms": 200,
+            "permit": {
+              "generation": 1,
+              "id": "permit-1"
+            },
+            "root_epoch": 1,
+            "session_epoch": 1,
+            "steps": [
+              {
+                "offset_ms": 0,
+                "primitive": {
+                  "payload": {
+                    "action": {
+                      "kind": "set_value",
+                      "value": "off"
+                    }
+                  },
+                  "type": "ax_action"
+                }
+              }
+            ],
+            "surface": {
+              "epoch": 1,
+              "id": "main"
+            },
+            "target_ref": "daily-picks",
+            "task_id": "root-1",
+            "task_revision": 1
+          }
+        },
+        "type": "submit_intent"
+      },
+      "message_id": "msg-submit_intent",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "binding_target_mismatch",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "acked_stop_seq": 0,
+          "intent": {
+            "attempt_id": "attempt-1",
+            "binding_fingerprint": "fp1:082c7987f8e6d4bf0a28615b3521dce620408784913eae2830e5aeb6b1d53052",
+            "binding_proof": {
+              "binding": "other-binding",
+              "continuity": {
+                "context_digest": "bc1:0000000000000000000000000000000000000000000000000000000000000000",
+                "kind": "notification_covered",
+                "scope": {
+                  "kind": "whole_structure"
+                },
+                "source_sequence": 1
+              },
+              "device_context": {
+                "active_layer": "window-1",
+                "ancestry": [
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "settings",
+                    "role": "AXWindow",
+                    "subrole": "AXStandardWindow"
+                  },
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "push",
+                    "role": "AXGroup",
+                    "subrole": null
+                  }
+                ],
+                "app": {
+                  "bundle_id": "test.settings",
+                  "pid": 42
+                },
+                "focus": null,
+                "menu": null,
+                "nearest_labelled_group_ancestry_index": 1,
+                "scope": "whole_structure_v1",
+                "scroll_ancestors": [],
+                "sibling_parent_ancestry_index": 1,
+                "siblings": [
+                  {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  }
+                ],
+                "table_column": null,
+                "target": {
+                  "group": "push",
+                  "object": {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  },
+                  "scroll": null
+                },
+                "target_sibling_index": 0,
+                "window": {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "kind": "window",
+                  "modal": false,
+                  "owner_bundle_id": "test.settings",
+                  "title": "settings",
+                  "window_id": "window-1"
+                }
+              },
+              "display_frame": {
+                "height": 20.0,
+                "width": 40.0,
+                "x": 10.0,
+                "y": 10.0
+              },
+              "environment_revision": 1,
+              "fingerprint": {
+                "ancestor_roles": [
+                  "AXWindow",
+                  "AXGroup"
+                ],
+                "app": "test.settings",
+                "app_pid": 42,
+                "frame": [
+                  10,
+                  10,
+                  40,
+                  20
+                ],
+                "group": "push",
+                "label": "daily picks",
+                "role": "AXSwitch",
+                "scroll_container": null,
+                "sibling_index": 0,
+                "subrole": null,
+                "window_id": "window-1"
+              },
+              "focus_scope": null,
+              "instance": "toggle-1",
+              "layer_revision": 1,
+              "menu_scope": null,
+              "snapshot_id": "snap-1"
+            },
+            "coordinate_space": "display_points",
+            "dependencies": {
+              "authorization": 1,
+              "binding": 1,
+              "focus": 1,
+              "layer": 1
+            },
+            "duration_ms": 100,
+            "evidence_id": "obs-1",
+            "execution_domain": "simulated",
+            "intent_id": "intent-1",
+            "latest_start_ms": 200,
+            "permit": {
+              "generation": 1,
+              "id": "permit-1"
+            },
+            "root_epoch": 1,
+            "session_epoch": 1,
+            "steps": [
+              {
+                "offset_ms": 0,
+                "primitive": {
+                  "payload": {
+                    "action": {
+                      "kind": "set_value",
+                      "value": "off"
+                    }
+                  },
+                  "type": "ax_action"
+                }
+              }
+            ],
+            "surface": {
+              "epoch": 1,
+              "id": "main"
+            },
+            "target_ref": "daily-picks",
+            "task_id": "root-1",
+            "task_revision": 1
+          }
+        },
+        "type": "submit_intent"
+      },
+      "message_id": "msg-submit_intent",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "binding_pid_zero",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "acked_stop_seq": 0,
+          "intent": {
+            "attempt_id": "attempt-1",
+            "binding_fingerprint": "fp1:082c7987f8e6d4bf0a28615b3521dce620408784913eae2830e5aeb6b1d53052",
+            "binding_proof": {
+              "binding": "daily-picks",
+              "continuity": {
+                "context_digest": "bc1:0000000000000000000000000000000000000000000000000000000000000000",
+                "kind": "notification_covered",
+                "scope": {
+                  "kind": "whole_structure"
+                },
+                "source_sequence": 1
+              },
+              "device_context": {
+                "active_layer": "window-1",
+                "ancestry": [
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "settings",
+                    "role": "AXWindow",
+                    "subrole": "AXStandardWindow"
+                  },
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "push",
+                    "role": "AXGroup",
+                    "subrole": null
+                  }
+                ],
+                "app": {
+                  "bundle_id": "test.settings",
+                  "pid": 42
+                },
+                "focus": null,
+                "menu": null,
+                "nearest_labelled_group_ancestry_index": 1,
+                "scope": "whole_structure_v1",
+                "scroll_ancestors": [],
+                "sibling_parent_ancestry_index": 1,
+                "siblings": [
+                  {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  }
+                ],
+                "table_column": null,
+                "target": {
+                  "group": "push",
+                  "object": {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  },
+                  "scroll": null
+                },
+                "target_sibling_index": 0,
+                "window": {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "kind": "window",
+                  "modal": false,
+                  "owner_bundle_id": "test.settings",
+                  "title": "settings",
+                  "window_id": "window-1"
+                }
+              },
+              "display_frame": {
+                "height": 20.0,
+                "width": 40.0,
+                "x": 10.0,
+                "y": 10.0
+              },
+              "environment_revision": 1,
+              "fingerprint": {
+                "ancestor_roles": [
+                  "AXWindow",
+                  "AXGroup"
+                ],
+                "app": "test.settings",
+                "app_pid": 0,
+                "frame": [
+                  10,
+                  10,
+                  40,
+                  20
+                ],
+                "group": "push",
+                "label": "daily picks",
+                "role": "AXSwitch",
+                "scroll_container": null,
+                "sibling_index": 0,
+                "subrole": null,
+                "window_id": "window-1"
+              },
+              "focus_scope": null,
+              "instance": "toggle-1",
+              "layer_revision": 1,
+              "menu_scope": null,
+              "snapshot_id": "snap-1"
+            },
+            "coordinate_space": "display_points",
+            "dependencies": {
+              "authorization": 1,
+              "binding": 1,
+              "focus": 1,
+              "layer": 1
+            },
+            "duration_ms": 100,
+            "evidence_id": "obs-1",
+            "execution_domain": "simulated",
+            "intent_id": "intent-1",
+            "latest_start_ms": 200,
+            "permit": {
+              "generation": 1,
+              "id": "permit-1"
+            },
+            "root_epoch": 1,
+            "session_epoch": 1,
+            "steps": [
+              {
+                "offset_ms": 0,
+                "primitive": {
+                  "payload": {
+                    "action": {
+                      "kind": "set_value",
+                      "value": "off"
+                    }
+                  },
+                  "type": "ax_action"
+                }
+              }
+            ],
+            "surface": {
+              "epoch": 1,
+              "id": "main"
+            },
+            "target_ref": "daily-picks",
+            "task_id": "root-1",
+            "task_revision": 1
+          }
+        },
+        "type": "submit_intent"
+      },
+      "message_id": "msg-submit_intent",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "binding_label_not_normalized",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "acked_stop_seq": 0,
+          "intent": {
+            "attempt_id": "attempt-1",
+            "binding_fingerprint": "fp1:082c7987f8e6d4bf0a28615b3521dce620408784913eae2830e5aeb6b1d53052",
+            "binding_proof": {
+              "binding": "daily-picks",
+              "continuity": {
+                "context_digest": "bc1:0000000000000000000000000000000000000000000000000000000000000000",
+                "kind": "notification_covered",
+                "scope": {
+                  "kind": "whole_structure"
+                },
+                "source_sequence": 1
+              },
+              "device_context": {
+                "active_layer": "window-1",
+                "ancestry": [
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "settings",
+                    "role": "AXWindow",
+                    "subrole": "AXStandardWindow"
+                  },
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "push",
+                    "role": "AXGroup",
+                    "subrole": null
+                  }
+                ],
+                "app": {
+                  "bundle_id": "test.settings",
+                  "pid": 42
+                },
+                "focus": null,
+                "menu": null,
+                "nearest_labelled_group_ancestry_index": 1,
+                "scope": "whole_structure_v1",
+                "scroll_ancestors": [],
+                "sibling_parent_ancestry_index": 1,
+                "siblings": [
+                  {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  }
+                ],
+                "table_column": null,
+                "target": {
+                  "group": "push",
+                  "object": {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  },
+                  "scroll": null
+                },
+                "target_sibling_index": 0,
+                "window": {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "kind": "window",
+                  "modal": false,
+                  "owner_bundle_id": "test.settings",
+                  "title": "settings",
+                  "window_id": "window-1"
+                }
+              },
+              "display_frame": {
+                "height": 20.0,
+                "width": 40.0,
+                "x": 10.0,
+                "y": 10.0
+              },
+              "environment_revision": 1,
+              "fingerprint": {
+                "ancestor_roles": [
+                  "AXWindow",
+                  "AXGroup"
+                ],
+                "app": "test.settings",
+                "app_pid": 42,
+                "frame": [
+                  10,
+                  10,
+                  40,
+                  20
+                ],
+                "group": "push",
+                "label": "Wrong CASE",
+                "role": "AXSwitch",
+                "scroll_container": null,
+                "sibling_index": 0,
+                "subrole": null,
+                "window_id": "window-1"
+              },
+              "focus_scope": null,
+              "instance": "toggle-1",
+              "layer_revision": 1,
+              "menu_scope": null,
+              "snapshot_id": "snap-1"
+            },
+            "coordinate_space": "display_points",
+            "dependencies": {
+              "authorization": 1,
+              "binding": 1,
+              "focus": 1,
+              "layer": 1
+            },
+            "duration_ms": 100,
+            "evidence_id": "obs-1",
+            "execution_domain": "simulated",
+            "intent_id": "intent-1",
+            "latest_start_ms": 200,
+            "permit": {
+              "generation": 1,
+              "id": "permit-1"
+            },
+            "root_epoch": 1,
+            "session_epoch": 1,
+            "steps": [
+              {
+                "offset_ms": 0,
+                "primitive": {
+                  "payload": {
+                    "action": {
+                      "kind": "set_value",
+                      "value": "off"
+                    }
+                  },
+                  "type": "ax_action"
+                }
+              }
+            ],
+            "surface": {
+              "epoch": 1,
+              "id": "main"
+            },
+            "target_ref": "daily-picks",
+            "task_id": "root-1",
+            "task_revision": 1
+          }
+        },
+        "type": "submit_intent"
+      },
+      "message_id": "msg-submit_intent",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "binding_display_frame_empty",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "acked_stop_seq": 0,
+          "intent": {
+            "attempt_id": "attempt-1",
+            "binding_fingerprint": "fp1:082c7987f8e6d4bf0a28615b3521dce620408784913eae2830e5aeb6b1d53052",
+            "binding_proof": {
+              "binding": "daily-picks",
+              "continuity": {
+                "context_digest": "bc1:0000000000000000000000000000000000000000000000000000000000000000",
+                "kind": "notification_covered",
+                "scope": {
+                  "kind": "whole_structure"
+                },
+                "source_sequence": 1
+              },
+              "device_context": {
+                "active_layer": "window-1",
+                "ancestry": [
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "settings",
+                    "role": "AXWindow",
+                    "subrole": "AXStandardWindow"
+                  },
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "push",
+                    "role": "AXGroup",
+                    "subrole": null
+                  }
+                ],
+                "app": {
+                  "bundle_id": "test.settings",
+                  "pid": 42
+                },
+                "focus": null,
+                "menu": null,
+                "nearest_labelled_group_ancestry_index": 1,
+                "scope": "whole_structure_v1",
+                "scroll_ancestors": [],
+                "sibling_parent_ancestry_index": 1,
+                "siblings": [
+                  {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  }
+                ],
+                "table_column": null,
+                "target": {
+                  "group": "push",
+                  "object": {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  },
+                  "scroll": null
+                },
+                "target_sibling_index": 0,
+                "window": {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "kind": "window",
+                  "modal": false,
+                  "owner_bundle_id": "test.settings",
+                  "title": "settings",
+                  "window_id": "window-1"
+                }
+              },
+              "display_frame": {
+                "height": 20.0,
+                "width": 0,
+                "x": 10.0,
+                "y": 10.0
+              },
+              "environment_revision": 1,
+              "fingerprint": {
+                "ancestor_roles": [
+                  "AXWindow",
+                  "AXGroup"
+                ],
+                "app": "test.settings",
+                "app_pid": 42,
+                "frame": [
+                  10,
+                  10,
+                  40,
+                  20
+                ],
+                "group": "push",
+                "label": "daily picks",
+                "role": "AXSwitch",
+                "scroll_container": null,
+                "sibling_index": 0,
+                "subrole": null,
+                "window_id": "window-1"
+              },
+              "focus_scope": null,
+              "instance": "toggle-1",
+              "layer_revision": 1,
+              "menu_scope": null,
+              "snapshot_id": "snap-1"
+            },
+            "coordinate_space": "display_points",
+            "dependencies": {
+              "authorization": 1,
+              "binding": 1,
+              "focus": 1,
+              "layer": 1
+            },
+            "duration_ms": 100,
+            "evidence_id": "obs-1",
+            "execution_domain": "simulated",
+            "intent_id": "intent-1",
+            "latest_start_ms": 200,
+            "permit": {
+              "generation": 1,
+              "id": "permit-1"
+            },
+            "root_epoch": 1,
+            "session_epoch": 1,
+            "steps": [
+              {
+                "offset_ms": 0,
+                "primitive": {
+                  "payload": {
+                    "action": {
+                      "kind": "set_value",
+                      "value": "off"
+                    }
+                  },
+                  "type": "ax_action"
+                }
+              }
+            ],
+            "surface": {
+              "epoch": 1,
+              "id": "main"
+            },
+            "target_ref": "daily-picks",
+            "task_id": "root-1",
+            "task_revision": 1
+          }
+        },
+        "type": "submit_intent"
+      },
+      "message_id": "msg-submit_intent",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "binding_display_frame_differs",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "acked_stop_seq": 0,
+          "intent": {
+            "attempt_id": "attempt-1",
+            "binding_fingerprint": "fp1:082c7987f8e6d4bf0a28615b3521dce620408784913eae2830e5aeb6b1d53052",
+            "binding_proof": {
+              "binding": "daily-picks",
+              "continuity": {
+                "context_digest": "bc1:0000000000000000000000000000000000000000000000000000000000000000",
+                "kind": "notification_covered",
+                "scope": {
+                  "kind": "whole_structure"
+                },
+                "source_sequence": 1
+              },
+              "device_context": {
+                "active_layer": "window-1",
+                "ancestry": [
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "settings",
+                    "role": "AXWindow",
+                    "subrole": "AXStandardWindow"
+                  },
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "push",
+                    "role": "AXGroup",
+                    "subrole": null
+                  }
+                ],
+                "app": {
+                  "bundle_id": "test.settings",
+                  "pid": 42
+                },
+                "focus": null,
+                "menu": null,
+                "nearest_labelled_group_ancestry_index": 1,
+                "scope": "whole_structure_v1",
+                "scroll_ancestors": [],
+                "sibling_parent_ancestry_index": 1,
+                "siblings": [
+                  {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  }
+                ],
+                "table_column": null,
+                "target": {
+                  "group": "push",
+                  "object": {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  },
+                  "scroll": null
+                },
+                "target_sibling_index": 0,
+                "window": {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "kind": "window",
+                  "modal": false,
+                  "owner_bundle_id": "test.settings",
+                  "title": "settings",
+                  "window_id": "window-1"
+                }
+              },
+              "display_frame": {
+                "height": 20.0,
+                "width": 40.0,
+                "x": 11,
+                "y": 10.0
+              },
+              "environment_revision": 1,
+              "fingerprint": {
+                "ancestor_roles": [
+                  "AXWindow",
+                  "AXGroup"
+                ],
+                "app": "test.settings",
+                "app_pid": 42,
+                "frame": [
+                  10,
+                  10,
+                  40,
+                  20
+                ],
+                "group": "push",
+                "label": "daily picks",
+                "role": "AXSwitch",
+                "scroll_container": null,
+                "sibling_index": 0,
+                "subrole": null,
+                "window_id": "window-1"
+              },
+              "focus_scope": null,
+              "instance": "toggle-1",
+              "layer_revision": 1,
+              "menu_scope": null,
+              "snapshot_id": "snap-1"
+            },
+            "coordinate_space": "display_points",
+            "dependencies": {
+              "authorization": 1,
+              "binding": 1,
+              "focus": 1,
+              "layer": 1
+            },
+            "duration_ms": 100,
+            "evidence_id": "obs-1",
+            "execution_domain": "simulated",
+            "intent_id": "intent-1",
+            "latest_start_ms": 200,
+            "permit": {
+              "generation": 1,
+              "id": "permit-1"
+            },
+            "root_epoch": 1,
+            "session_epoch": 1,
+            "steps": [
+              {
+                "offset_ms": 0,
+                "primitive": {
+                  "payload": {
+                    "action": {
+                      "kind": "set_value",
+                      "value": "off"
+                    }
+                  },
+                  "type": "ax_action"
+                }
+              }
+            ],
+            "surface": {
+              "epoch": 1,
+              "id": "main"
+            },
+            "target_ref": "daily-picks",
+            "task_id": "root-1",
+            "task_revision": 1
+          }
+        },
+        "type": "submit_intent"
+      },
+      "message_id": "msg-submit_intent",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "observation_binding_target_mismatch",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "binding_proof": {
+            "binding": "another-binding",
+            "continuity": {
+              "context_digest": "bc1:0000000000000000000000000000000000000000000000000000000000000000",
+              "kind": "notification_covered",
+              "scope": {
+                "kind": "whole_structure"
+              },
+              "source_sequence": 1
+            },
+            "device_context": {
+              "active_layer": "window-1",
+              "ancestry": [
+                {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "label": "settings",
+                  "role": "AXWindow",
+                  "subrole": "AXStandardWindow"
+                },
+                {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "label": "push",
+                  "role": "AXGroup",
+                  "subrole": null
+                }
+              ],
+              "app": {
+                "bundle_id": "test.settings",
+                "pid": 42
+              },
+              "focus": null,
+              "menu": null,
+              "nearest_labelled_group_ancestry_index": 1,
+              "scope": "whole_structure_v1",
+              "scroll_ancestors": [],
+              "sibling_parent_ancestry_index": 1,
+              "siblings": [
+                {
+                  "frame": {
+                    "height": 20.0,
+                    "width": 40.0,
+                    "x": 10.0,
+                    "y": 10.0
+                  },
+                  "label": "daily picks",
+                  "role": "AXSwitch",
+                  "subrole": null
+                }
+              ],
+              "table_column": null,
+              "target": {
+                "group": "push",
+                "object": {
+                  "frame": {
+                    "height": 20.0,
+                    "width": 40.0,
+                    "x": 10.0,
+                    "y": 10.0
+                  },
+                  "label": "daily picks",
+                  "role": "AXSwitch",
+                  "subrole": null
+                },
+                "scroll": null
+              },
+              "target_sibling_index": 0,
+              "window": {
+                "frame": {
+                  "height": 100.0,
+                  "width": 100.0,
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "kind": "window",
+                "modal": false,
+                "owner_bundle_id": "test.settings",
+                "title": "settings",
+                "window_id": "window-1"
+              }
+            },
+            "display_frame": {
+              "height": 20.0,
+              "width": 40.0,
+              "x": 10.0,
+              "y": 10.0
+            },
+            "environment_revision": 1,
+            "fingerprint": {
+              "ancestor_roles": [
+                "AXWindow",
+                "AXGroup"
+              ],
+              "app": "test.settings",
+              "app_pid": 42,
+              "frame": [
+                10,
+                10,
+                40,
+                20
+              ],
+              "group": "push",
+              "label": "daily picks",
+              "role": "AXSwitch",
+              "scroll_container": null,
+              "sibling_index": 0,
+              "subrole": null,
+              "window_id": "window-1"
+            },
+            "focus_scope": null,
+            "instance": "toggle-1",
+            "layer_revision": 1,
+            "menu_scope": null,
+            "snapshot_id": "snap-1"
+          },
+          "clock_domain": "sim/1/monotonic",
+          "dependencies": {
+            "authorization": 1,
+            "binding": 1,
+            "focus": 1,
+            "layer": 1
+          },
+          "execution_domain": "simulated",
+          "freshness": "verified",
+          "observation_id": "obs-1",
+          "observed_ms": 90,
+          "session_epoch": 1,
+          "source_sequence": 1,
+          "surface": {
+            "epoch": 1,
+            "id": "main"
+          },
+          "target_ref": "daily-picks",
+          "valid_until_ms": 5000
+        },
+        "type": "observation"
+      },
+      "message_id": "msg-observation",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "binding_coordinate_space_mismatch",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "acked_stop_seq": 0,
+          "intent": {
+            "attempt_id": "attempt-1",
+            "binding_fingerprint": "fp1:082c7987f8e6d4bf0a28615b3521dce620408784913eae2830e5aeb6b1d53052",
+            "binding_proof": {
+              "binding": "daily-picks",
+              "continuity": {
+                "context_digest": "bc1:0000000000000000000000000000000000000000000000000000000000000000",
+                "kind": "notification_covered",
+                "scope": {
+                  "kind": "whole_structure"
+                },
+                "source_sequence": 1
+              },
+              "device_context": {
+                "active_layer": "window-1",
+                "ancestry": [
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "settings",
+                    "role": "AXWindow",
+                    "subrole": "AXStandardWindow"
+                  },
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "push",
+                    "role": "AXGroup",
+                    "subrole": null
+                  }
+                ],
+                "app": {
+                  "bundle_id": "test.settings",
+                  "pid": 42
+                },
+                "focus": null,
+                "menu": null,
+                "nearest_labelled_group_ancestry_index": 1,
+                "scope": "whole_structure_v1",
+                "scroll_ancestors": [],
+                "sibling_parent_ancestry_index": 1,
+                "siblings": [
+                  {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  }
+                ],
+                "table_column": null,
+                "target": {
+                  "group": "push",
+                  "object": {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  },
+                  "scroll": null
+                },
+                "target_sibling_index": 0,
+                "window": {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "kind": "window",
+                  "modal": false,
+                  "owner_bundle_id": "test.settings",
+                  "title": "settings",
+                  "window_id": "window-1"
+                }
+              },
+              "display_frame": {
+                "height": 20.0,
+                "width": 40.0,
+                "x": 10.0,
+                "y": 10.0
+              },
+              "environment_revision": 1,
+              "fingerprint": {
+                "ancestor_roles": [
+                  "AXWindow",
+                  "AXGroup"
+                ],
+                "app": "test.settings",
+                "app_pid": 42,
+                "frame": [
+                  10,
+                  10,
+                  40,
+                  20
+                ],
+                "group": "push",
+                "label": "daily picks",
+                "role": "AXSwitch",
+                "scroll_container": null,
+                "sibling_index": 0,
+                "subrole": null,
+                "window_id": "window-1"
+              },
+              "focus_scope": null,
+              "instance": "toggle-1",
+              "layer_revision": 1,
+              "menu_scope": null,
+              "snapshot_id": "snap-1"
+            },
+            "coordinate_space": "surface_px",
+            "dependencies": {
+              "authorization": 1,
+              "binding": 1,
+              "focus": 1,
+              "layer": 1
+            },
+            "duration_ms": 100,
+            "evidence_id": "obs-1",
+            "execution_domain": "simulated",
+            "intent_id": "intent-1",
+            "latest_start_ms": 200,
+            "permit": {
+              "generation": 1,
+              "id": "permit-1"
+            },
+            "root_epoch": 1,
+            "session_epoch": 1,
+            "steps": [
+              {
+                "offset_ms": 0,
+                "primitive": {
+                  "payload": {
+                    "action": {
+                      "kind": "set_value",
+                      "value": "off"
+                    }
+                  },
+                  "type": "ax_action"
+                }
+              }
+            ],
+            "surface": {
+              "epoch": 1,
+              "id": "main"
+            },
+            "target_ref": "daily-picks",
+            "task_id": "root-1",
+            "task_revision": 1
+          }
+        },
+        "type": "submit_intent"
+      },
+      "message_id": "msg-submit_intent",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
+    "name": "binding_click_outside_frame",
+    "schema_valid": true,
+    "decode_valid": false,
+    "message": {
+      "emitted_ms": 100,
+      "in_reply_to": null,
+      "message": {
+        "payload": {
+          "acked_stop_seq": 0,
+          "intent": {
+            "attempt_id": "attempt-1",
+            "binding_fingerprint": "fp1:082c7987f8e6d4bf0a28615b3521dce620408784913eae2830e5aeb6b1d53052",
+            "binding_proof": {
+              "binding": "daily-picks",
+              "continuity": {
+                "context_digest": "bc1:0000000000000000000000000000000000000000000000000000000000000000",
+                "kind": "notification_covered",
+                "scope": {
+                  "kind": "whole_structure"
+                },
+                "source_sequence": 1
+              },
+              "device_context": {
+                "active_layer": "window-1",
+                "ancestry": [
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "settings",
+                    "role": "AXWindow",
+                    "subrole": "AXStandardWindow"
+                  },
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "push",
+                    "role": "AXGroup",
+                    "subrole": null
+                  }
+                ],
+                "app": {
+                  "bundle_id": "test.settings",
+                  "pid": 42
+                },
+                "focus": null,
+                "menu": null,
+                "nearest_labelled_group_ancestry_index": 1,
+                "scope": "whole_structure_v1",
+                "scroll_ancestors": [],
+                "sibling_parent_ancestry_index": 1,
+                "siblings": [
+                  {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  }
+                ],
+                "table_column": null,
+                "target": {
+                  "group": "push",
+                  "object": {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  },
+                  "scroll": null
+                },
+                "target_sibling_index": 0,
+                "window": {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "kind": "window",
+                  "modal": false,
+                  "owner_bundle_id": "test.settings",
+                  "title": "settings",
+                  "window_id": "window-1"
+                }
+              },
+              "display_frame": {
+                "height": 20.0,
+                "width": 40.0,
+                "x": 10.0,
+                "y": 10.0
+              },
+              "environment_revision": 1,
+              "fingerprint": {
+                "ancestor_roles": [
+                  "AXWindow",
+                  "AXGroup"
+                ],
+                "app": "test.settings",
+                "app_pid": 42,
+                "frame": [
+                  10,
+                  10,
+                  40,
+                  20
+                ],
+                "group": "push",
+                "label": "daily picks",
+                "role": "AXSwitch",
+                "scroll_container": null,
+                "sibling_index": 0,
+                "subrole": null,
+                "window_id": "window-1"
+              },
+              "focus_scope": null,
+              "instance": "toggle-1",
+              "layer_revision": 1,
+              "menu_scope": null,
+              "snapshot_id": "snap-1"
+            },
+            "coordinate_space": "display_points",
+            "dependencies": {
+              "authorization": 1,
+              "binding": 1,
+              "focus": 1,
+              "layer": 1
+            },
+            "duration_ms": 100,
+            "evidence_id": "obs-1",
+            "execution_domain": "simulated",
+            "intent_id": "intent-1",
+            "latest_start_ms": 200,
+            "permit": {
+              "generation": 1,
+              "id": "permit-1"
+            },
+            "root_epoch": 1,
+            "session_epoch": 1,
+            "steps": [
+              {
+                "offset_ms": 0,
+                "primitive": {
+                  "payload": {
+                    "button": "left",
+                    "modifiers": {
+                      "command": false,
+                      "control": false,
+                      "option": false,
+                      "shift": false
+                    },
+                    "x": 1000,
+                    "y": 1000
+                  },
+                  "type": "click"
+                }
+              }
+            ],
+            "surface": {
+              "epoch": 1,
+              "id": "main"
+            },
+            "target_ref": "daily-picks",
+            "task_id": "root-1",
+            "task_revision": 1
+          }
+        },
+        "type": "submit_intent"
+      },
+      "message_id": "msg-submit_intent",
+      "producer": "cu-sample",
+      "producer_sequence": 1,
+      "protocol_version": 1,
+      "trace_id": "trace-1"
+    }
+  },
+  {
     "name": "unknown_field_at_envelope",
     "schema_valid": false,
     "decode_valid": false,
@@ -1193,7 +3817,131 @@
           "acked_stop_seq": 0,
           "intent": {
             "attempt_id": "attempt-1",
-            "binding_fingerprint": "fp1:0123456789abcdef",
+            "binding_fingerprint": "fp1:082c7987f8e6d4bf0a28615b3521dce620408784913eae2830e5aeb6b1d53052",
+            "binding_proof": {
+              "binding": "daily-picks",
+              "continuity": {
+                "context_digest": "bc1:0000000000000000000000000000000000000000000000000000000000000000",
+                "kind": "notification_covered",
+                "scope": {
+                  "kind": "whole_structure"
+                },
+                "source_sequence": 1
+              },
+              "device_context": {
+                "active_layer": "window-1",
+                "ancestry": [
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "settings",
+                    "role": "AXWindow",
+                    "subrole": "AXStandardWindow"
+                  },
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "push",
+                    "role": "AXGroup",
+                    "subrole": null
+                  }
+                ],
+                "app": {
+                  "bundle_id": "test.settings",
+                  "pid": 42
+                },
+                "focus": null,
+                "menu": null,
+                "nearest_labelled_group_ancestry_index": 1,
+                "scope": "whole_structure_v1",
+                "scroll_ancestors": [],
+                "sibling_parent_ancestry_index": 1,
+                "siblings": [
+                  {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  }
+                ],
+                "table_column": null,
+                "target": {
+                  "group": "push",
+                  "object": {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  },
+                  "scroll": null
+                },
+                "target_sibling_index": 0,
+                "window": {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "kind": "window",
+                  "modal": false,
+                  "owner_bundle_id": "test.settings",
+                  "title": "settings",
+                  "window_id": "window-1"
+                }
+              },
+              "display_frame": {
+                "height": 20.0,
+                "width": 40.0,
+                "x": 10.0,
+                "y": 10.0
+              },
+              "environment_revision": 1,
+              "fingerprint": {
+                "ancestor_roles": [
+                  "AXWindow",
+                  "AXGroup"
+                ],
+                "app": "test.settings",
+                "app_pid": 42,
+                "frame": [
+                  10,
+                  10,
+                  40,
+                  20
+                ],
+                "group": "push",
+                "label": "daily picks",
+                "role": "AXSwitch",
+                "scroll_container": null,
+                "sibling_index": 0,
+                "subrole": null,
+                "window_id": "window-1"
+              },
+              "focus_scope": null,
+              "instance": "toggle-1",
+              "layer_revision": 1,
+              "menu_scope": null,
+              "snapshot_id": "snap-1"
+            },
             "coordinate_space": "display_points",
             "dependencies": {
               "authorization": 1,
@@ -1203,6 +3951,7 @@
             },
             "duration_ms": 100,
             "evidence_id": "obs-1",
+            "execution_domain": "simulated",
             "intent_id": "intent-1",
             "latest_start_ms": 200,
             "permit": {
@@ -1256,7 +4005,131 @@
           "acked_stop_seq": 0,
           "intent": {
             "attempt_id": "attempt-1",
-            "binding_fingerprint": "fp1:0123456789abcdef",
+            "binding_fingerprint": "fp1:082c7987f8e6d4bf0a28615b3521dce620408784913eae2830e5aeb6b1d53052",
+            "binding_proof": {
+              "binding": "daily-picks",
+              "continuity": {
+                "context_digest": "bc1:0000000000000000000000000000000000000000000000000000000000000000",
+                "kind": "notification_covered",
+                "scope": {
+                  "kind": "whole_structure"
+                },
+                "source_sequence": 1
+              },
+              "device_context": {
+                "active_layer": "window-1",
+                "ancestry": [
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "settings",
+                    "role": "AXWindow",
+                    "subrole": "AXStandardWindow"
+                  },
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "push",
+                    "role": "AXGroup",
+                    "subrole": null
+                  }
+                ],
+                "app": {
+                  "bundle_id": "test.settings",
+                  "pid": 42
+                },
+                "focus": null,
+                "menu": null,
+                "nearest_labelled_group_ancestry_index": 1,
+                "scope": "whole_structure_v1",
+                "scroll_ancestors": [],
+                "sibling_parent_ancestry_index": 1,
+                "siblings": [
+                  {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  }
+                ],
+                "table_column": null,
+                "target": {
+                  "group": "push",
+                  "object": {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  },
+                  "scroll": null
+                },
+                "target_sibling_index": 0,
+                "window": {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "kind": "window",
+                  "modal": false,
+                  "owner_bundle_id": "test.settings",
+                  "title": "settings",
+                  "window_id": "window-1"
+                }
+              },
+              "display_frame": {
+                "height": 20.0,
+                "width": 40.0,
+                "x": 10.0,
+                "y": 10.0
+              },
+              "environment_revision": 1,
+              "fingerprint": {
+                "ancestor_roles": [
+                  "AXWindow",
+                  "AXGroup"
+                ],
+                "app": "test.settings",
+                "app_pid": 42,
+                "frame": [
+                  10,
+                  10,
+                  40,
+                  20
+                ],
+                "group": "push",
+                "label": "daily picks",
+                "role": "AXSwitch",
+                "scroll_container": null,
+                "sibling_index": 0,
+                "subrole": null,
+                "window_id": "window-1"
+              },
+              "focus_scope": null,
+              "instance": "toggle-1",
+              "layer_revision": 1,
+              "menu_scope": null,
+              "snapshot_id": "snap-1"
+            },
             "coordinate_space": "display_points",
             "dependencies": {
               "authorization": 1,
@@ -1266,6 +4139,7 @@
             },
             "duration_ms": 100,
             "evidence_id": "obs-1",
+            "execution_domain": "simulated",
             "intent_id": "intent-1",
             "latest_start_ms": 200,
             "permit": {
@@ -1419,7 +4293,131 @@
           "acked_stop_seq": 0,
           "intent": {
             "attempt_id": "attempt-1",
-            "binding_fingerprint": "fp1:0123456789abcdef",
+            "binding_fingerprint": "fp1:082c7987f8e6d4bf0a28615b3521dce620408784913eae2830e5aeb6b1d53052",
+            "binding_proof": {
+              "binding": "daily-picks",
+              "continuity": {
+                "context_digest": "bc1:0000000000000000000000000000000000000000000000000000000000000000",
+                "kind": "notification_covered",
+                "scope": {
+                  "kind": "whole_structure"
+                },
+                "source_sequence": 1
+              },
+              "device_context": {
+                "active_layer": "window-1",
+                "ancestry": [
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "settings",
+                    "role": "AXWindow",
+                    "subrole": "AXStandardWindow"
+                  },
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "push",
+                    "role": "AXGroup",
+                    "subrole": null
+                  }
+                ],
+                "app": {
+                  "bundle_id": "test.settings",
+                  "pid": 42
+                },
+                "focus": null,
+                "menu": null,
+                "nearest_labelled_group_ancestry_index": 1,
+                "scope": "whole_structure_v1",
+                "scroll_ancestors": [],
+                "sibling_parent_ancestry_index": 1,
+                "siblings": [
+                  {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  }
+                ],
+                "table_column": null,
+                "target": {
+                  "group": "push",
+                  "object": {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  },
+                  "scroll": null
+                },
+                "target_sibling_index": 0,
+                "window": {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "kind": "window",
+                  "modal": false,
+                  "owner_bundle_id": "test.settings",
+                  "title": "settings",
+                  "window_id": "window-1"
+                }
+              },
+              "display_frame": {
+                "height": 20.0,
+                "width": 40.0,
+                "x": 10.0,
+                "y": 10.0
+              },
+              "environment_revision": 1,
+              "fingerprint": {
+                "ancestor_roles": [
+                  "AXWindow",
+                  "AXGroup"
+                ],
+                "app": "test.settings",
+                "app_pid": 42,
+                "frame": [
+                  10,
+                  10,
+                  40,
+                  20
+                ],
+                "group": "push",
+                "label": "daily picks",
+                "role": "AXSwitch",
+                "scroll_container": null,
+                "sibling_index": 0,
+                "subrole": null,
+                "window_id": "window-1"
+              },
+              "focus_scope": null,
+              "instance": "toggle-1",
+              "layer_revision": 1,
+              "menu_scope": null,
+              "snapshot_id": "snap-1"
+            },
             "coordinate_space": "display_points",
             "dependencies": {
               "authorization": 1,
@@ -1429,6 +4427,7 @@
             },
             "duration_ms": 100,
             "evidence_id": "obs-1",
+            "execution_domain": "simulated",
             "intent_id": "intent-1",
             "latest_start_ms": 200,
             "permit": {
@@ -1481,7 +4480,131 @@
           "acked_stop_seq": 0,
           "intent": {
             "attempt_id": "attempt-1",
-            "binding_fingerprint": "fp1:0123456789abcdef",
+            "binding_fingerprint": "fp1:082c7987f8e6d4bf0a28615b3521dce620408784913eae2830e5aeb6b1d53052",
+            "binding_proof": {
+              "binding": "daily-picks",
+              "continuity": {
+                "context_digest": "bc1:0000000000000000000000000000000000000000000000000000000000000000",
+                "kind": "notification_covered",
+                "scope": {
+                  "kind": "whole_structure"
+                },
+                "source_sequence": 1
+              },
+              "device_context": {
+                "active_layer": "window-1",
+                "ancestry": [
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "settings",
+                    "role": "AXWindow",
+                    "subrole": "AXStandardWindow"
+                  },
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "push",
+                    "role": "AXGroup",
+                    "subrole": null
+                  }
+                ],
+                "app": {
+                  "bundle_id": "test.settings",
+                  "pid": 42
+                },
+                "focus": null,
+                "menu": null,
+                "nearest_labelled_group_ancestry_index": 1,
+                "scope": "whole_structure_v1",
+                "scroll_ancestors": [],
+                "sibling_parent_ancestry_index": 1,
+                "siblings": [
+                  {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  }
+                ],
+                "table_column": null,
+                "target": {
+                  "group": "push",
+                  "object": {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  },
+                  "scroll": null
+                },
+                "target_sibling_index": 0,
+                "window": {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "kind": "window",
+                  "modal": false,
+                  "owner_bundle_id": "test.settings",
+                  "title": "settings",
+                  "window_id": "window-1"
+                }
+              },
+              "display_frame": {
+                "height": 20.0,
+                "width": 40.0,
+                "x": 10.0,
+                "y": 10.0
+              },
+              "environment_revision": 1,
+              "fingerprint": {
+                "ancestor_roles": [
+                  "AXWindow",
+                  "AXGroup"
+                ],
+                "app": "test.settings",
+                "app_pid": 42,
+                "frame": [
+                  10,
+                  10,
+                  40,
+                  20
+                ],
+                "group": "push",
+                "label": "daily picks",
+                "role": "AXSwitch",
+                "scroll_container": null,
+                "sibling_index": 0,
+                "subrole": null,
+                "window_id": "window-1"
+              },
+              "focus_scope": null,
+              "instance": "toggle-1",
+              "layer_revision": 1,
+              "menu_scope": null,
+              "snapshot_id": "snap-1"
+            },
             "coordinate_space": "display_points",
             "dependencies": {
               "authorization": 1,
@@ -1491,6 +4614,7 @@
             },
             "duration_ms": 0,
             "evidence_id": "obs-1",
+            "execution_domain": "simulated",
             "intent_id": "intent-1",
             "latest_start_ms": 200,
             "permit": {
@@ -1543,7 +4667,131 @@
           "acked_stop_seq": 0,
           "intent": {
             "attempt_id": "attempt-1",
-            "binding_fingerprint": "fp1:0123456789abcdef",
+            "binding_fingerprint": "fp1:082c7987f8e6d4bf0a28615b3521dce620408784913eae2830e5aeb6b1d53052",
+            "binding_proof": {
+              "binding": "daily-picks",
+              "continuity": {
+                "context_digest": "bc1:0000000000000000000000000000000000000000000000000000000000000000",
+                "kind": "notification_covered",
+                "scope": {
+                  "kind": "whole_structure"
+                },
+                "source_sequence": 1
+              },
+              "device_context": {
+                "active_layer": "window-1",
+                "ancestry": [
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "settings",
+                    "role": "AXWindow",
+                    "subrole": "AXStandardWindow"
+                  },
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "push",
+                    "role": "AXGroup",
+                    "subrole": null
+                  }
+                ],
+                "app": {
+                  "bundle_id": "test.settings",
+                  "pid": 42
+                },
+                "focus": null,
+                "menu": null,
+                "nearest_labelled_group_ancestry_index": 1,
+                "scope": "whole_structure_v1",
+                "scroll_ancestors": [],
+                "sibling_parent_ancestry_index": 1,
+                "siblings": [
+                  {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  }
+                ],
+                "table_column": null,
+                "target": {
+                  "group": "push",
+                  "object": {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  },
+                  "scroll": null
+                },
+                "target_sibling_index": 0,
+                "window": {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "kind": "window",
+                  "modal": false,
+                  "owner_bundle_id": "test.settings",
+                  "title": "settings",
+                  "window_id": "window-1"
+                }
+              },
+              "display_frame": {
+                "height": 20.0,
+                "width": 40.0,
+                "x": 10.0,
+                "y": 10.0
+              },
+              "environment_revision": 1,
+              "fingerprint": {
+                "ancestor_roles": [
+                  "AXWindow",
+                  "AXGroup"
+                ],
+                "app": "test.settings",
+                "app_pid": 42,
+                "frame": [
+                  10,
+                  10,
+                  40,
+                  20
+                ],
+                "group": "push",
+                "label": "daily picks",
+                "role": "AXSwitch",
+                "scroll_container": null,
+                "sibling_index": 0,
+                "subrole": null,
+                "window_id": "window-1"
+              },
+              "focus_scope": null,
+              "instance": "toggle-1",
+              "layer_revision": 1,
+              "menu_scope": null,
+              "snapshot_id": "snap-1"
+            },
             "coordinate_space": "display_points",
             "dependencies": {
               "authorization": 1,
@@ -1553,6 +4801,7 @@
             },
             "duration_ms": 100,
             "evidence_id": "obs-1",
+            "execution_domain": "simulated",
             "intent_id": "intent-1",
             "latest_start_ms": 200,
             "permit": {
@@ -1592,7 +4841,131 @@
           "acked_stop_seq": 0,
           "intent": {
             "attempt_id": "attempt-1",
-            "binding_fingerprint": "fp1:0123456789abcdef",
+            "binding_fingerprint": "fp1:082c7987f8e6d4bf0a28615b3521dce620408784913eae2830e5aeb6b1d53052",
+            "binding_proof": {
+              "binding": "daily-picks",
+              "continuity": {
+                "context_digest": "bc1:0000000000000000000000000000000000000000000000000000000000000000",
+                "kind": "notification_covered",
+                "scope": {
+                  "kind": "whole_structure"
+                },
+                "source_sequence": 1
+              },
+              "device_context": {
+                "active_layer": "window-1",
+                "ancestry": [
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "settings",
+                    "role": "AXWindow",
+                    "subrole": "AXStandardWindow"
+                  },
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "push",
+                    "role": "AXGroup",
+                    "subrole": null
+                  }
+                ],
+                "app": {
+                  "bundle_id": "test.settings",
+                  "pid": 42
+                },
+                "focus": null,
+                "menu": null,
+                "nearest_labelled_group_ancestry_index": 1,
+                "scope": "whole_structure_v1",
+                "scroll_ancestors": [],
+                "sibling_parent_ancestry_index": 1,
+                "siblings": [
+                  {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  }
+                ],
+                "table_column": null,
+                "target": {
+                  "group": "push",
+                  "object": {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  },
+                  "scroll": null
+                },
+                "target_sibling_index": 0,
+                "window": {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "kind": "window",
+                  "modal": false,
+                  "owner_bundle_id": "test.settings",
+                  "title": "settings",
+                  "window_id": "window-1"
+                }
+              },
+              "display_frame": {
+                "height": 20.0,
+                "width": 40.0,
+                "x": 10.0,
+                "y": 10.0
+              },
+              "environment_revision": 1,
+              "fingerprint": {
+                "ancestor_roles": [
+                  "AXWindow",
+                  "AXGroup"
+                ],
+                "app": "test.settings",
+                "app_pid": 42,
+                "frame": [
+                  10,
+                  10,
+                  40,
+                  20
+                ],
+                "group": "push",
+                "label": "daily picks",
+                "role": "AXSwitch",
+                "scroll_container": null,
+                "sibling_index": 0,
+                "subrole": null,
+                "window_id": "window-1"
+              },
+              "focus_scope": null,
+              "instance": "toggle-1",
+              "layer_revision": 1,
+              "menu_scope": null,
+              "snapshot_id": "snap-1"
+            },
             "coordinate_space": "display_points",
             "dependencies": {
               "authorization": 1,
@@ -1602,6 +4975,7 @@
             },
             "duration_ms": 100,
             "evidence_id": "obs-1",
+            "execution_domain": "simulated",
             "intent_id": "intent-1",
             "latest_start_ms": 200,
             "permit": {
@@ -1727,6 +5101,130 @@
       "in_reply_to": null,
       "message": {
         "payload": {
+          "binding_proof": {
+            "binding": "daily-picks",
+            "continuity": {
+              "context_digest": "bc1:0000000000000000000000000000000000000000000000000000000000000000",
+              "kind": "notification_covered",
+              "scope": {
+                "kind": "whole_structure"
+              },
+              "source_sequence": 1
+            },
+            "device_context": {
+              "active_layer": "window-1",
+              "ancestry": [
+                {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "label": "settings",
+                  "role": "AXWindow",
+                  "subrole": "AXStandardWindow"
+                },
+                {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "label": "push",
+                  "role": "AXGroup",
+                  "subrole": null
+                }
+              ],
+              "app": {
+                "bundle_id": "test.settings",
+                "pid": 42
+              },
+              "focus": null,
+              "menu": null,
+              "nearest_labelled_group_ancestry_index": 1,
+              "scope": "whole_structure_v1",
+              "scroll_ancestors": [],
+              "sibling_parent_ancestry_index": 1,
+              "siblings": [
+                {
+                  "frame": {
+                    "height": 20.0,
+                    "width": 40.0,
+                    "x": 10.0,
+                    "y": 10.0
+                  },
+                  "label": "daily picks",
+                  "role": "AXSwitch",
+                  "subrole": null
+                }
+              ],
+              "table_column": null,
+              "target": {
+                "group": "push",
+                "object": {
+                  "frame": {
+                    "height": 20.0,
+                    "width": 40.0,
+                    "x": 10.0,
+                    "y": 10.0
+                  },
+                  "label": "daily picks",
+                  "role": "AXSwitch",
+                  "subrole": null
+                },
+                "scroll": null
+              },
+              "target_sibling_index": 0,
+              "window": {
+                "frame": {
+                  "height": 100.0,
+                  "width": 100.0,
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "kind": "window",
+                "modal": false,
+                "owner_bundle_id": "test.settings",
+                "title": "settings",
+                "window_id": "window-1"
+              }
+            },
+            "display_frame": {
+              "height": 20.0,
+              "width": 40.0,
+              "x": 10.0,
+              "y": 10.0
+            },
+            "environment_revision": 1,
+            "fingerprint": {
+              "ancestor_roles": [
+                "AXWindow",
+                "AXGroup"
+              ],
+              "app": "test.settings",
+              "app_pid": 42,
+              "frame": [
+                10,
+                10,
+                40,
+                20
+              ],
+              "group": "push",
+              "label": "daily picks",
+              "role": "AXSwitch",
+              "scroll_container": null,
+              "sibling_index": 0,
+              "subrole": null,
+              "window_id": "window-1"
+            },
+            "focus_scope": null,
+            "instance": "toggle-1",
+            "layer_revision": 1,
+            "menu_scope": null,
+            "snapshot_id": "snap-1"
+          },
           "clock_domain": "sim/1/monotonic",
           "dependencies": {
             "authorization": 1,
@@ -1734,6 +5232,7 @@
             "focus": 1,
             "layer": 1
           },
+          "execution_domain": "simulated",
           "freshness": "verified",
           "observation_id": "obs-1",
           "observed_ms": 90,
@@ -1767,7 +5266,131 @@
           "acked_stop_seq": 0,
           "intent": {
             "attempt_id": "attempt-1",
-            "binding_fingerprint": "fp1:0123456789abcdef",
+            "binding_fingerprint": "fp1:082c7987f8e6d4bf0a28615b3521dce620408784913eae2830e5aeb6b1d53052",
+            "binding_proof": {
+              "binding": "daily-picks",
+              "continuity": {
+                "context_digest": "bc1:0000000000000000000000000000000000000000000000000000000000000000",
+                "kind": "notification_covered",
+                "scope": {
+                  "kind": "whole_structure"
+                },
+                "source_sequence": 1
+              },
+              "device_context": {
+                "active_layer": "window-1",
+                "ancestry": [
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "settings",
+                    "role": "AXWindow",
+                    "subrole": "AXStandardWindow"
+                  },
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "push",
+                    "role": "AXGroup",
+                    "subrole": null
+                  }
+                ],
+                "app": {
+                  "bundle_id": "test.settings",
+                  "pid": 42
+                },
+                "focus": null,
+                "menu": null,
+                "nearest_labelled_group_ancestry_index": 1,
+                "scope": "whole_structure_v1",
+                "scroll_ancestors": [],
+                "sibling_parent_ancestry_index": 1,
+                "siblings": [
+                  {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  }
+                ],
+                "table_column": null,
+                "target": {
+                  "group": "push",
+                  "object": {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  },
+                  "scroll": null
+                },
+                "target_sibling_index": 0,
+                "window": {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "kind": "window",
+                  "modal": false,
+                  "owner_bundle_id": "test.settings",
+                  "title": "settings",
+                  "window_id": "window-1"
+                }
+              },
+              "display_frame": {
+                "height": 20.0,
+                "width": 40.0,
+                "x": 10.0,
+                "y": 10.0
+              },
+              "environment_revision": 1,
+              "fingerprint": {
+                "ancestor_roles": [
+                  "AXWindow",
+                  "AXGroup"
+                ],
+                "app": "test.settings",
+                "app_pid": 42,
+                "frame": [
+                  10,
+                  10,
+                  40,
+                  20
+                ],
+                "group": "push",
+                "label": "daily picks",
+                "role": "AXSwitch",
+                "scroll_container": null,
+                "sibling_index": 0,
+                "subrole": null,
+                "window_id": "window-1"
+              },
+              "focus_scope": null,
+              "instance": "toggle-1",
+              "layer_revision": 1,
+              "menu_scope": null,
+              "snapshot_id": "snap-1"
+            },
             "coordinate_space": "display_points",
             "dependencies": {
               "authorization": 1,
@@ -1777,6 +5400,7 @@
             },
             "duration_ms": 100,
             "evidence_id": "obs-1",
+            "execution_domain": "simulated",
             "intent_id": "intent-1",
             "latest_start_ms": 200,
             "permit": {
@@ -1841,7 +5465,131 @@
           "acked_stop_seq": 0,
           "intent": {
             "attempt_id": "attempt-1",
-            "binding_fingerprint": "fp1:0123456789abcdef",
+            "binding_fingerprint": "fp1:082c7987f8e6d4bf0a28615b3521dce620408784913eae2830e5aeb6b1d53052",
+            "binding_proof": {
+              "binding": "daily-picks",
+              "continuity": {
+                "context_digest": "bc1:0000000000000000000000000000000000000000000000000000000000000000",
+                "kind": "notification_covered",
+                "scope": {
+                  "kind": "whole_structure"
+                },
+                "source_sequence": 1
+              },
+              "device_context": {
+                "active_layer": "window-1",
+                "ancestry": [
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "settings",
+                    "role": "AXWindow",
+                    "subrole": "AXStandardWindow"
+                  },
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "push",
+                    "role": "AXGroup",
+                    "subrole": null
+                  }
+                ],
+                "app": {
+                  "bundle_id": "test.settings",
+                  "pid": 42
+                },
+                "focus": null,
+                "menu": null,
+                "nearest_labelled_group_ancestry_index": 1,
+                "scope": "whole_structure_v1",
+                "scroll_ancestors": [],
+                "sibling_parent_ancestry_index": 1,
+                "siblings": [
+                  {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  }
+                ],
+                "table_column": null,
+                "target": {
+                  "group": "push",
+                  "object": {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  },
+                  "scroll": null
+                },
+                "target_sibling_index": 0,
+                "window": {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "kind": "window",
+                  "modal": false,
+                  "owner_bundle_id": "test.settings",
+                  "title": "settings",
+                  "window_id": "window-1"
+                }
+              },
+              "display_frame": {
+                "height": 20.0,
+                "width": 40.0,
+                "x": 10.0,
+                "y": 10.0
+              },
+              "environment_revision": 1,
+              "fingerprint": {
+                "ancestor_roles": [
+                  "AXWindow",
+                  "AXGroup"
+                ],
+                "app": "test.settings",
+                "app_pid": 42,
+                "frame": [
+                  10,
+                  10,
+                  40,
+                  20
+                ],
+                "group": "push",
+                "label": "daily picks",
+                "role": "AXSwitch",
+                "scroll_container": null,
+                "sibling_index": 0,
+                "subrole": null,
+                "window_id": "window-1"
+              },
+              "focus_scope": null,
+              "instance": "toggle-1",
+              "layer_revision": 1,
+              "menu_scope": null,
+              "snapshot_id": "snap-1"
+            },
             "coordinate_space": "display_points",
             "dependencies": {
               "authorization": 1,
@@ -1851,6 +5599,7 @@
             },
             "duration_ms": 100,
             "evidence_id": "obs-1",
+            "execution_domain": "simulated",
             "intent_id": "intent-1",
             "latest_start_ms": 200,
             "permit": {
@@ -1903,7 +5652,131 @@
           "acked_stop_seq": 0,
           "intent": {
             "attempt_id": "attempt-1",
-            "binding_fingerprint": "fp1:0123456789abcdef",
+            "binding_fingerprint": "fp1:082c7987f8e6d4bf0a28615b3521dce620408784913eae2830e5aeb6b1d53052",
+            "binding_proof": {
+              "binding": "daily-picks",
+              "continuity": {
+                "context_digest": "bc1:0000000000000000000000000000000000000000000000000000000000000000",
+                "kind": "notification_covered",
+                "scope": {
+                  "kind": "whole_structure"
+                },
+                "source_sequence": 1
+              },
+              "device_context": {
+                "active_layer": "window-1",
+                "ancestry": [
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "settings",
+                    "role": "AXWindow",
+                    "subrole": "AXStandardWindow"
+                  },
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "push",
+                    "role": "AXGroup",
+                    "subrole": null
+                  }
+                ],
+                "app": {
+                  "bundle_id": "test.settings",
+                  "pid": 42
+                },
+                "focus": null,
+                "menu": null,
+                "nearest_labelled_group_ancestry_index": 1,
+                "scope": "whole_structure_v1",
+                "scroll_ancestors": [],
+                "sibling_parent_ancestry_index": 1,
+                "siblings": [
+                  {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  }
+                ],
+                "table_column": null,
+                "target": {
+                  "group": "push",
+                  "object": {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  },
+                  "scroll": null
+                },
+                "target_sibling_index": 0,
+                "window": {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "kind": "window",
+                  "modal": false,
+                  "owner_bundle_id": "test.settings",
+                  "title": "settings",
+                  "window_id": "window-1"
+                }
+              },
+              "display_frame": {
+                "height": 20.0,
+                "width": 40.0,
+                "x": 10.0,
+                "y": 10.0
+              },
+              "environment_revision": 1,
+              "fingerprint": {
+                "ancestor_roles": [
+                  "AXWindow",
+                  "AXGroup"
+                ],
+                "app": "test.settings",
+                "app_pid": 42,
+                "frame": [
+                  10,
+                  10,
+                  40,
+                  20
+                ],
+                "group": "push",
+                "label": "daily picks",
+                "role": "AXSwitch",
+                "scroll_container": null,
+                "sibling_index": 0,
+                "subrole": null,
+                "window_id": "window-1"
+              },
+              "focus_scope": null,
+              "instance": "toggle-1",
+              "layer_revision": 1,
+              "menu_scope": null,
+              "snapshot_id": "snap-1"
+            },
             "coordinate_space": "display_points",
             "dependencies": {
               "authorization": 1,
@@ -1913,6 +5786,7 @@
             },
             "duration_ms": 100,
             "evidence_id": "obs-1",
+            "execution_domain": "simulated",
             "intent_id": "intent-1",
             "latest_start_ms": 200,
             "permit": {
@@ -1962,7 +5836,131 @@
           "acked_stop_seq": 0,
           "intent": {
             "attempt_id": "attempt-1",
-            "binding_fingerprint": "fp1:0123456789abcdef",
+            "binding_fingerprint": "fp1:082c7987f8e6d4bf0a28615b3521dce620408784913eae2830e5aeb6b1d53052",
+            "binding_proof": {
+              "binding": "daily-picks",
+              "continuity": {
+                "context_digest": "bc1:0000000000000000000000000000000000000000000000000000000000000000",
+                "kind": "notification_covered",
+                "scope": {
+                  "kind": "whole_structure"
+                },
+                "source_sequence": 1
+              },
+              "device_context": {
+                "active_layer": "window-1",
+                "ancestry": [
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "settings",
+                    "role": "AXWindow",
+                    "subrole": "AXStandardWindow"
+                  },
+                  {
+                    "frame": {
+                      "height": 100.0,
+                      "width": 100.0,
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "label": "push",
+                    "role": "AXGroup",
+                    "subrole": null
+                  }
+                ],
+                "app": {
+                  "bundle_id": "test.settings",
+                  "pid": 42
+                },
+                "focus": null,
+                "menu": null,
+                "nearest_labelled_group_ancestry_index": 1,
+                "scope": "whole_structure_v1",
+                "scroll_ancestors": [],
+                "sibling_parent_ancestry_index": 1,
+                "siblings": [
+                  {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  }
+                ],
+                "table_column": null,
+                "target": {
+                  "group": "push",
+                  "object": {
+                    "frame": {
+                      "height": 20.0,
+                      "width": 40.0,
+                      "x": 10.0,
+                      "y": 10.0
+                    },
+                    "label": "daily picks",
+                    "role": "AXSwitch",
+                    "subrole": null
+                  },
+                  "scroll": null
+                },
+                "target_sibling_index": 0,
+                "window": {
+                  "frame": {
+                    "height": 100.0,
+                    "width": 100.0,
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "kind": "window",
+                  "modal": false,
+                  "owner_bundle_id": "test.settings",
+                  "title": "settings",
+                  "window_id": "window-1"
+                }
+              },
+              "display_frame": {
+                "height": 20.0,
+                "width": 40.0,
+                "x": 10.0,
+                "y": 10.0
+              },
+              "environment_revision": 1,
+              "fingerprint": {
+                "ancestor_roles": [
+                  "AXWindow",
+                  "AXGroup"
+                ],
+                "app": "test.settings",
+                "app_pid": 42,
+                "frame": [
+                  10,
+                  10,
+                  40,
+                  20
+                ],
+                "group": "push",
+                "label": "daily picks",
+                "role": "AXSwitch",
+                "scroll_container": null,
+                "sibling_index": 0,
+                "subrole": null,
+                "window_id": "window-1"
+              },
+              "focus_scope": null,
+              "instance": "toggle-1",
+              "layer_revision": 1,
+              "menu_scope": null,
+              "snapshot_id": "snap-1"
+            },
             "coordinate_space": "display_points",
             "dependencies": {
               "authorization": 1,
@@ -1972,6 +5970,7 @@
             },
             "duration_ms": 100,
             "evidence_id": "obs-1",
+            "execution_domain": "simulated",
             "intent_id": "intent-1",
             "latest_start_ms": 200,
             "permit": {
@@ -2053,7 +6052,7 @@
     }
   },
   {
-    "name": "snapshot_active_layer_unknown",
+    "name": "snapshot_global_focus_window_unknown",
     "schema_valid": true,
     "decode_valid": false,
     "message": {
@@ -2061,7 +6060,6 @@
       "in_reply_to": null,
       "message": {
         "payload": {
-          "active_layer": "ghost",
           "app": {
             "bundle_id": "test.settings",
             "name": "Settings",
@@ -2069,7 +6067,25 @@
           },
           "clock_domain": "sim/1/monotonic",
           "complete": true,
+          "focus_context": null,
+          "global_focus": {
+            "app": {
+              "state": "known",
+              "value": {
+                "bundle_id": "test.settings",
+                "name": "Settings",
+                "pid": 4242
+              }
+            },
+            "window_id": {
+              "state": "known",
+              "value": "ghost"
+            }
+          },
+          "identity_boundary": null,
           "incomplete_reason": null,
+          "menu_anchors": [],
+          "menu_context": null,
           "objects": [
             {
               "actions": [
@@ -2086,10 +6102,12 @@
                 "y": 60.0
               },
               "group": "Push",
+              "identity_continuity": "notification_covered",
               "in_view": true,
               "instance_ref": "obj-1",
               "parent": null,
               "role": "switch",
+              "scroll": null,
               "secure": false,
               "subrole": null,
               "title": "Daily picks",
@@ -2101,6 +6119,13 @@
             }
           ],
           "observed_ms": 90,
+          "observer_coverage": {
+            "covered_objects": 1,
+            "failed_registrations": 0,
+            "failures": [],
+            "read_scoped_objects": 0,
+            "state": "available"
+          },
           "session_epoch": 1,
           "snapshot_id": "snap-1",
           "source_sequence": 1,
@@ -2108,6 +6133,9 @@
             "epoch": 1,
             "id": "main"
           },
+          "table_viewports": [],
+          "target_context": null,
+          "window_context": null,
           "windows": [
             {
               "frame": {
@@ -2143,7 +6171,6 @@
       "in_reply_to": null,
       "message": {
         "payload": {
-          "active_layer": "w1",
           "app": {
             "bundle_id": "test.settings",
             "name": "Settings",
@@ -2151,7 +6178,25 @@
           },
           "clock_domain": "sim/1/monotonic",
           "complete": false,
+          "focus_context": null,
+          "global_focus": {
+            "app": {
+              "state": "known",
+              "value": {
+                "bundle_id": "test.settings",
+                "name": "Settings",
+                "pid": 4242
+              }
+            },
+            "window_id": {
+              "state": "known",
+              "value": "w1"
+            }
+          },
+          "identity_boundary": null,
           "incomplete_reason": null,
+          "menu_anchors": [],
+          "menu_context": null,
           "objects": [
             {
               "actions": [
@@ -2168,10 +6213,12 @@
                 "y": 60.0
               },
               "group": "Push",
+              "identity_continuity": "notification_covered",
               "in_view": true,
               "instance_ref": "obj-1",
               "parent": null,
               "role": "switch",
+              "scroll": null,
               "secure": false,
               "subrole": null,
               "title": "Daily picks",
@@ -2183,6 +6230,13 @@
             }
           ],
           "observed_ms": 90,
+          "observer_coverage": {
+            "covered_objects": 1,
+            "failed_registrations": 0,
+            "failures": [],
+            "read_scoped_objects": 0,
+            "state": "available"
+          },
           "session_epoch": 1,
           "snapshot_id": "snap-1",
           "source_sequence": 1,
@@ -2190,6 +6244,9 @@
             "epoch": 1,
             "id": "main"
           },
+          "table_viewports": [],
+          "target_context": null,
+          "window_context": null,
           "windows": [
             {
               "frame": {
@@ -2225,7 +6282,6 @@
       "in_reply_to": null,
       "message": {
         "payload": {
-          "active_layer": "w1",
           "app": {
             "bundle_id": "test.settings",
             "name": "Settings",
@@ -2233,7 +6289,25 @@
           },
           "clock_domain": "sim/1/monotonic",
           "complete": true,
+          "focus_context": null,
+          "global_focus": {
+            "app": {
+              "state": "known",
+              "value": {
+                "bundle_id": "test.settings",
+                "name": "Settings",
+                "pid": 4242
+              }
+            },
+            "window_id": {
+              "state": "known",
+              "value": "w1"
+            }
+          },
+          "identity_boundary": null,
           "incomplete_reason": null,
+          "menu_anchors": [],
+          "menu_context": null,
           "objects": [
             {
               "actions": [
@@ -2250,10 +6324,12 @@
                 "y": 60.0
               },
               "group": "Push",
+              "identity_continuity": "notification_covered",
               "in_view": true,
               "instance_ref": "obj-1",
               "parent": null,
               "role": "switch",
+              "scroll": null,
               "secure": false,
               "subrole": null,
               "title": "Daily picks",
@@ -2265,6 +6341,13 @@
             }
           ],
           "observed_ms": 90,
+          "observer_coverage": {
+            "covered_objects": 1,
+            "failed_registrations": 0,
+            "failures": [],
+            "read_scoped_objects": 0,
+            "state": "available"
+          },
           "session_epoch": 1,
           "snapshot_id": "snap-1",
           "source_sequence": 1,
@@ -2272,6 +6355,9 @@
             "epoch": 1,
             "id": "main"
           },
+          "table_viewports": [],
+          "target_context": null,
+          "window_context": null,
           "windows": [
             {
               "frame": {

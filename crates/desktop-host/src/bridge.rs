@@ -117,8 +117,9 @@ fn manifest_input(manifest: &CapabilityManifest) -> Input {
 /// What a message from the source means to the engine.
 pub fn source_input(message: Message) -> Option<Input> {
     match message {
-        Message::StructureSnapshot(snapshot) => Some(Input::Structure(Box::new(snapshot))),
+        Message::StructureSnapshot(snapshot) => Some(Input::Structure(snapshot)),
         Message::SourceHealth(health) => Some(Input::SourceHealth(health)),
+        Message::FrameMeta(meta) => Some(Input::Frame(Box::new(meta))),
         _ => None,
     }
 }
@@ -126,6 +127,10 @@ pub fn source_input(message: Message) -> Option<Input> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use interaction_contracts::desktop::browser::{
+        BrowserReadScope, BrowserSourceControl, BrowserSourceInvalidation,
+        browser_contract_golden_snapshots,
+    };
     use interaction_contracts::desktop::device::{
         CommandAck, GrantOutcome, PermitRef, QueryReceipt, Receipt, ReceiptStatus, ReleaseStatus,
     };
@@ -223,6 +228,7 @@ mod tests {
             submitted: vec![],
             release_status: ReleaseStatus::NotNeeded,
             command_end_ms: None,
+            input_end_ms: None,
             at_ms: 1,
         };
         let notice = samples::envelope_for(Message::Receipt(receipt));
@@ -269,5 +275,37 @@ mod tests {
             reason: "x".into(),
         });
         assert_eq!(command_message(stop).name(), "stop_command");
+    }
+
+    #[test]
+    fn browser_controls_and_page_snapshots_are_not_source_peer_inputs() {
+        let mut snapshots = browser_contract_golden_snapshots().unwrap();
+        let snapshot = snapshots.remove(0);
+        let scope_id = "550e8400-e29b-41d4-a716-446655440000";
+        let scope = BrowserReadScope {
+            scope_id: scope_id.into(),
+            generation: 1,
+            context: snapshot.context.clone(),
+            clock_domain: snapshot.clock_domain.clone(),
+            issued_ms: snapshot.observed_ms,
+        };
+
+        let install = Message::BrowserSourceControl(BrowserSourceControl::Install {
+            scope: Box::new(scope),
+        });
+        assert!(install.validate().is_ok());
+        assert!(source_input(install).is_none());
+
+        let invalidate = Message::BrowserSourceControl(BrowserSourceControl::Invalidate {
+            scope_id: scope_id.into(),
+            generation: 1,
+            reason: BrowserSourceInvalidation::Stopped,
+        });
+        assert!(invalidate.validate().is_ok());
+        assert!(source_input(invalidate).is_none());
+
+        let page = Message::BrowserPageSnapshot(snapshot);
+        assert!(page.validate().is_ok());
+        assert!(source_input(page).is_none());
     }
 }

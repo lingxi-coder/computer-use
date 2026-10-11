@@ -6,6 +6,8 @@ pub mod world;
 use std::path::Path;
 
 use interaction_contracts::desktop::decision::DecisionSource;
+use interaction_contracts::desktop::device::ExecutionDomainCapability;
+use interaction_contracts::desktop::domain::ExecutionDomain;
 use interaction_contracts::desktop::effect::EffectClass;
 use interaction_contracts::desktop::ids::{AttemptId, DecisionId, RootTaskId};
 use interaction_contracts::desktop::planning::{GoalDraft, PlanBundle, PlannerOutput};
@@ -26,6 +28,13 @@ pub fn config_with_budget(budget: RootBudgetSpec) -> TaskConfig {
     let mut config = config();
     config.default_budget = budget;
     config
+}
+
+/// The test-selected trust profile and exactly five domain capability slots.
+pub fn domain_capabilities_for_test_profile(
+    active_domain: ExecutionDomain,
+) -> Vec<ExecutionDomainCapability> {
+    world::domain_capabilities_for_test_profile(active_domain)
 }
 
 pub fn draft_and_bundle(text: &str, planner: &ScriptedPlanner) -> (GoalDraft, PlanBundle) {
@@ -57,7 +66,13 @@ pub fn running(path: Option<&Path>, config: TaskConfig) -> Rig {
     };
     let (draft, bundle) = draft_and_bundle(TEXT, &ScriptedPlanner::default());
     let request = runtime
-        .accept_draft(&mut storage, 10, &draft, &bundle)
+        .accept_draft(
+            &mut storage,
+            10,
+            &draft,
+            ExecutionDomain::Simulated,
+            &bundle,
+        )
         .unwrap();
     let ConfirmOutcome::GoalFrozen { goal, .. } = runtime
         .answer_confirmation(&mut storage, 20, &request.confirmation_id, true)

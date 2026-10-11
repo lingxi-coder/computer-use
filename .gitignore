@@ -4,3 +4,10 @@ node_modules/
 /apps/desktop/dist/
 *.tsbuildinfo
 .DS_Store
+/.codegraph/
+/.omx/
+/artifacts/
+**/:memory:.ses
+**/:memory:.ses-*
+__pycache__/
+*.py[cod]

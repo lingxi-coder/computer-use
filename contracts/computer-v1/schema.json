@@ -1,0 +1,851 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ComputerWireContract",
+  "type": "object",
+  "properties": {
+    "batch_proposal": {
+      "$ref": "#/$defs/ComputerBatchProposal"
+    },
+    "frame_request": {
+      "$ref": "#/$defs/ComputerFrameRequest"
+    }
+  },
+  "required": [
+    "frame_request",
+    "batch_proposal"
+  ],
+  "$defs": {
+    "ComputerActionProposal": {
+      "description": "One ordered, bounded action proposed by a model. This is not a device\ncommand and includes no provider-owned call or safety-check metadata.",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "type": "string",
+              "const": "click"
+            },
+            "button": {
+              "$ref": "#/$defs/ComputerMouseButton"
+            },
+            "keys": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*[^\\u0009-\\u000D\\u0020\\u0085\\u00A0\\u1680\\u2000-\\u200A\\u2028\\u2029\\u202F\\u205F\\u3000\\u0000-\\u001F\\u007F-\\u009F][^\\u0000-\\u001F\\u007F-\\u009F]*$"
+              },
+              "maxItems": 16
+            },
+            "x": {
+              "type": "number",
+              "format": "double",
+              "maximum": 1000000.0,
+              "minimum": -1000000.0
+            },
+            "y": {
+              "type": "number",
+              "format": "double",
+              "maximum": 1000000.0,
+              "minimum": -1000000.0
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "action",
+            "button",
+            "x",
+            "y"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "type": "string",
+              "const": "double_click"
+            },
+            "keys": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*[^\\u0009-\\u000D\\u0020\\u0085\\u00A0\\u1680\\u2000-\\u200A\\u2028\\u2029\\u202F\\u205F\\u3000\\u0000-\\u001F\\u007F-\\u009F][^\\u0000-\\u001F\\u007F-\\u009F]*$"
+              },
+              "maxItems": 16
+            },
+            "x": {
+              "type": "number",
+              "format": "double",
+              "maximum": 1000000.0,
+              "minimum": -1000000.0
+            },
+            "y": {
+              "type": "number",
+              "format": "double",
+              "maximum": 1000000.0,
+              "minimum": -1000000.0
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "action",
+            "x",
+            "y"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "type": "string",
+              "const": "drag"
+            },
+            "keys": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*[^\\u0009-\\u000D\\u0020\\u0085\\u00A0\\u1680\\u2000-\\u200A\\u2028\\u2029\\u202F\\u205F\\u3000\\u0000-\\u001F\\u007F-\\u009F][^\\u0000-\\u001F\\u007F-\\u009F]*$"
+              },
+              "maxItems": 16
+            },
+            "path": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/ComputerPoint"
+              },
+              "maxItems": 256,
+              "minItems": 2
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "action",
+            "path"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "type": "string",
+              "const": "move"
+            },
+            "keys": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*[^\\u0009-\\u000D\\u0020\\u0085\\u00A0\\u1680\\u2000-\\u200A\\u2028\\u2029\\u202F\\u205F\\u3000\\u0000-\\u001F\\u007F-\\u009F][^\\u0000-\\u001F\\u007F-\\u009F]*$"
+              },
+              "maxItems": 16
+            },
+            "x": {
+              "type": "number",
+              "format": "double",
+              "maximum": 1000000.0,
+              "minimum": -1000000.0
+            },
+            "y": {
+              "type": "number",
+              "format": "double",
+              "maximum": 1000000.0,
+              "minimum": -1000000.0
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "action",
+            "x",
+            "y"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "type": "string",
+              "const": "scroll"
+            },
+            "keys": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*[^\\u0009-\\u000D\\u0020\\u0085\\u00A0\\u1680\\u2000-\\u200A\\u2028\\u2029\\u202F\\u205F\\u3000\\u0000-\\u001F\\u007F-\\u009F][^\\u0000-\\u001F\\u007F-\\u009F]*$"
+              },
+              "maxItems": 16
+            },
+            "scroll_x": {
+              "type": "number",
+              "format": "double",
+              "maximum": 1000000.0,
+              "minimum": -1000000.0
+            },
+            "scroll_y": {
+              "type": "number",
+              "format": "double",
+              "maximum": 1000000.0,
+              "minimum": -1000000.0
+            },
+            "x": {
+              "type": "number",
+              "format": "double",
+              "maximum": 1000000.0,
+              "minimum": -1000000.0
+            },
+            "y": {
+              "type": "number",
+              "format": "double",
+              "maximum": 1000000.0,
+              "minimum": -1000000.0
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "action",
+            "scroll_x",
+            "scroll_y",
+            "x",
+            "y"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "type": "string",
+              "const": "keypress"
+            },
+            "keys": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*[^\\u0009-\\u000D\\u0020\\u0085\\u00A0\\u1680\\u2000-\\u200A\\u2028\\u2029\\u202F\\u205F\\u3000\\u0000-\\u001F\\u007F-\\u009F][^\\u0000-\\u001F\\u007F-\\u009F]*$"
+              },
+              "maxItems": 16,
+              "minItems": 1
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "action",
+            "keys"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "type": "string",
+              "const": "type"
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 65536,
+              "pattern": "^[^\\u0000]*$"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "action",
+            "text"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "type": "string",
+              "const": "wait"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "action"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "type": "string",
+              "const": "screenshot"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "action"
+          ]
+        }
+      ]
+    },
+    "ComputerBatchProposal": {
+      "description": "An ordered model-generated action batch bound to the caller's fence.\n\nThis is only a completed proposal. Root permission, Device capability,\ncurrent frame freshness and input authorization remain separate checks.",
+      "type": "object",
+      "properties": {
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ComputerActionProposal"
+          },
+          "maxItems": 128,
+          "minItems": 1
+        },
+        "fence": {
+          "$ref": "#/$defs/ComputerFence"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "fence",
+        "actions"
+      ]
+    },
+    "ComputerFence": {
+      "description": "The caller-owned snapshot and task lifetime a computer-use request is tied to.\n\nA model proposal must never supply or alter this fence. Expiry and current\nroot/task authorization are checked by the host at use time.",
+      "type": "object",
+      "properties": {
+        "deadline_ms": {
+          "type": "integer",
+          "format": "uint64",
+          "maximum": 9007199254740991,
+          "minimum": 1
+        },
+        "generation": {
+          "type": "integer",
+          "format": "uint64",
+          "maximum": 9007199254740991,
+          "minimum": 1
+        },
+        "request_id": {
+          "$ref": "#/$defs/RequestId"
+        },
+        "root_epoch": {
+          "type": "integer",
+          "format": "uint64",
+          "maximum": 9007199254740991,
+          "minimum": 1
+        },
+        "root_task_id": {
+          "$ref": "#/$defs/RootTaskId"
+        },
+        "snapshot_id": {
+          "type": "string",
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*[^\\u0009-\\u000D\\u0020\\u0085\\u00A0\\u1680\\u2000-\\u200A\\u2028\\u2029\\u202F\\u205F\\u3000\\u0000-\\u001F\\u007F-\\u009F][^\\u0000-\\u001F\\u007F-\\u009F]*$"
+        },
+        "structure_sequence": {
+          "type": "integer",
+          "format": "uint64",
+          "maximum": 9007199254740991,
+          "minimum": 1
+        },
+        "task_revision": {
+          "type": "integer",
+          "format": "uint64",
+          "maximum": 9007199254740991,
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "generation",
+        "root_task_id",
+        "task_revision",
+        "root_epoch",
+        "snapshot_id",
+        "structure_sequence",
+        "deadline_ms"
+      ]
+    },
+    "ComputerFrameRequest": {
+      "description": "Bind an expected complete screenshot frame to one caller-owned fence.",
+      "type": "object",
+      "properties": {
+        "expected_frame": {
+          "$ref": "#/$defs/FrameMeta"
+        },
+        "fence": {
+          "$ref": "#/$defs/ComputerFence"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "fence",
+        "expected_frame"
+      ]
+    },
+    "ComputerMouseButton": {
+      "description": "Mouse buttons available to provider-neutral computer-use proposals.",
+      "type": "string",
+      "enum": [
+        "left",
+        "right",
+        "wheel",
+        "back",
+        "forward"
+      ]
+    },
+    "ComputerPoint": {
+      "description": "A point in an ordered drag path, in the frame coordinate space supplied to\nthe compiler. Bounds here are numeric only; image/window hit-testing is a\nseparate host-side compilation check.",
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "number",
+          "format": "double",
+          "maximum": 1000000.0,
+          "minimum": -1000000.0
+        },
+        "y": {
+          "type": "number",
+          "format": "double",
+          "maximum": 1000000.0,
+          "minimum": -1000000.0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y"
+      ]
+    },
+    "FrameMeta": {
+      "description": "Metadata of one captured frame. The pixels travel on a separate bounded\nbinary channel and are not part of this message.",
+      "type": "object",
+      "properties": {
+        "byte_length": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "checksum": {
+          "type": "string"
+        },
+        "clock_domain": {
+          "type": "string"
+        },
+        "frame_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "geometry_revision": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "height_px": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "provenance": {
+          "description": "Typed capture provenance. Ordinary/synthetic records may omit it;\nComputer use requires one explicit, complete provenance branch.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FrameProvenance"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scale_factor": {
+          "type": "number",
+          "format": "double"
+        },
+        "session_epoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "source_ms": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "source_sequence": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "status": {
+          "$ref": "#/$defs/FrameStatus"
+        },
+        "surface": {
+          "$ref": "#/$defs/SurfaceRef"
+        },
+        "width_px": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "frame_id",
+        "session_epoch",
+        "surface",
+        "clock_domain",
+        "source_sequence",
+        "source_ms",
+        "status",
+        "geometry_revision",
+        "width_px",
+        "height_px",
+        "scale_factor",
+        "byte_length",
+        "checksum"
+      ]
+    },
+    "FrameProvenance": {
+      "description": "The two supported ways a frame can be associated with a live Source watch.\nStream callbacks retain SCK display timing; one-shot capture records carry\ntheir own SCScreenshotManager request interval and never synthesize SCK time.",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "stream"
+            },
+            "stream": {
+              "$ref": "#/$defs/FrameStreamInfo"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "stream"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "capture": {
+              "$ref": "#/$defs/SingleCaptureFrameInfo"
+            },
+            "kind": {
+              "type": "string",
+              "const": "single_capture"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "capture"
+          ]
+        }
+      ]
+    },
+    "FrameStatus": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "complete",
+            "blank",
+            "suspended",
+            "started",
+            "stopped"
+          ]
+        },
+        {
+          "description": "The display did not change; the source is alive.",
+          "type": "string",
+          "const": "idle"
+        }
+      ]
+    },
+    "FrameStreamInfo": {
+      "type": "object",
+      "properties": {
+        "callback_ms": {
+          "description": "Callback time mapped by the producer to the declared host clock domain.\nThis is independent of the COMPLETE image's original `source_ms`.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "capture_interval_ms": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "content_rect": {
+          "$ref": "#/$defs/Rect"
+        },
+        "content_scale": {
+          "type": "number",
+          "format": "double"
+        },
+        "dirty_rects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Rect"
+          }
+        },
+        "display_time_ns": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "display_time_ticks": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "dropped_frames": {
+          "description": "Cumulative discarded frames/records within this stream.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "image_frame_id": {
+          "description": "Last COMPLETE image attested by this callback; IDLE carries its identity\nwithout changing the original capture time or creating fresh pixels.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pid": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "received_unix_ms": {
+          "description": "Time of the source callback, not arrival at the consumer.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "received_uptime_ns": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "source_clock": {
+          "type": "string"
+        },
+        "stream_id": {
+          "type": "string"
+        },
+        "window_frame": {
+          "description": "Captured window bounds in global upper-left display points.",
+          "$ref": "#/$defs/Rect"
+        },
+        "window_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "stream_id",
+        "display_time_ticks",
+        "display_time_ns",
+        "received_uptime_ns",
+        "received_unix_ms",
+        "callback_ms",
+        "source_clock",
+        "window_id",
+        "pid",
+        "window_frame",
+        "content_rect",
+        "content_scale",
+        "dirty_rects",
+        "dropped_frames",
+        "capture_interval_ms"
+      ]
+    },
+    "Rect": {
+      "description": "A rectangle in global display points, origin at the top-left of the main display.",
+      "type": "object",
+      "properties": {
+        "height": {
+          "type": "number",
+          "format": "double"
+        },
+        "width": {
+          "type": "number",
+          "format": "double"
+        },
+        "x": {
+          "type": "number",
+          "format": "double"
+        },
+        "y": {
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+      ]
+    },
+    "RequestId": {
+      "description": "request id",
+      "type": "string",
+      "maxLength": 256,
+      "minLength": 1
+    },
+    "RootTaskId": {
+      "description": "root task id",
+      "type": "string",
+      "maxLength": 256,
+      "minLength": 1
+    },
+    "SingleCaptureFrameInfo": {
+      "description": "One bounded, same-watch `SCScreenshotManager` capture and its mapped clock\nbounds. The capture start is a conservative lower bound; finish is an upper\nbound. `image_frame_id` identifies PNG content, not the FrameMeta event.",
+      "type": "object",
+      "properties": {
+        "capture_finished_ms": {
+          "type": "integer",
+          "format": "uint64",
+          "maximum": 9007199254740991,
+          "minimum": 0
+        },
+        "capture_finished_uptime_ns": {
+          "type": "integer",
+          "format": "uint64",
+          "maximum": 9007199254740991,
+          "minimum": 0
+        },
+        "capture_started_ms": {
+          "type": "integer",
+          "format": "uint64",
+          "maximum": 9007199254740991,
+          "minimum": 0
+        },
+        "capture_started_uptime_ns": {
+          "type": "integer",
+          "format": "uint64",
+          "maximum": 9007199254740991,
+          "minimum": 0
+        },
+        "clock_uncertainty_ms": {
+          "type": "integer",
+          "format": "uint64",
+          "maximum": 9007199254740991,
+          "minimum": 0
+        },
+        "content_rect": {
+          "$ref": "#/$defs/Rect"
+        },
+        "content_scale": {
+          "type": "number",
+          "format": "double"
+        },
+        "deadline_ms": {
+          "type": "integer",
+          "format": "uint64",
+          "maximum": 9007199254740991,
+          "minimum": 0
+        },
+        "image_frame_id": {
+          "type": "string",
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^(?=.*\\S)[^\\u0000-\\u001F\\u007F-\\u009F]+$"
+        },
+        "pid": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "request_id": {
+          "$ref": "#/$defs/RequestId"
+        },
+        "requested_after_ms": {
+          "type": "integer",
+          "format": "uint64",
+          "maximum": 9007199254740991,
+          "minimum": 0
+        },
+        "source_clock": {
+          "type": "string",
+          "pattern": "^mach_absolute$"
+        },
+        "watch_id": {
+          "type": "string",
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^(?=.*\\S)[^\\u0000-\\u001F\\u007F-\\u009F]+$"
+        },
+        "window_frame": {
+          "$ref": "#/$defs/Rect"
+        },
+        "window_id": {
+          "type": "string",
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^(?=.*\\S)[^\\u0000-\\u001F\\u007F-\\u009F]+$"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "watch_id",
+        "request_id",
+        "image_frame_id",
+        "pid",
+        "window_id",
+        "window_frame",
+        "content_rect",
+        "content_scale",
+        "source_clock",
+        "capture_started_uptime_ns",
+        "capture_finished_uptime_ns",
+        "capture_started_ms",
+        "capture_finished_ms",
+        "clock_uncertainty_ms",
+        "requested_after_ms",
+        "deadline_ms"
+      ]
+    },
+    "SurfaceRef": {
+      "type": "object",
+      "properties": {
+        "epoch": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "epoch"
+      ]
+    }
+  }
+}

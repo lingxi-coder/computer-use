@@ -100,6 +100,7 @@ impl ScriptedPlanner {
             app: BUNDLE_ID.into(),
             account: None,
             target: TargetSpec {
+                row: None,
                 semantic_target: target.clone(),
                 label,
                 group,
@@ -151,11 +152,13 @@ fn bundle(steps: &[(&str, &str, Option<SemanticTargetRef>, &str)]) -> PlanBundle
     let subgoals: Vec<Subgoal> = steps
         .iter()
         .map(|(id, skill, target, expects)| Subgoal {
+            select: None,
             id: (*id).into(),
             description: (*id).into(),
             skill: (*skill).into(),
             target: target.clone(),
             expects: vec![(*expects).into()],
+            scroll: None,
         })
         .collect();
     let dependencies = subgoals
@@ -296,6 +299,7 @@ mod tests {
             reason: PlanningReason::GoalCompile,
             context: PlanningContext {
                 user_text: text.into(),
+                allowed_scope: None,
                 unknown_items: vec![],
                 allowed_skills: vec![],
                 recent_failures: vec![],

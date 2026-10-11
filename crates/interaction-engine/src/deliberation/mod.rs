@@ -2,6 +2,9 @@
 //! (design 12). It coordinates; it does not decide. Whatever comes back is a
 //! proposal that TaskRuntime checks and installs or refuses.
 
+pub mod accounting;
+pub mod computer_accounting;
+
 use interaction_contracts::desktop::ids::{RequestId, RootTaskId};
 use interaction_contracts::desktop::planning::{
     PlannerOutput, PlanningContext, PlanningReason, PlanningRequest,
@@ -12,7 +15,10 @@ pub struct InFlight {
     pub request_id: RequestId,
     pub generation: u64,
     pub root: RootTaskId,
+    pub task_revision: u64,
+    pub root_epoch: u64,
     pub reason: PlanningReason,
+    pub context: PlanningContext,
     pub deadline_ms: u64,
 }
 
@@ -35,6 +41,19 @@ pub enum Arrival {
     Stale(StaleReason),
 }
 
+/// Sanitized transport/turn outcomes. Provider text and errors never enter
+/// the engine ledger through this channel.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PlanningFailure {
+    Unavailable,
+    Missing,
+    Conflict,
+    Invalid,
+    Quarantined,
+    Cancelled,
+    Expired,
+}
+
 #[derive(Debug, Default)]
 pub struct PlanningCoordinator {
     inflight: Option<InFlight>,
@@ -50,6 +69,13 @@ impl PlanningCoordinator {
 
     pub fn inflight(&self) -> Option<&InFlight> {
         self.inflight.as_ref()
+    }
+
+    /// Restarts do not reuse identities of already recorded provider calls.
+    /// This restores only counters, never an in-flight request or proposal.
+    pub fn advance_past(&mut self, generation: u64) {
+        self.generation = self.generation.max(generation);
+        self.seq = self.seq.max(generation);
     }
 
     /// How many answers were ignored as stale, for diagnostics.
@@ -87,7 +113,10 @@ impl PlanningCoordinator {
             request_id: request.request_id.clone(),
             generation: request.generation,
             root: root.clone(),
+            task_revision,
+            root_epoch,
             reason,
+            context: request.context.clone(),
             deadline_ms: request.deadline_ms,
         });
         request
@@ -151,6 +180,19 @@ impl PlanningCoordinator {
         self.inflight.take()
     }
 
+    pub fn failed(&mut self, request_id: &RequestId, generation: u64) -> Option<InFlight> {
+        if self
+            .inflight
+            .as_ref()
+            .is_some_and(|i| &i.request_id == request_id && i.generation == generation)
+        {
+            self.inflight.take()
+        } else {
+            self.dropped += 1;
+            None
+        }
+    }
+
     /// The request that ran out of time, if any.
     pub fn expired(&mut self, now_ms: u64) -> Option<InFlight> {
         if self
@@ -173,6 +215,7 @@ mod tests {
     fn context() -> PlanningContext {
         PlanningContext {
             user_text: "turn it off".into(),
+            allowed_scope: None,
             unknown_items: vec![],
             allowed_skills: vec![],
             recent_failures: vec![],

@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "model_id": "convaiinnovations/laya-multilingual",
+  "revision": "e4e9ddf21a7b1903b7acffd8814ad4307bf63a67",
+  "declared_license": {
+    "spdx_id": "Apache-2.0",
+    "source": "Hugging Face model metadata at the pinned revision",
+    "metadata_url": "https://huggingface.co/api/models/convaiinnovations/laya-multilingual/revision/e4e9ddf21a7b1903b7acffd8814ad4307bf63a67"
+  },
+  "architecture_claim": "mmBERT-base multilingual Laya checkpoint",
+  "resource_directory": "target/model-resources/laya/e4e9ddf21a7b1903b7acffd8814ad4307bf63a67",
+  "files": [
+    {
+      "path": "model.safetensors",
+      "bytes": 643835514,
+      "sha256": "9d628fd971b700382ac6f65920a86f149777b2e748e0c955fb3b19695aa8f204",
+      "hugging_face_lfs_oid": "9d628fd971b700382ac6f65920a86f149777b2e748e0c955fb3b19695aa8f204"
+    },
+    {
+      "path": "tokenizer/tokenizer.json",
+      "bytes": 34363188,
+      "sha256": "609d8f4c067cd3950f88594c5a802616cea245823836ef5848ee4fc40aab5b6f",
+      "hugging_face_lfs_oid": "609d8f4c067cd3950f88594c5a802616cea245823836ef5848ee4fc40aab5b6f"
+    },
+    {
+      "path": "rl_agent_config.json",
+      "bytes": 472,
+      "git_blob_sha1": "00e35f88bb731bb9126a914666ab1cdac8a204c8"
+    },
+    {
+      "path": "encoder/config.json",
+      "bytes": 1938,
+      "git_blob_sha1": "0de0e2d30638873790cf962def52e2acf4db3eef"
+    }
+  ],
+  "onnx": {
+    "present_at_pinned_revision": false,
+    "cpu_inference_ready": false,
+    "note": "This pinned repository revision contains no ONNX graphs. Export and runtime verification are a separate task."
+  },
+  "future_export_reference": {
+    "repository": "https://github.com/NandhaKishorM/laya",
+    "commit": "2e4d9c87e8b1621deb344eac7de5c7258f32f849",
+    "typescript_export_script": {
+      "path": "laya-ts/scripts/export_onnx.py",
+      "git_blob_sha1": "d82f7f28c70cd884ea0c48e0dddf4648612bc3cf",
+      "route": "Use --model-dir with a local copy of the pinned checkpoint and --out-dir outside the immutable acquisition directory; default verification compares CPU ONNX Runtime outputs."
+    },
+    "python_export_script": {
+      "path": "scripts/export_onnx.py",
+      "git_blob_sha1": "4b5ce64cbcb50f4a98540c81ad279abb7512cdaf",
+      "route": "Alternative single-graph Torch-to-ONNX export; not run."
+    }
+  }
+}

@@ -1,10 +1,10 @@
-# Computer User 完整设计文档
+# Computer Use 完整设计文档
 
-- 文档版本：v0.6，2026-09-30（M1 骨架实现后同步：目录、进程通信、根状态表补充、I0 迁移记录与实施进度；规范性条款未变，见第 27.4、28.1 节；v0.5 依据 R4 评审修订，见第 30.2、30.4 节）。
+- 文档版本：v0.30，2026-10-03（原子 KeyPress Operator fixture 闭环与边界见第 28.25 节；原生菜单选择与已知输入后的只读验证见第 28.24 节；原生菜单关系诊断见第 28.23 节；原生 Host 滚动、原子定位与 UI 重访见第 28.22 节；通用 scroll_to 与实际 Source 位置见第 28.21 节；原子滚动与 AX 菜单接线见第 28.20 节；原生开关指针与显式重新定位见第 28.19 节；cu-device 原子点击死亡矩阵与有界退出见第 28.18 节；原子指针点击与释放确认见第 28.17 节；来源刷新确认屏障见第 28.16 节；产品模型设置、出站同意与 Keychain 见第 28.15 节；S2 模型层接线与私有授权通道见第 28.14 节；登记窗口激活与完整 GUI 执行见第 28.13 节；真实 Host/Engine 接纳与 Operator 窗口授权见第 28.12 节；登记文本与真实 UI 返回读回见第 28.11 节；生产原生后端接线见第 28.10 节；原生 AX 单次提交见第 28.9 节；原生只读权限探测见第 28.8 节；执行证明接线见第 28.7 节；完整 fp1 诊断见第 28.6 节；被动设备守卫见第 28.5 节；图像通道与只读预览见第 28.4 节；持续观察与失效见第 28.3 节；M1 修复与初始观察见第 28.2 节；此前 M1 原始记录见第 27.4、28.1 节，v0.5/R4 来源见第 30.2、30.4 节）。
 - 地位：**唯一主设计文档**；替代 v0.3 通用稿与桌面模块化补充的设计维护职责。游戏、空间与 WoW 的后续扩展章节（第 17–19、25 章）移入[扩展卷](extensions.md)，章号不变，不属于一期交付。评审记录和旧稿仅供追溯。
 - 一期范围：macOS Apple Silicon 上的独立 Electron 桌面产品，截图结合 Accessibility/OCR。架构面向通用应用任务；一期的执行范围限定为已登记环境包的应用白名单（可复位夹具与 TextEdit），其他应用只开放观察与影子模式。
 - 智能分层：MediaPipe 环境神经感知与后续 S0；S1 槽位先由教师模型显式顶替并积累标签，本地 Laya 经领域微调和晋级后接管；Harness Runtime 云端 S2；执行监督独立。
-- 当前状态：**M1 骨架已实现并可验证，全部基于模拟后端**（模拟设置应用、脚本化规划器与教师、模拟设备与夹具来源）：十个 Rust crate、两个 TypeScript 包与 Electron 壳；七个模块在进程内和三个真实进程之间跑通闭环，以及停止、暂停、重启与设备死亡路径，I0 已迁入并由生产用执行状态机通过原 36 项回归。真实 macOS 设备与来源、Laya/教师/云端模型、MediaPipe、真机时延与性能、在真实窗口中运行的 Electron 和签名产品均**未验收**；S1 离线决策质量实验尚未开始，仍是最大的未知数（第 8.6 节）。边界见第 28.1 节与 [ADR-0004](../architecture/adr-0004-simulated-world-and-its-limits.md)。
+- 当前状态：**M1 八项审查发现已修复；M2 固定范围原生输入、窗口授权/激活与执行指示已接入；M3 自有夹具已从真实 Operator 前台完成登记 GUI 任务**。普通目标确认/Execute 经真实 Host/Engine/Reaction/Attempt、窗口激活、一次文本写入、两次导航和新来源验证，由 TaskRuntime 完成根；窗口与根 EffectResult 独立持久化，逐条决策/outbox/预算已核对。规划仍为显式登记参考后端，默认 observe，无同意不启用原生输入。S2 模型层已按固定 SHA 接线，产品模型设置、原生出站授权与 Keychain 已用唯一假密钥验证，真实 S1/S2 调用、Laya、MediaPipe、其它原语、TextEdit 保存/重开、持久恢复、签名及环境/性能报告尚未验收，完整 M2/M3/MVP 继续进行。brwyAd 的单个登记键盘 fixture 根任务已完成，范围与限制见第 28.25 节；这不代表生产键盘或完整 MVP 已验收。I0 原 36 项与 golden 保留。历史与最新边界见第 28.2–28.25 节及[首个 MVP 跟踪](../mvp-status.md)。
 - 阅读约定：核心契约约束一期；涉及游戏、空间、手机、训练和自动发布的内容为后续扩展，即使共享同一契约表也不进入一期交付。所有“必须”描述目标实现要求，不表示已实现。一期验收依赖的条款编号见第 26.10 节。
 
 系统的核心是七个模块组成的可验证交互闭环：Environment 认识当前环境，TaskRuntime 管理目标和预算，Reaction 快速选择并推进技能，Deliberation 处理复杂规划，Execution 独占实际输入，Verification 判断效果，Memory/Experience 保存可复用知识。Electron Operator 提供任务、控制与证据界面。
@@ -229,7 +229,7 @@ MediaPipe 原生 worker、Rust sidecar、ONNX 原生库、图与模型按安装�
 M1 已建立下列目录，全部基于模拟后端。一期用十个 Rust crate 保持构建与依赖边界，比初版设想的七个多出三个：`sim-world`（测试与夹具进程共用的模拟应用）、`desktop-ipc`（进程间共享的帧读写、私有 socket 与握手）和 `desktop-supervisor`（测试用 supervisor）。七个逻辑模块位于 interaction-engine 内；execution-core 单列，使模拟器和真实设备运行同一套执行状态机；来源端与执行端分为两个平台 crate，使 cu-device 不链接采集、OCR 或神经运行时。除此之外，仅在独立发布、平台依赖或构建隔离需要时再拆 crate。
 
 ```text
-computer-user/
+computer-use/
 ├── Cargo.toml / Cargo.lock / rust-toolchain.toml     # Rust 1.94.0、edition 2024
 ├── package.json / package-lock.json                  # npm workspaces
 ├── apps/desktop/                                     # Electron 壳
@@ -290,7 +290,7 @@ flowchart TD
 
 三个业务扩展轴保持独立：DeviceAdapter 提供来源与输入；Capability 提供状态投影、候选工厂、技能及效果契约；EnvironmentPack 提供应用/领域识别、版本和规则。MediaPipe graph / Laya / Harness 是模型技术适配。注册 manifest 不能获得新的状态写入权限；一期能力实现静态链接并由白名单装配，环境包以版本化数据加载，不支持运行任意插件脚本。
 
-实现说明：desktop-host 目前不依赖 harness-adapter（S2 路线待 M0 定案），规划请求由 sim-world 的脚本化规划器在 cu-host 进程内回答；`PlanningRequest` 与 `PlannerOutput` 不在 wire 消息目录中，S2 始终在 cu-host 进程内运行，只有决策请求经 main 中继。harness-adapter 只依赖 interaction-contracts，并以路线无关的方式实现第 12.4 节的回合规则。
+实现说明：desktop-host 已依赖 harness-adapter，按第 12.4 节选择路线 B，用固定 SHA 的 ModelRuntime 单次调用。IO-free 回合适配器校验提议和身份，独立网络 worker 以有界事件接回 host；停止/超时带来精确回合取消，Deliberation 记录非敏感身份及用量。`PlanningRequest` 与 `PlannerOutput` 不在 wire 消息目录中。原生默认未配置模型，不回退模拟规划；fixture 和 native_reference 是显式测试后端。真实账户调用、教师和产品模型设置仍待验收，见第 28.14 节。
 
 共享基础设施保持窄职责：存储提供事务/恢复，Trace 提供关联记录，Registry 提供已登记类型和版本，Scheduler 提供资源配额；它们不能代替业务 owner 决定完成或授权。
 
@@ -510,6 +510,7 @@ submit_intent 不开放给任意模型进程。策略只能提出意图，由 cu
 
 - 原子点击：设备在同一临界区内连续提交 down 与 up，二者的间隔由 ControlProfile 给出，期间不可被其他正常输入插入；这一对事件是已登记的最长不可中断片段。
 - 带修饰标志的按键：修饰键以事件标志携带，不单独提交修饰键的 down。
+- 原子指针定位：无按住按钮的单次绝对位置事件，完整命中/几何和送达/光标确认；不启用拖拽运动。
 - 文本输入与滚动增量。
 - AX 动作：只对当前绑定元素声明支持的动作开放（第 15.2 节）。
 - 应用/窗口激活：改变用户前台的有副作用原语，有自己的效果谓词。
@@ -1145,7 +1146,7 @@ S2 的每个回合按无状态设计：宿主每次组装完整的有界上下�
 
 ### 12.4 Harness 集成路线、受控装配与结构化输出
 
-S2 只需要带取消和计费的单次结构化调用。harness-runtime 提供两个可用的集成层，M0 在同一组用例上对照后定案：
+S2 只需要带取消和计费的单次结构化调用。harness-runtime 提供两个可用的集成层，v0.19 按默认规则选择 B，固定 SDK 编解码与回合生命周期检查已通过，真实资源/模型质量验收仍开放：
 
 | 路线 | 做法 | 需要承担的工作 |
 |---|---|---|
@@ -1182,6 +1183,8 @@ PlanProposal 是请求绑定的外层消息，payload 为受限 PlanBundle；Rev
 
 ### 12.6 凭据和配置的实际隔离
 
+路线 B 已用显式 HostManaged CredentialProvider 和私有启动前缀实现内存凭据接线，固定 provider/profile/credential ID；不使用环境/文件/其他产品 Keychain 发现。详见第 28.14 节；模型设置页、原生出站许可和本产品 Keychain 已用唯一假密钥验证（第 28.15 节），真实 provider 业务及签名访问范围仍待验收。下面的 SharedCredentialStack 装配说明只适用于备选路线 A。
+
 严格 home/cwd 不等于安全凭据存储。当前 Harness 便利 credential factory 在 isolated_credential_storage=true 时会选择 home 下的明文 `.credentials.json`；因此本产品不使用该便利路径。宿主显式装配公开 SharedCredentialStack，使用 InMemorySecureStorage 与 CredentialManager，并在构建前通过 set_provider_key_ephemeral 注入当前已授权 provider 的密钥；api_key 字段留空、api_key_helper 禁用、injected_plugin_secrets 为空、default_model_explicit=true、模型路由显式指定。credential_storage_policy 设为 NativeOrMemory，但真正的内存存储由显式 stack 保证，不能退回便利 factory。
 
 用户选择保存密钥时，由 Electron main 的本产品原生 Keychain 服务负责持久化；只把运行所需凭据经私有启动/配置通道传入 cu-host 内存，不写运行时 home、转储或 Trace。已有 Harness SDK 可复用，不自动导入其他产品的 Keychain namespace。SharedCredentialStack 本身不是 Clone：每 root 新建 wrapper，明确克隆可共享的 credentials/storage/http/clock Arc，并新建 catalog registry；orchestrator、费用、slot、session 等仍全部独立。
@@ -1190,7 +1193,7 @@ cu-host 以 env_clear 后的必要系统变量白名单启动，移除可覆盖 
 
 撤销 provider 授权时，先关闭受影响的 S2 准入，取消并收尾在途回合，再删除 ephemeral key；已提交到 provider 的请求或产生的用量不假装被撤回。凭据信封从 IPC Trace、SQLite、Episode 和崩溃转储中排除；可记录非敏感 provider identity 和用量。
 
-源码依据为当前 harness-runtime 的 desktop/credentials.rs、SharedCredentialStack、core/host/secure_storage.rs 和 CredentialManager::set_provider_key_ephemeral；正式接入冻结完整 SHA，再做编译和隔离测试。上述描述是适配设计，当前 computer-user 尚无该实现。
+源码依据为当前 harness-runtime 的 desktop/credentials.rs、SharedCredentialStack、core/host/secure_storage.rs 和 CredentialManager::set_provider_key_ephemeral；正式接入冻结完整 SHA，再做编译和隔离测试。路线 A 的 stack/Keychain 描述仍是适配设计；当前路线 B 的内存和私有配置通道已有实现与隔离测试，真实授权和质量验收见第 28.14 节。
 
 ### 12.7 出站数据与本地留存
 
@@ -1345,6 +1348,8 @@ COMPILING_GOAL 与 AWAITING_CONFIRMATION 只允许有界的 S2 目标解释和�
 ### 14.3 动作与许可期限
 
 每条 ActionIntent 是有限原语序列，携带任务、当前目标、证据、必要依赖、许可代次、最晚启动及固定时长。执行端注册表决定必要条件，生产者不能省略依赖。
+
+desktop v1 的 pointer/AX 动作还携带完整 BindingProof：binding/source ObjectRef、snapshot/environment/layer provenance、完整 InstanceFingerprint 和原始 display frame。设备将其与原始 Observation 固定核对，不凭摘要接受同布局的新实例。续约只更新同一实例的来源；命中检查与提交使用同一权限上下文，后端不得用查询 timeout 延长 permit、evidence、root、host lease 或固定 command end。原生实现状态见第 28.7–28.8 节。
 
 许可、证据、根任务和动作分别限时。持续条件先失效即撤销；未撤销许可得到真正更新的兼容证据后可续期，但单次动作终点不延长。心跳、新消息 ID、重复旧帧不提供续期依据。
 
@@ -2235,7 +2240,7 @@ M0 输出最少包括 S1 离线决策质量报告与通过线判定、S2 集成�
 
 一期之后按独立产品范围推进：游戏短路线与 MediaPipe S0；第二设备及跨设备时钟/中断语义；自动经验验证/发布与训练。其验收各自冻结，不用一期 TextEdit 成绩覆盖。
 
-### 28.1 M1 进度（2026-09-30）
+### 28.1 M1 原始进度（2026-09-30；修复与 M2 入口见 28.2）
 
 **出口标准逐条**（全部基于模拟后端，分支 `m1-architecture`，未推送，`main` 未改动）：
 
@@ -2263,9 +2268,261 @@ M0 输出最少包括 S1 离线决策质量报告与通过线判定、S2 集成�
 
 **已知缺口与未验证项**：Electron 在真实窗口中的沙箱、CSP、preload、托盘与全局热键；真实 macOS 设备与来源、TCC、签名；Laya、教师与云端 S2；MediaPipe；对端 PID 校验；帧的二进制通道；时延与性能；睡眠与时钟行为；断电下的 SQLite 持久性（只验证了进程级重启）；shadow 模式尚不记录建议；跨进程测试使用真实时间，超时设得宽松。**S1 离线决策质量实验（第 8.6 节）不依赖本阶段，仍未开始，应尽早并行进行**：本阶段的骨架回答不了 Laya 是否够用。
 
+### 28.2 独立审查修复与 M2 原生观察入口（2026-09-30）
+
+M1 独立审查的八项发现已修复：握手完成清除读超时；device 输出使用独立有界 writer，停止与租约处理不等待读取端；绑定复验实例、PID 与可操作条件；恢复查询超时有界重试并保留 unknown；无效重规划响应走现有计划回退；新任务不继承旧停止确认；关闭窗口保留可重开控制台；开发 CSP 使用 nonce 支持 React/Vite。对应进程、引擎、绑定与桌面回归已加入统一检查。I0 冻结契约、原 36 项断言及 demo golden 未改。
+
+M2 已进入原生来源的首个观察阶段：Swift 6 helper 读取 AX，限定目标 PID/窗口做 ScreenCaptureKit 单帧捕获与 Vision OCR；来源作业有界，失败不回退 fixture。权限预检不申请授权。AX 快照进入 StateCore，PNG/OCR 的当前出口是私有 manifest；截图二进制传输与在线感知融合尚未实现。设备以 `backend=macos` 如实报告输入、人工输入观察与命中能力 unavailable，禁止向真实桌面提交动作。
+
+这不是完整 M2 出口。当前使用声明为 `macos/{epoch}/wall` 的 shared wall-offset 时间，记录原生 uptime 区间并保留请求发起时的保守证据年龄；未声明 SCStream 帧时间或活性。实例 ID 每轮重新生成，尚无 AXObserver 连续性。SCStream、帧通道、神经感知与原生输入/停止验收仍需后续工作。详见[原生观察入口](../architecture/m2-native-observation.md)与 [native helper](../../native/macos/README.md)。
+
+### 28.3 M2 持续来源、失效与桌面验证（2026-10-01）
+
+`cu-source` 原生模式默认使用持久 SCStream helper；单次捕获保留为诊断 probe。Swift 6 专用 AX 线程/RunLoop 拥有 AXObserver 和有界 CFEqual 注册表，布局、销毁、焦点、窗口与几何变化推进实例 generation。通知覆盖不充分时退回每次读取的新 ID 并报告 observer unavailable，不声称可靠连续性。截图显式排除子窗口；隐私检查继续要求全局 AX 完整且无敏感字段，并复验所选窗口的内容与几何。只读 watch 可以继续观察明确选定的后台窗口，活动层仍如实记录；执行必须使用与真实活动层一致的帧和结构，控制台前台不产生后台输入授权。
+
+SCStream 原始 display ticks/uptime、回调 wall/uptime、帧状态、内容矩形、缩放和脏矩形进入有序 NDJSON。Rust 检查序列、目标 PID、时钟映射、PNG 校验和与边界；队列有界且首个 Complete 不能被后续 idle 覆盖。Complete 固定像素身份和原采集时间，idle 仅续期真实回调确认；缺流、Blank/Suspended/Stopped、丢弃、几何或隐私变化关闭依据。来源终止会杀死并回收 helper，显式 Refresh 才重建，旧 stream 不得恢复权限。
+
+FrameMeta 与有 session/stream stamp 的健康事件已接入 StateCore。引擎在每次外部事件和 Tick 检查内容与活性期限；失效撤销绑定、关闭旧决策和提交前 dispatch，并通知设备依赖无效。已提交的不确定结果仍为 unknown；恢复须新 Complete 与新 AX 证据，重新绑定并申请许可。Operator 分别显示像素年龄和回调确认年龄、状态、丢弃与原因；原生输入不可用时显示只读。
+
+Electron 43.1.1 的真实生产和开发窗口已验证沙箱/preload、CSP、目标确认、关闭重开与停止入口。实际开发 smoke 发现 IPv6 literal 的 WebSocket CSP 源无效，已改用限定 localhost/127.0.0.1 源。验证使用本机缓存中校验和匹配的运行时，没有下载新版本；证明见 [Electron 运行记录](../../artifacts/m2-electron-runtime.json)。
+
+原生来源降级时的只读状态和停止入口也已验证。该阶段曾受锁屏限制；后续健康帧及二进制图像 UI 已完成复验，见第 28.4 节。
+
+当前仍使用 `macos/{epoch}/wall` shared offset，按实际回调和 display 时间映射年龄，wall/uptime 差值异常关闭来源；没有生产用 boot identity 或完整睡眠保证。本批次结束时，二进制图像通道、MediaPipe、命中/人工输入观察、原生停止看门狗和原子输入验收尚待完成，不构成完整 M2 出口；后续 28.4 已补齐图像通道。实现和独立 fixture smoke 见[持续观察说明](../architecture/m2-native-observation.md)。
+
+### 28.4 M2 二进制 PNG 与只读预览（2026-10-01）
+
+`images.sock` 是独立的私有、有认证的数据通道，传递已有 FrameMeta 与 PNG 原字节。发送端和消费端 worker 验证长度、PNG 容器、像素上限与 SHA-256；有界缓存只保留最新候选，慢读/滴流有总期限。图像不进入 JSON 控制信封或停止路径。main 同时匹配 source 控制 metadata 与 host FrameView；idle 只续期确认，失效禁止取图。renderer 按图像身份取图并回收 Blob URL，不获得路径、通道名或任意文件能力。
+
+真实复验发现两项跨层问题并修复：Retina `contentRect` 是 surface points，乘 `scaleFactor` 后才能比较像素缓冲；AXObserver 覆盖降级不应丢弃已验证的只读 PNG，图像展示与输入绑定的准入各由其 owner 判断。生产和开发 Electron 已真实解码 640×328 PNG，AX 降级仍如实显示，输入仍 unavailable。[图像通道](../architecture/m2-image-channel.md)、[源进程记录](../../artifacts/m2-native-observation.json)与 [Electron 记录](../../artifacts/m2-electron-runtime.json)说明具体边界。
+
+二进制图像通道与本机健康帧 UI 缺口已补齐；在线神经感知、原生设备和复杂环境矩阵仍未验收，完整 M2 尚未成立。
+
+### 28.5 M2 被动设备守卫（2026-10-01）
+
+新增与 source 独立编译、由 cu-device 持有的 `cu-macos-device-guard`：listen-only 人工输入 tap、本地停止热键、短读控制管道、双租约、独立 watchdog 和只读 AX 点位诊断。所有跨线程状态使用 Sendable 有界邮箱/锁，AX refs 不离开单独 worker。真实 tap 状态进入能力清单，能力或活性失效触发设备停止并回收守卫；续约不解除停止，错误 session 的续约不能延长当前设备租约。
+
+本机项目自有夹具验证了正常按钮命中、标签/窗口不符及遮挡拒绝、双租约分别到期、短停止不依赖后续字节、错误 epoch、EOF、冻结回收和设备死亡后的守卫退出。开发中发现的 Swift 6 watchdog MainActor 断言和 Launch Services launchDate 缺失问题已修复。见[设备守卫协议与边界](../architecture/m2-device-guards.md)和[实际记录](../../artifacts/m2-native-device-guards.json)。
+
+完整检查通过：481 Rust、81 TypeScript、52 source Swift + 35 device Swift，自检失败和忽略均为零，I0 36 项与逐字节 golden 保留。执行用完整 fp1 绑定、实际原子输入、硬件热键与 marker 的签名包传播、复杂环境矩阵和 MediaPipe 仍未验收。诊断 matched 不是执行许可，原生 input/hit_test 继续 unavailable；没有向用户应用发送输入。
+
+### 28.6 M2 完整 fp1 命中诊断（2026-10-01）
+
+被动设备守卫的只读命中请求现在携带完整 InstanceFingerprint 和摘要。目标到已匹配窗口的有界父级路径核对祖先角色、最近标签分组、subrole、兄弟序号、标签和整点 frame；每一层检查同进程、无环与唯一 children 成员。结束前同点重新命中，并再次复算整条路径及 CG 窗口身份。只读 source 树不进入设备，AX refs 不离开 worker；没有新增输入通道。
+
+Rust、Swift 与现场脚本共享固定 JSON、SHA-256、Unicode 规范化和正负半点舍入样本。实际测试从独立 source 投影计算预期摘要，验证匹配，以及真实分组改名、兄弟重排、同点同名按钮换位、遮挡和窗口替换的拒绝。六类畸形证明关闭会话且不 trap；查询期间的停止清除迟到摘要。详见[设备守卫实现与边界](../architecture/m2-device-guards.md)。
+
+完整仓库检查通过：482 Rust、81 TypeScript、104 Swift（52 source + 52 device），失败、忽略均为零；格式、Clippy、schema/生成类型、类型检查和生产构建全部通过。随后仅增加现场夹具的父子关系/重复 child/超限 children 负例，并复验最终现场脚本。
+
+该批次结束时 ActionIntent 仍只有 binding_fingerprint 摘要；完整描述符与 source ObjectRef/revision、permit generation、deadline 的执行路径接入尚未完成。诊断 input_authorized 始终 false，原生 input/hit_test 能力保持 unavailable；实际原子输入、输入持有/死亡清理、签名权限、环境矩阵与 MediaPipe 继续作为 M2 剩余工作。
+
+### 28.7 M2 完整绑定证明与执行上下文（2026-10-01）
+
+新增 BindingProof，保留 binding/source ObjectRef、当前 snapshot ID、environment/layer revision、完整 InstanceFingerprint 和原始 display frame。Environment 到 Observation/ActionIntent 的证明接线完成；production pointer/AX 动作缺少证明时拒绝入队，描述符与摘要、坐标、原始 issue evidence 的跨字段核对在主机和设备完成。
+
+设备按 target 跟踪最新证明。实例、层级、分组、几何变化或证明缺失立即撤销旧许可并取消排队动作；同摘要的新 ObjectRef 不被当成旧实例。续约只刷新同一实例的来源，不改变原始动作结束时间，环境 revision 回退会被拒绝并撤销权限。命中和提交共用同一 SubmitContext，其中 SubmissionAuthority 的期限受 permit/evidence/root/host lease/command end 共同限制。
+
+共享 schema/fixture/生成 TypeScript 同步，I0 冻结契约与 golden 保留。实际 socket 进程测试拒绝同摘要实例替换，既有三进程任务、模态、停止/恢复回归继续验证模拟后端。实现与验证边界见[绑定证明与提交权限](../architecture/m2-binding-authority.md)。
+
+最终完整检查通过：492 Rust、81 TypeScript、104 Swift（52 source + 52 device），失败与忽略均为零；格式、Clippy、schema/fixture/生成类型、类型检查、真实进程与生产构建全部通过。
+
+该批次结束时 native Swift worker 的权限接入和同一 AX 句柄上的原子输入尚待完成；后续只读权限接线见第 28.8 节。当前 native backend 的 submit 继续 rejected、hit_test 继续 unresolved，原生 input/hit_test 能力 unavailable；本轮没有任何物理输入，完整 M2、签名权限、环境矩阵与 MediaPipe 仍未验收。
+
+### 28.8 M2 原生只读权限探测（2026-10-01）
+
+SubmitContext 经有界私有管道进入 Swift worker，保留原始 ActionIntent 和当前 SubmissionAuthority 的完整证明、source 实例/revision、permit generation、停止序号及固定截止时间。配置只建立一次保守 wall/uptime 锚点，延迟请求不获得新 TTL；时钟回退或差值异常永久关闭本会话的权限时钟。撤销记录覆盖整个许可 ID，意图 ID 单次使用，128 条有界账本耗尽时拒绝。
+
+接纳、查询前、查询结束与发布前分别核对实际双租约、native stop revision、许可撤销和期限。AX 查询除完整 fp1 外，还前后核对系统焦点应用/窗口、enabled、已知非模态和 AXPress 能力。Rust 异步接收端验证单次回复、独立期限和最新守卫状态，不消费普通 guard 通知。CoreEvent::PermitRevoked 走同一有序控制 writer；连接重建使用已推进 epoch 的实际 DeviceIdentity。
+
+自有夹具的真实 smoke 验证核心上下文接线、eligible、重放与实例不符拒绝、停止序号回退、排队后到期、查询前及查询中撤销、查询中到期、停止及既有完整 fp1/进程回收检查。核心示例使用内存 SimBackend；夹具声明但拒绝 AXPress，最终动作调用次数为 0。最终全量检查通过：496 Rust、81 TypeScript、130 Swift（52 source + 78 device），失败与忽略均为零，格式、Clippy、schema/生成类型、类型检查和生产构建通过。见[实现与验证边界](../architecture/m2-native-authority.md)及[本批次记录](../../artifacts/m2-native-authority.json)。
+
+探测 input_authorized 固定为 false，eligible 不能作为另一次调用的输入令牌。原子输入仍需要同一命中 AX 句柄、提交临界区与最终复验；系统 held-state/死亡清理、真实热键/marker、签名产品与复杂环境矩阵、MediaPipe 和模型验收继续作为 M2 剩余工作。原生 input/hit_test 仍 unavailable，完整 M2 尚未完成。
+
+### 28.9 M2 原生 AX 单次提交（2026-10-01）
+
+新增 `atomic_submit` 私有命令，在完整 fp1、活动上下文与权限检查的同一 AX 句柄上执行一次 AXPress。受信启动器必须固定 PID/bundle 和内核进程启动身份；默认只读入口不能经管道开启输入。提交与停止、撤销、租约共用有序锁，固定截止时间和 intent 防重放继续生效。AX 查询不在提交锁内；独立硬 watchdog 不获取该锁，防止外部调用忽略消息超时时阻塞进程退出。
+
+调用 success 为 applied，其余返回、丢回执和 helper 死亡保守为 unknown，不能重放；开始后的停止或到期不改写已提交范围。真实自有夹具共调用 4 次，覆盖成功、超时、调用期间停止和调用开始后 SIGKILL。source 独立观察到控件标题变化；只读、撤销、到期、遮挡、错误 PID 和查询期间取消不增加动作。默认只读 smoke 另跑，动作计数仍为 0。
+
+最终完整检查通过：499 Rust、81 TypeScript、139 Swift（52 source + 87 device），失败与忽略均为零；格式、Clippy、schema/生成类型、类型检查和生产构建通过。见[实现与边界](../architecture/m2-native-atomic-submit.md)及[现场记录](../../artifacts/m2-native-atomic-submit.json)。
+
+当前示例用内存核心生成 SubmissionAuthority，再由 scoped native worker 实际调用 AX；生产 Core/InputBackend 的异步提交/回执接线尚未完成，input/hit_test 继续 unavailable。其他一期原语、系统 held-state/死亡隔离、签名权限/真实热键/marker、环境矩阵、MediaPipe/实际模型及完整一期业务验收仍待交付，不宣称 M2 或 MVP 完成。
+
+### 28.10 M2 生产执行核心与原生后端（2026-10-01）
+
+新增受信固定目标的 `macos-ax-press` 配置；真实 cu-device 经 ExecutionCore 和 NativeAxBackend 进入同一 AX 句柄的提交门，不使用 SimBackend 或模拟 world log。Pending 和 completion 使主循环继续服务停止/撤销/租约；提交序号、原始时间、固定回执上界和在途槽位防止重放、提前完成与越过 command end 的剩余步骤。取消后的迟到提交保留实际范围，unknown/畸形回执隔离通道并永久撤销旧许可。
+
+原生请求固定 Shell 已与 Core 对账的 guard revision，不使用新到的人工输入/停止通知自动更新旧许可。默认 Operator 仍为只读；只有受信 Configure 的固定 PID/登记 bundle 且实际守卫健康、Core 未隔离时，受限 AXPress 后端才报告 available。TextEdit 仅登记，尚未验收。
+
+真实生产链路 smoke 覆盖正常成功、AX 超时、调用开始后的停止和 helper SIGKILL，实际夹具动作共 4 次，重复请求没有额外动作；没有模拟输入。source 读回标题变化。实际调用期间 StopAck 本次为 3 ms，不能由此宣称物理停止上界。另验证旧 guard revision 拒绝，默认只读 smoke 动作计数仍为 0。
+
+最终全量检查通过：513 Rust、81 TypeScript、139 Swift（52 source + 87 device），失败与忽略均为零；冻结 I0、格式、Clippy、schema/生成类型、类型检查、真实 IPC 与生产构建通过。见[接线与边界](../architecture/m2-native-device-pipeline.md)及[现场记录](../../artifacts/m2-native-device-pipeline.json)。
+
+产品 Operator 授权与完整 UI 技能/效果验证、其余一期原语、系统 held/设备死亡隔离、签名权限/marker/真实热键、环境矩阵、MediaPipe/实际模型及一期业务报告仍需交付。完整 M2 和 MVP 继续进行，不把单一 AX 原语替代应用闭环。
+
+### 28.11 登记文本与真实 UI 返回读回（2026-10-02）
+
+固定目标的生产 AX 后端新增单次 SetValue：登记正常 TextField/TextArea 要求实际焦点、可写值和 nil/空 subrole；Checkbox/RadioButton 的布尔值沿用有界权限与同句柄提交门。文本输入上限为 2048 UTF-8 字节。source 默认文本仍私有，受信 PID/bundle/窗口策略才开放登记正常编辑字段；secure、未知 subrole、其它窗口保持私有。读取精确保留值的 Unicode/回车/格式字符，超出相同字节预算时明确不完整。
+
+AX 直接读取与 observer 通知覆盖分开发布健康状态。缺少必需通知时使用每次读取的新实例 ID，不能借当前完整读取复活旧绑定。页面识别改为读取已观察到的活动窗口，避开系统共享提示窗口。Receipt 增加实际 input_end_ms，与固定 command_end_ms 分开；错误时间与超过固定回执界限的未来结束时间拒绝。Verification 记录未知输入的证据下限，不能在读到满足值后声称输入因果关系已确认。
+
+自有夹具的真实生产文本 smoke 覆盖成功、2048 字节边界、超时、失焦、超长和敏感请求，实际 setter 共三次且重复请求不重放。登记参考工作流经真实持续来源、完整执行证明、文本/读回/返回技能、冻结 GoalSpec、不可变 EffectResult 和 TaskRuntime 完成一次 UI 返回任务：一次文本写入、两次页面导航，旧证据被拒绝，离开时字段从 AX 树移出，返回后重新绑定并读回中文、换行和 Emoji。取证失败只重建有界来源会话，输入不重试。
+
+最终全量检查通过：524 Rust、81 TypeScript、154 Swift（55 source + 99 device），失败与忽略均为零；I0、格式、Clippy、生成类型、类型检查、真实 IPC 和生产构建保持通过。详细边界与可重跑命令见[登记文本和参考工作流](../architecture/m3-native-value-workflow.md)，[现场效果记录](../../artifacts/m3-native-value-workflow.json)保留真实回执和不可变结论。
+
+测试驱动器提供草案、计划和确认，并通过预算消费进入执行；产品 Operator 授权、在线 DecisionWorker/Reaction 接纳与完整 Attempt outbox、真实模型和固定任务集仍未验收。默认 Operator 继续只读，当前效果范围仅 ui_revisit，因果关系为 unknown。TextEdit 保存/重开、其余原语、神经来源、签名产品、环境矩阵与性能报告仍须交付；M2、M3 和首个 MVP 保持进行中。
+
+### 28.12 真实 Host/Engine 接纳与 Operator 窗口授权（2026-10-02）
+
+在默认私有文本策略下，source 保留 AX 观察并持续更新窗口元数据，像素仍不可用。`observed_target` 只提供完整、未过期、无歧义的标准窗口身份，不提供输入权限。main 从当前观察选择登记进程/窗口，通过默认 Cancel 的原生对话框取得同意，再核对同一新鲜目标并关闭旧会话后启动固定范围新会话；renderer 只提交观察 ID。Rust 和 Swift 独立限定 PID/bundle/窗口，登记字段读取也保持同一范围。撤销、停止、退出和窗口变化隔离迟到同意与旧回执，不恢复旧任务或旧输入；新会话仍从 observe 开始。
+
+真实任务经普通目标创建/确认/Execute、完整 Engine、Reaction 接纳事务、Attempt 和 outbox，进入生产 Core/AX 后端。修复 native 租约周期、多行用户文本、非活动共享窗口导致的输入层失效、异步单次 AX 已知返回、终态输入后的新来源等待及 EnterText 返回验证下限。匹配设备回执持久化 outbox 投递标记；未产生输入的终态 Attempt 保留未投递并退款，不能伪造 OS 投递或效果。参考驱动器跨 helper 序号修复与生产 source 规则一致，保留真实观察时间与失败下限。
+
+自有夹具一次 setter、两次导航、四个终态 Attempt，最终新来源谓词 satisfied 且 EffectResult 持久化后根 completed，因果 unknown，未使用模拟输入。Operator 的实际 Electron/NSAlert 验证默认只读、Cancel/Allow、精确范围、目标确认在 observe 保持 Ready、撤销和热键；该 UI 测试不提交业务输入。记录在执行前固定实际构建哈希。全量检查为 532 Rust、98 TypeScript、154 Swift，无失败或忽略；格式、Clippy、生成类型、真实 IPC、类型检查、生产构建及既有原生回归通过。详细证据见[Host/Engine 与 Operator 授权](../architecture/m3-native-host-engine.md)。
+
+产品普通 GUI 自动执行、窗口激活、真实模型、TextEdit 保存/重开、其余一期原语、持久恢复、固定任务集、签名与环境/性能验收仍开放。授权 UI 与实际任务验证分开；临时会话账本导出不代表产品持久历史。M2、M3 和首个 MVP 未宣布完成，§26 与 §28 的完整验收范围不变。
+
+### 28.13 登记窗口激活与完整 GUI 执行（2026-10-02）
+
+新增只用于固定标准窗口根的 `window_activation` 观察用途，与普通目标输入隔离。其当前 AX 元数据不要求目标预先前台，但最多 2 秒、完整、无模态且范围/几何明确；专用 window 与 authorization 依赖核对、序号/会话/失效下限、原始固定权限和停止门保持有效。许可只接受单个 ActivateWindow，不能转换成后台编辑。普通 click/AXPress/SetValue 继续要求前台、帧和命中证明。
+
+Engine 通过登记导航 Candidate、效果门、根预算、决策消费、Attempt/outbox 和许可路径激活已授权窗口。Swift 在同一有界提交门设置 AXFrontmost 并 Raise 固定窗口，核对进程起始身份、CG 所有权、AX 标准角色/非模态、标题和几何；已开始失败仍 unknown，不重放。OS 调用成功另需新 AX 观察确认实际活动窗口。Verification 写入 `window.active@1` 不可变结论，范围为 current_ui；该范围仅用于导航，不能削弱根的 ui_revisit/commit 要求。
+
+执行时 Operator 收成不可聚焦的小指示，只在已观察目标窗口之外寻找显示器 workArea 空位；无可信空位则隐藏，托盘和全局 Stop 保留。暂停、确认和终态恢复控制台，使用 showInactive。原生证据短缺先等待持续流，保留原期限，超时才刷新；人工输入仍暂停，现场鼠标事件正确触发且未被忽略。
+
+真实 Electron/NSAlert 的完整 GUI 任务已通过：默认只读、Cancel/Allow、目标确认、Execute、窗口激活、一次文本写入、两次导航、窗口/根效果分别落账、根完成与撤销。构建哈希、精确范围、指示位置、决策映射/outbox、EffectResult 和 fixture 计数在[GUI 记录](../../artifacts/m3-native-operator-execution.json)。全量 537 Rust、100 TypeScript、159 Swift（55 source + 104 device），无失败或忽略，I0、格式、Clippy、生成类型、真实 IPC、生产构建和已有原生回归保持通过。详见[窗口激活与 GUI 执行](../architecture/m3-native-operator-execution.md)。
+
+当前仅登记参考任务，真实教师/S2、Laya、MediaPipe、其余一期原语/技能、TextEdit 保存/重开、持久恢复、固定任务集、环境/性能和签名报告仍未交付。M2/M3/MVP 继续进行，完整验收范围不变。
+
+### 28.14 S2 模型层接线与回合收尾（2026-10-02）
+
+已按“无会话能力用例时选 B”冻结 `llm-runtime` 的 Harness source `4dfd9abef1dc293a9617d35387165cb2256b5d98`，以及 provider SDK `0c6a907d897a54e656700c00cf335d91b10dca0b`；均为 canonical Git URL，不使用相邻目录未提交代码。请求只强制一个 StructuredOutput 工具，宿主做完整 Schema/类型/阶段验证和零/一/多次提交判断，没有会话或工具执行入口。
+
+独立网络 worker、有界上下文/响应/事件和一项暂存请求接入真实 host 循环。Engine 停止和超时发精确回合取消；连接打开与流读取取消都先断开再给收尾 barrier，新任务等待旧回合结束，退出也做有界收尾而不安装提议。Deliberation 的 model_calls 在网络开始前持久记录 scope/路由身份，结束记录结果和可得用量；未知 token/费用保持 null，重复终结不能覆盖原记录。
+
+显式内存 key 从 main 经独立私有启动前缀进入 host，不进入 desktop Message、Configure 或 Trace。main 的 host 环境只继承必要系统字段；HostManaged provider 按三项身份检查，无授权不认证，无 env/keychain/file fallback。真实 cu-host 启动检查确认父环境有测试 key 时仍拒绝无授权 model backend，错误不回显 key。三种协议与 host/Engine 生命周期使用固定 SDK 和注入运输层验证；当前没有真实 provider、模型 GUI 设置、出站许可或 Keychain 验收，也没有真实 S1 教师任务。详情与复跑见[模型层接线](../architecture/m4-model-runtime.md)和[当前接线记录](../../artifacts/m4-model-runtime.json)。
+
+重启只恢复高于已落账调用的编号，不恢复旧在途请求或未知结果。SDK feature 合并影响的 JSON 键顺序已通过显式导出排序修复，I0、desktop schema/fixtures 的冻结字节保持。回归中的两项启动时序超时保留失败记录，单独复跑通过，原因尚未确认，资源/时延门仍开放。
+
+最终全量 566 Rust、103 TypeScript、159 Swift（55 source + 104 device）通过，格式、Clippy、生成类型、真实 IPC 与生产构建通过；同一最终二进制集合上的登记参考 GUI 流程也复跑通过，实际模型仍未使用。
+
+原有登记参考 GUI 任务保持自己的证据，不作为模型任务计数。Laya、MediaPipe、其余原语、TextEdit 保存/重开、持久恢复、任务集、资源/停止与签名验收仍开放，M0/M4/MVP 继续进行。
+
+### 28.15 产品模型设置、原生出站同意与 Keychain 验证
+
+普通 Operator 已有模型服务/协议/HTTPS endpoint/model/key 表单。默认不读取保存 key 或恢复云端许可；原生确认框显示实际路由与出站范围，默认 Cancel。选择允许后才用本产品显式 key 打开模型层；Use saved key 仍须重新同意。Stop 取消待确认/切换操作，Revoke 关闭准入与旧管线，Forget 删除精确保存账号；均不授予原生窗口输入，也不恢复旧任务。
+
+main 的 ModelAccess 独占模型许可与内存连接，renderer IPC 严格限制字段和保存 ID。私有启动前缀、固定 SDK 和用量落账沿用 §28.14。静态已登记应用/控件目录进入目标编译与重规划 notes，不含实时值、截图、PID/window ID、绑定或权限；模型提议继续由原 owner 验证。旧管线 held/unknown/failed 清理状态跨替换保留，不能用新管线的 not_needed 消除不确定性。
+
+异步原生 Keychain helper 只操作本产品固定 service 和 main 计算的精确 account；有界私有 stdin/stdout，无 argv/env key。公开元数据原子写入、0600、最多 16 项；无明文 key，startup 只读取路由。已确认路由与取 key 后的路由变化则拒绝继续；取消中的保存先收尾再删除，元数据修改串行，防止迟到保存复活 Forget 项。当前为 macOS 文件 Keychain，签名 access group 与锁定/打包矩阵未验收。
+
+真实 Electron 两次独立启动通过 58 项：自有窗口上的真实 Cancel/Allow、Stop 中断 NSAlert、内存授权、Keychain 保存、退出后不自动授权、保存项重新同意/读取、Forget 删除与精确测试账号回收；每个实际 host 账本的模型调用数均为 0。Keychain 独立临时服务的 7 项原生自检也通过。详见[产品模型授权](../architecture/m4-model-authorization.md)与[GUI 证据](../../artifacts/m4-model-authorization.json)。
+
+图像发送的容器/checksum 校验新增取消与截止时间检查，保留原 wire、配额和预算；8 MiB 的中途取消不发包前缀，原 500 ms 关闭检查保持。最终串行 Rust 测试运行器下全量 569 Rust、121 TypeScript、166 Swift 自检通过；默认并发过程中来源 helper 和批量 device 启动超时的[失败证据](../../artifacts/m4-model-authorization-diagnostics.json)保留，根因与共同负载门未关闭。
+
+假密钥授权检查不是真实模型业务验收；S1/S2、Laya、MediaPipe、其余一期技能、TextEdit 保存/重开、持久恢复、100 项夹具与 20 项原生任务、环境/资源/停止和签名验收继续开放，MVP 未完成。
+
+### 28.16 来源刷新确认屏障与 GUI 复验（2026-10-03）
+
+旧流的新观察不能越过已排队的 RefreshNow。Environment 持有单调 generation 与待确认状态，普通动作与窗口激活均等待；Host 只接受当前 Source peer、请求 ID 与现有 in_reply_to/CommandAck 的精确关联。Source 先失效并回收旧 watcher、建立新流后确认最新合并请求；确认不充当新证据，恢复仍需原有来源、几何、时间与权限门。Probe 运行与后来排队请求分别绑定 ticket，设备身份变化、旧/重复/拒绝确认不能解除新等待。desktop-v1 Schema 与 I0 golden 保持。
+
+全量 574 Rust、121 TypeScript、166 Swift 自检通过，Rust 测试运行器为串行；同一生产构建连续三次实际 Electron 参考任务完成，均为一次 setter、两次导航、独立窗口/根效果、新来源读回与撤销后不重放。共享对话框驱动的模型授权 58 项另通过，假密钥精确回收，真实 provider 调用为零。详细 owner、回归与限制见[来源刷新确认](../architecture/m3-source-refresh-barrier.md)及[证据](../../artifacts/m3-source-refresh.json)。
+
+先前原生确认超时、AX 空窗口及额外隐藏 TUINSWindow 的失败记录保留。夹具关闭自动补全/写作工具，测试驱动限制自有 modal、分开属性与动作期限并在失败前采集自己的窗口/AX/账本。尚未完成这些系统窗口波动的因果隔离；未放宽生产完整性与 unknown 收尾。参考任务、串行测试和三次成功不能代替真实模型、TextEdit、共同负载、冻结任务集或签名验收，完整 M2/M3/MVP 继续进行。
+
+### 28.17 原子指针点击与释放确认（2026-10-03）
+
+生产 ExecutionCore/native backend 已接入左/右/中键与四个修饰标志，沿用固定 app/PID/window、内核进程身份、双租约、停止、原始期限、实际命中与 fp1 复验。已登记普通编辑字段仍先核对隐私范围，指针路径不以 AXPress 声明代替当前目标证明。desktop-v1/I0 契约保持；私有 Mouse 请求不授予权限。
+
+固定 macos-atomic-click@1 在同一提交门连续发出一对同点事件，修饰位不产生独立按住，硬件事件抑制关闭。明确 marker 与不复用单调 stamp 在本进程 session event tap 匹配 up；两次 post API 返回之后至多等待 150 ms 且不超过原期限，不持有输入锁或发新输入。确认缺失或运输/死亡失败保持 unknown，ExecutionCore 隔离并拒绝新输入，旧意图不换 ID 重放。新 helper 的系统按钮未释放状态关闭整个会话，不能以迟到 snapshot 清除。UI 效果仍需新来源验证。
+
+左/右/中键、组合修饰位、Control-click、遮挡、释放确认丢失七个真实设备边界场景通过；独立原始 AppKit 事件、控件计数和 AX 读回核对，确认丢失虽有实际 UI 输入仍为 unknown。全量 577 Rust、121 TypeScript、514 Swift（55 source、452 device、7 Keychain）检查通过，Rust 测试运行器为串行。早先事件缺失/额外事件、源不完整与人工输入暂停记录保留，不关闭人工监听。详细实现、证据和假设边界见[原子点击](../architecture/m2-native-click.md)。
+
+Host/Engine 通用指针技能/AX 回退、准确 SIGKILL 在 down 前/down-up 之间/up 后的故障及系统/UI 复位矩阵、其它一期原语、真实模型、TextEdit、完整任务与共同负载/签名验收继续开放。设备边界通过不代表 M2/M3/MVP 完成。
+
+### 28.18 cu-device 点击死亡矩阵与有界退出（2026-10-03）
+
+在自有 GuardFixture 的 down 前、down/up 之间、up 后三个位置，对精确核对 PID、父子关系与执行路径的 cu-device 执行 SIGKILL。独立编译的故障 helper 只允许夹具，检查点等候该父进程死亡，超时视为注入失败；生产构建不含此暂停或文件通道。三个位置分别发生零对、一对、一对实际输入。旧连接关闭，观察端保留 unknown 且明确没有最终设备回执；旧 helper 有界退出。新代次 2 使用 macos-observe，实际 Ready 清单的输入能力为 unavailable，旧意图查询返回无记录，独立 AppKit 原始事件与控件计数确认没有补发。
+
+先前 down/up 之间的死亡曾出现重复 up，失败证据保留。生产关闭路径立即封闭准入与提交；已开始的原子对仍连续发出 up，原 session tap 在最多 250 ms 的退出窗口内接收其确认。控制 EOF、输出 EPIPE/超时均封闭输入；关闭期间不再向死亡父进程写输出。退出等待不授权正常输入，独立 worker/run-loop 硬 watchdog 保持。新确认代次清除旧 drain，不能继承上次退出等待。
+
+全量 577 Rust、121 TypeScript、518 Swift（55 source、456 device、7 Keychain）检查通过；最终输出管道修复另重建并通过原生检查。准确 cu-device 三点死亡[现场证据](../../artifacts/m2-native-click-death.json)和实现边界见[原子点击](../architecture/m2-native-click.md)。实际发出 CGEvent 的 helper 是另一个进程：直接杀该 helper 的同类矩阵、系统/UI 复位与产品 unknown 提示、持久恢复仍开放。不能用新建只读会话代替完整崩溃恢复，也未关闭 EXE-11 的全部验收要求；通用技能、真实模型、TextEdit、完整任务与签名仍需继续完成。
+
+### 28.19 原生开关、指针路径与显式重新定位（2026-10-03）
+
+真实开关任务暴露 AX 生命周期通知不可用时每次读取实例变化的影响：旧绑定失效使技能反复从 AX 起点开始。Source 保留失效规则；Environment 从冻结 GoalSpec 与新来源重新定位，Engine 复核当前效果等级与范围。已知完成的布尔 ensure_value 在原 Attempt 内取得新绑定和新许可，AX 已知完成且值未变时只回退一次指针；指针完成后只读回，不发第三次输入。unknown、陈旧证据、效果升高和不可用控件不能走此转换。输入时间下界、额度、激活和根期限不重置。
+
+自有 AppPack 登记 MVP toggle/AXCheckBox，显式参考规划器提供 Bool(true) 与 ui_revisit 的目标；没有替代真实教师或 S2。原始 AppKit marker 对、setter/press/控件计数和 AX 返回读回独立核对。默认 AX no-effect 与无 AX 能力的直接指针分别验证，实际输入仍通过完整 Operator 授权、目标确认与 Execute；取消/观测不输入、撤销后不补发。检查点以 Execute 前基线划分，全部原始事件保留。
+
+全量 583 Rust、121 TypeScript、518 Swift 检查通过，Rust 测试运行器为串行；实例变化下的新许可、同一 Attempt、unknown 不复定位和效果升高拒绝有回归。现场来源/辅助窗口、取消后候选超时与任务前无 marker up 的失败保留；自有夹具显式加入测试应用窗口集，不改变产品来源门禁或用户系统设置。详细路径、当前现场证据和剩余范围见[原生指针技能](../architecture/m3-native-pointer-skills.md)。其它一期原语、真实模型/神经来源、TextEdit、持久恢复、完整任务集、环境/资源及签名继续开放，MVP 未完成。
+
+### 28.20 原子滚动与 AX 菜单（2026-10-03）
+
+生产设备私有请求和原生 worker 接入一次有界像素 Scroll 与 AXShowMenu；desktop-v1 不变。Scroll 仅 AXScrollArea、每轴 ±120 且非零，实际鼠标和事件位置必须精确等于新证明的框中心，不自动移动。一个 marker/stamp 标记事件经过 tap 确认，缺确认保持 unknown 并隔离；实际 input_end_ms 与 command_end 分开。菜单仅 AXMenuButton/AXPopUpButton、声明的 AXShowMenu、完整 fp1 与当前前台窗口，单次调用最多 25 ms 消息超时和原始期限；调用返回与菜单可见效果分开。
+
+已完成参数/角色拒绝、载荷分离、实际输入结束、unknown 不重放的回归和独立范围架构复核。全量 586 Rust、121 TypeScript、545 Swift 通过，自有窗口 12 项滚动/菜单矩阵通过；原始失败与修复均保留。现场夹具使用真正 NSScrollView/NSMenu，受控验证结果见[原子滚动与菜单](../architecture/m2-native-scroll-menu.md)。普通容器后代、任意鼠标位置、菜单辅助窗口绑定与后续选择、Host/Engine 通用技能、TextEdit 保存/重开及完整一期验收继续开放，MVP 未完成。
+
+### 28.21 scroll_to 运行时与实际位置（2026-10-03）
+
+通用滚动步骤新增类型化容器/方向/像素/次数参数。逻辑目的地与输入容器分开；每轮从新序列和实际输入结束后的证据重建容器绑定、新许可，并在同一窗口容器后代中重识别目标。偏移变化仅证明进展，结束前独立验证新目标绑定，持久化 CurrentUi 导航效果；根的重访/提交要求不降低。
+
+真实 NSScroller 能提供 AXValue，但 AXMinValue/AXMaxValue 不支持，Source 保留位置且把端点独立标为未知，不补造范围。已知端点的缺失结果也不冒充全内容覆盖，未知端点只受有界额度控制。unknown 不触发第二次输入。新 Schema/fixtures/TypeScript 已同步导出，各组件继续匹配完整 Schema 哈希，I0 保留。全量 608 Rust、121 TypeScript、550 Swift 通过，14 项技能/六项 Engine 回归与 12 项自有设备/Source 场景通过。细节、证据与范围见[scroll_to 运行时](../architecture/m3-scroll-to-runtime.md)。真实 Host 任务、完整内容搜索、其余原语/技能、TextEdit 和一期验收仍开放，MVP 未完成。
+
+### 28.22 原生 Host 滚动与返回验证（2026-10-03）
+
+新增不产生 held 状态的 PointerPosition，保留 I0 PointerMove 的按住类限制。实际事件、marker/stamp 和光标位置均在 posting 时间锚定的 150 ms/原始期限内确认；unknown 不重放。原生 scroll_to 在同一 Attempt 内先定位，再从新来源复验完整容器框后滚动，每项输入均计入额度，原始期限不延长。
+
+真实 Operator 自有任务已完成四项定位/滚动、容器内新目标绑定、读实际 false、不编辑、两次导航和返回的新 UI 读回，根按冻结的 UiRevisit 完成并撤销输入。补充 hidden-root 首次 scoped bind 的页面记账，旧绑定不能冒充返回证据。全量 618 Rust、121 TypeScript、597 Swift/Keychain 通过，实际滚动 36 项、原有文本 21 项、开关 AX 回退 24 项及原子定位三场景使用最终同组二进制复验。详细证据与原始失败见[原生滚动任务](../architecture/m3-native-scroll-workflow.md)。参考规划器不替代真实模型，菜单选择、其余原语、TextEdit 和完整一期门仍开放，MVP 未完成。
+
+### 28.23 原生菜单实际归属诊断（2026-10-03）
+
+一次生产 AXShowMenu 后，对脚本自有菜单项完成只读父链、顶层窗口、点命中和绘制窗口诊断。两个菜单项的 AXWindow 实际为 noValue，AXTopLevelUIElement 与父链到达原聚焦标准窗口，中心点命中同 PID 且 CFEqual；辅助绘制窗口为 layer101。选择计数为零，生产 Source 仍将该 transient 状态标为 incomplete，未启用菜单输入。详见[原生菜单关系证据](../architecture/m3-native-menu-relationship.md)。
+
+范围复核确认后续必须增加显式菜单上下文和 ax_menu_press 私有分支，公共动作仍为一次 AXPress；固定原窗口、触发控件连续身份、实际父子链、当前菜单/项目、新 Source、几何与命中均需复验。不能添加通用 AXTopLevelUIElement fallback 或同 PID 任意窗口许可。普通窗口输入在菜单上下文中保持关闭，选择后由新 Source 验证实际结果。该诊断证明关系路径可行，菜单选择技能和完整 MVP 仍未完成。
+
+### 28.24 原生菜单选择与已知输入后的结果验证（2026-10-03）
+
+登记一级菜单已接入 Source 独立 CF 锚、typed MenuContext/BindingProof、Core/native 专用单次 AXPress 与 ui.select_by_label。同 activated Attempt 内一次 ShowMenu、一次选择、每项新许可、原期限/预算不变；输入前锚/watch/窗口改变拒绝，未知和消费过的选择不重放。
+
+最终选择 KnownCompleted 且无 pending dispatch/mechanical unknown 后进入只读正常结果阶段。允许新 Source/绑定验证，但保持原 epoch/kernel process/PID/精确固定窗口及当前语义/fingerprint/provenance；Input 锚退休仍撤销旧许可。独立 actual value 的 CurrentUi 与冻结 UiRevisit 分开验证。Unknown 即使值匹配也不成功、不导航，迟到 Completed 不能清隔离。
+
+Source 补充全 watch 最多两次的安全新基线/真实新 COMPLETE 像素恢复、过渡队列/时钟/负状态门；有完整实际父链证明的独立其他窗口销毁可消费有界私有证明，不扩大窗口权限。私有诊断有界保留而不进健康或 authority。全量 671 Rust、121 TypeScript、681 Swift/Keychain 检查通过，实际 Operator 菜单39项与直接 native 11场景通过；原始失败均保留。详见[菜单任务](../architecture/m3-native-menu-selection.md)。参考规划器、单项 GUI 和边界矩阵不替代真实模型、TextEdit、完整任务集、恢复及产品签名验收；MVP 继续进行。
+
+### 28.25 原子 KeyPress 的登记 Operator fixture 闭环与设备重复边界（2026-10-03；v0.30）
+
+登记 `keyboard-toggle` 在自有 `KeyFixture` 上完成一次 `Primitive::KeyPress(Space)` 的 Operator 根任务。最新 [brwyAd 现场记录](../../artifacts/m2-native-operator-keyboard.json)的 47 项检查通过，`task_execution_verified=true`、root `completed`；设备收到一个实际 down/up pair，toggle activation 一次且 AXPress 为零，fixture text/composition 未变。独立 `keyboard.value@1 / CurrentUi` 满足，但其因果字段仍为 `unknown`；随后同一冻结目标在一个 UiRevisit Attempt 中执行两次 AX navigation，`goal.required@1 / UiRevisit` satisfied、root causality confirmed。撤销后没有额外输入，执行期间五个 host/device/source binaries 与 fixture keyboard guard hash 均未变化。
+
+为让该 fixture navigation 成为可测的同步边界，`KeyProofNavigation` 立即返回 AX success，再把页面状态变化派发到主队列；它解决了此前 [tFhHb0 运行](../../artifacts/m2-native-operator-keyboard-2026-10-03T19-42-42-805Z-1791056656500.json)约 30 ms 后 AX reply 变成 Unknown 的夹具失败。该行为只属于 `KeyFixture` 的专用导航动作，不改变通用 AX action 的迟到/Unknown 语义，不放宽 Source、窗口绑定或 production gate。旧 [DcPVBl Operator 失败](../../artifacts/m2-native-operator-keyboard-2026-10-03T19-18-25-913Z-1791056554272.json)仍保留，之前的一次键盘值验证不能替代其未知导航后的 root 条件。
+
+四场景 [ygG4kI 设备矩阵](../../artifacts/m2-native-keyboard.json)通过：正常 pair 返回 Completed；production-disabled 与 focus-changed 在零事件处拒绝；missing-ack 保持 Unknown 并隔离。这里的 no-replay 是没有第二次输入提交、查询旧回执继续得到 Unknown，不能证明底层 tap 或 AppKit 只产生一份物理事件事实。
+
+历史 helper 死亡矩阵尝试 [fDKDnq 归档](../../artifacts/m2-native-keyboard-death.previous-c672ebf1-9304-4de6-b208-fe68205c69ab.json)失败；旧[重复事件 forensic](../../artifacts/m2-native-keyboard-death-repeated-delivery.json)来自 fixture `NSEvent` local monitor，记录 8 个 AppKit 事件组成 4 对 down/up、两个 nonce 各重复一对。更早 [HYhcaA 准备失败](../../artifacts/m2-native-keyboard-death.previous-33e9b018-7703-40c8-b5a9-55af31b9703b.json)在 key_ready 前超时、零输入，作为 Source fresh 不可用历史保留。
+
+最后完成并计数的 [bZjsGV waiting-ack archive](../../artifacts/m2-native-keyboard-death.previous-f6567f28-0edd-4af1-9665-89a44b847c56.json)与[发送端计数/独立 CG session 对照](../../artifacts/m2-native-keyboard-death-counted-comparison.json)显示实际 helper 收到 `SIGKILL` 后 Core 回执为 Unknown、channel isolated、无第二次 submit；pair-owned counters 证明 down/up 的 `CGEvent.post` 各返回一次，CG session tap 与 fixture monitor 却都观察到同 nonce/timestamp 的 4 个事件（2 down/2 up），toggle activation 两次。重复事实在独立 tap 与 AppKit 均可见，但具体因果层未知。event stream capture 完成，post-kill target scope revalidation=false、owned window count=2，不能声称完整 scope 复验。后续 [Jst3kk 尝试](../../artifacts/m2-native-keyboard-death.json)在 bounded Source focus/frame/health fresh 可用前失败；记录的 frame margin 为 462 ms，低于 600 ms 界限，但证据不把失败归因于 OCR。`input_authorized=false`、`input_posted=false`、raw fixture events 为空且没有执行 `SIGKILL`，所以未验证 pre/post capture 生命周期。bZjsGV 仅覆盖 waiting-ack 单 phase，完整 death matrix 与生产键盘仍未通过/关闭；不去重、不放宽 ACK。历史 fDKDnq 与 HYhcaA preparation 失败均按归档保留。
+
+私有 guard receipt library 的 42 项测试与最终 workspace format/Clippy 检查通过，`crates/device-macos/src/guard.rs` 当前 SHA-256 为 `f4e59172e3f7a240b7dbe8b141f1c39eaaec682c4a2144efb24d18814bbc2883`；该 bounded receipt mode 只在 Operator 启用，容量 8 条/16 KiB，默认 device packets 保持不变。早先 Core snapshot 的 27 项 async、全量 727 Rust、121 TypeScript、Source 123 pure 与格式/Clippy 通过发生在 private guard 收据改动前，不作为当前 whole-workspace 总数。menu `w98tqK` 39、scroll `oUvKoV` 36、toggle `NTJhmj` 24、text `DGoEds` 21 项回归通过；原始 text `7dkglD` Unknown 失败（零实际输入，Source instance/binding 变化期间 Core stop-in-flight Unknown 已隔离）仍保留。该 fixture 根任务完成不表示通用 AX、TypeText/IME、TextEdit 保存重开或整个 MVP 已验收。
+
+M3 文本 [CurrentUi 检查记录](../../artifacts/m3-text-current-ui-checks.json)是 341 项 registered labeled AX EnterText 纯检查的旧快照，不是实际 TextEdit 任务证明。历史 [YDPoRv owned-fixture Operator 归档](../../artifacts/m3-native-operator-execution-2026-10-03T20-31-36-613Z-1791062030456.json)root completed、一次 setter 与两次导航，但无 `text.value@1` 且 artifact `ok=false`；归档 [TPduKU fixture 失败](../../artifacts/m3-native-operator-execution-2026-10-03T21-13-57-283Z-1791062131597.json)在一次 setter 后 binding 变化，stop-in-flight Unknown/隔离且不重放。最新 [u5WJrs Operator 记录](../../artifacts/m3-native-operator-execution.previous-u5WJrs.json)仍失败：一次 Completed setter、零导航、`binding_unavailable`、root Unverified。固定[通知诊断索引](../../artifacts/m3-native-text-observer-notification-live-diagnostic.json)保留 9 条、跨 3 个 watch；同一 watch generation 3、observer revision 5 与 6 为 `element_destroyed`，两次均匹配 retained registry reference、均不匹配 application object。u5WJrs 早于新 fixed cached-role-category 字段，无法从该运行辨识被销毁引用的 role 或 text-receiver 身份。较早 [VRszaP Operator 归档](../../artifacts/m3-native-operator-execution.previous-VRszaP.json)曾有一次 candidate read 接受 12 个 CF references、same-root/process/observer 条件通过，但之后 `observer_dirty` 触发硬失效；该单次候选通过不证明 CurrentUi 或后续通知连续性。Completed setter receipt 不等同根效果验证。Source public marked-range 读取与 contracts 接线已冻结并通过 review；positive product Source composition proof 未验证，TypeText/input 仍受门禁控制，产品能力未启用。真实 TextEdit unlabeled receiver binding、CurrentUi 文本效果、输入与保存/重开仍待验收。
+
+
+Source identity-boundary bridge 已由 AX registry 经 native Source/contracts 接入 Engine，跨层复核通过并在共享构建中启用。固定[跨层索引](../../artifacts/m2-source-identity-boundary-native-checks.json)记录 Engine 352 tests、TypeScript 121 tests/build/typecheck 与 workspace Clippy；最新[角色诊断检查](../../artifacts/m2-source-destroyed-role-checks.json)记录 Source 137 pure groups、AX 59 pure checks、strict Swift/shared build passed。全量 749 Rust 是 final window-grant follow-up 前快照。固定[现场通知索引](../../artifacts/m3-native-text-observer-notification-live-diagnostic.json)中 u5WJrs 仍为一次 Completed setter、零导航、root Unverified；generation 3 的两个 `element_destroyed` 回调匹配 retained CF reference，但 u5WJrs 早于 cached-role-category 字段，role 与是否为 text receiver 均未知。observer dirty/lifetime gate 继续生效；VRszaP earlier candidate read 只证明该次读取接受 12 references，随后同一次运行仍因 `observer_dirty` 硬失效。真实 TextEdit unlabeled binding、CurrentUi 与 composition、保存/重开、设备死亡矩阵和完整 MVP 尚未验收。
+最新 [aZEMbs Unicode read-only probe](../../artifacts/m2-native-unicode-readonly-probe.json)的 public `AXTextInputMarkedRange` 返回 CFRange `{location:66,length:0}`，但 composition 为 Unknown；[I9xqwJ 九场景 focus probe](../../artifacts/m2-native-keyboard-focus-probe.json)只读 scope 通过、零 raw input，AXTextField focus/mark/unmark 的 public range query 均 Unsupported。另一个 [WArkYb composition-readonly fixture probe](../../artifacts/m2-native-composition-readonly-probe.json)在自有 `NSTextView` 的三个只读状态中读取到 `{16,0}`、`{16,2}`、`{18,0}`，与 fixture 内部范围相符且没有 raw input，但 `composition_verified=false`。Source public marked-range reads and contracts wiring are frozen and review-approved; positive product Source composition evidence is unverified, so TypeText/input remain gated and the product capability remains disabled. 另一个 [zOfy8D product Source probe](../../artifacts/m2-textedit-product-source-probe.json)因 AXDescription Failure (`-25200`) 与 `AXUIElementDestroyed` observer unsupported (`-25207`) 保持 incomplete。以上只读/纯测试观察均不证明真实 TextEdit unlabeled binding、IME 标记文本语义或保存/重开。
+
 <a id="sec29"></a>
 
+### 28.26 自有 TextEdit 保存与保留原 Root 的独立重访（2026-10-04）
+
+最新[实机记录](../../artifacts/m3-owned-root-revisit-ff122492-4524-402e-baec-0e357fe91a88.json)通过一次 SetValue、一次 Save、关闭前私有文件验证、新进程与新登记重开，以及新 Source 的精确值读回。同一 Host 和原 Root ID/revision/epoch 保留，先前 CurrentUi 历史未变；最终 `goal.required@1` 为 `UiRevisit/Satisfied/CausalityUnknown`，原 Root 完成。两个普通 Attempt/mapping/已交付 outbox 保持两个，重访没有新增输入或模型调用。新 Device 只读，清理成功，运行前后源码与二进制 hash 相同。
+
+该通道只接受 Main 私有 Prepare/Finish/Abort。Engine 先核验 settled Save 和保存前的 CurrentUi 证据；Main 固定关闭前、关闭后、重开后的相同文件版本；新 Source 刷新确认与当前读回共同支撑 Verification 的结论。Receipt.Completed 和文件摘要均不能独立满足 Root。专用等待保留刷新代际，并由 30 秒挑战期限与 Root 总期限约束；Root 总期限保留原 Expired、epoch 与 Stop 语义。四次此前失败均保留，没有错误完成或重放，所有自有实例均已清理；不能将最终成功倒填为历史成功。
+
+[该时点检查](../../artifacts/m3-owned-root-revisit-checkpoint-20261004.json)记录 Engine 386、Host 53、Main 165 项及类型、schema、Clippy、格式与构建通过，并在当时复验现场源码/二进制 pins。该样本使用显式本地诊断规划，真实教师/S2 调用为零，不能外推为模型验收。
+
+后续[产品入口验收](../../artifacts/owned-document-authorization-54ed2436-030b-4236-8b1c-602136da0ed6.json)通过 40 项真实界面检查：新空文档、编辑/Save 分别批准与取消、Stop 中断许可、撤销和新进程不恢复许可；八个原生弹窗中七次实际按键、一次 Stop 取消，十个 Host 账本无 Root/Attempt/模型调用，自有实例与目录清理。测试只用临时虚拟模型配置验证 S2 用途许可，未请求提供商。[八秒等待后的实机编辑/保存/重访](../../artifacts/m3-owned-root-revisit-288d99e8-277d-44d6-bbf7-079c4ae13de0.json)仍保持两个输入及原 Root，证明 Source 子进程重新启动时可转发已接纳的只读登记而不延长输入授权。产品模型规划任务、§26 与 §28 的模型质量、完整业务/故障矩阵、时延、硬件与签名产品要求继续全部保留，MVP 未完成。
+
 ## 29. 冻结配置、剩余决策与验证边界
+
+§28.26 后续[检查记录](../../artifacts/m3-owned-document-product-checkpoint-20261004.json)包含 Desktop 182、Host 54、Source 65 项通过及当前 pins。同一版本随后一次实机运行在观察阶段保持 input unavailable、零 Root/Attempt/输入，已成功清理；失败与未确认原因保留，可重复性继续开放，不能仅凭此前成功宣告完整验收。
 
 | Profile | 已确定 | 进入对应阶段前仍需冻结 |
 |---|---|---|
@@ -2279,7 +2536,7 @@ M0 输出最少包括 S1 离线决策质量报告与通过线判定、S2 集成�
 | ControlProfile | 一期非按住原语与确定性短 UI 技能；AX 动作优先、指针/按键回退；未来 MediaPipe S0 | 每原语时长界限、执行路径顺序；按住类原语与游戏相机/运动标定在后续阶段冻结 |
 | KnowledgeRelease | 不可变 revision、任务固定 release、独立隔离、一期人工发布；门禁用 release 不含任务级工作流 | 初始结构/工作流清单、来源/范围、保留/删除、索引配置与质量证据 |
 
-桌面平台、来源模式和 MediaPipe 角色已经确定。S1 的交付形态取决于 M0 的离线决策质量实验，S2 的集成路线取决于 M0 的对照；这两项是带定案规则的待决项（第 8.6、12.4 节）。具体依赖版本、资源配额与真实模型质量是 M0 的交付内容；不能在未验证前填入虚构哈希或宣布 GPU/停止性能达标。
+桌面平台、来源模式和 MediaPipe 角色已经确定。S1 的交付形态取决于 M0 的离线决策质量实验，S2 已按默认定案规则选择模型层路线 B，并固定 Git SHA、接入单次调用/收尾/用量；产品原生出站授权与假密钥保存/重连/删除已验证，真实调用、签名权限、资源与质量验收仍待完成（第 8.6、12.4、28.14–28.15 节）。具体依赖版本、资源配额与真实模型质量是 M0 的交付内容；不能在未验证前填入虚构哈希或宣布 GPU/停止性能达标。
 
 ### 29.1 主要风险及处理
 

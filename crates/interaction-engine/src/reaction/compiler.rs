@@ -14,7 +14,7 @@ use interaction_contracts::desktop::source::UiObject;
 use interaction_contracts::desktop::task::GoalSpec;
 use sha2::{Digest, Sha256};
 
-use crate::environment::read::display;
+use crate::environment::read::{display, focused_window_id};
 use crate::environment::state_core::EnvSnapshot;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -92,6 +92,19 @@ pub fn compile(
         recent_results,
         missing_fields,
     } = input;
+    let candidates = if goal.target.row.is_some() {
+        candidates
+            .into_iter()
+            .map(|mut candidate| {
+                // BindingRef is Engine-private even though it is not a Source
+                // ObjectRef. Row admission re-resolves the frozen selector.
+                candidate.binding = None;
+                candidate
+            })
+            .collect()
+    } else {
+        candidates
+    };
 
     let named: BTreeSet<&str> = candidates
         .iter()
@@ -99,27 +112,38 @@ pub fn compile(
         .map(String::as_str)
         .collect();
     let wanted = normalize_label(&goal.target.label);
-    let active = env.snapshot.active_layer.as_deref();
+    let active = focused_window_id(&env.snapshot);
+    let row_goal = goal.target.row.is_some();
+    let projected_subgoal = if row_goal {
+        format!(
+            "Engine-managed frozen row workflow: {}",
+            crate::reaction::candidates::public_row_scope(&goal.target)
+        )
+    } else {
+        subgoal.to_string()
+    };
 
     // Relevance: what a candidate acts on, then what the goal is about, then
     // the rest of the layer that receives input, then everything else.
     let mut secure = 0usize;
     let mut ranked: Vec<(u8, usize, &UiObject)> = Vec::new();
-    for (index, object) in env.snapshot.objects.iter().enumerate() {
-        if object.secure {
-            secure += 1;
-            continue;
+    if !row_goal {
+        for (index, object) in env.snapshot.objects.iter().enumerate() {
+            if object.secure {
+                secure += 1;
+                continue;
+            }
+            let rank = if named.contains(object.instance_ref.as_str()) {
+                0
+            } else if !wanted.is_empty() && normalize_label(label_of(object)).contains(&wanted) {
+                1
+            } else if Some(object.window_id.as_str()) == active {
+                2
+            } else {
+                3
+            };
+            ranked.push((rank, index, object));
         }
-        let rank = if named.contains(object.instance_ref.as_str()) {
-            0
-        } else if !wanted.is_empty() && normalize_label(label_of(object)).contains(&wanted) {
-            1
-        } else if Some(object.window_id.as_str()) == active {
-            2
-        } else {
-            3
-        };
-        ranked.push((rank, index, object));
     }
     ranked.sort_by_key(|(rank, index, _)| (*rank, *index));
     let total = ranked.len();
@@ -142,6 +166,11 @@ pub fn compile(
     }
 
     let mut omitted_items = Vec::new();
+    if row_goal {
+        omitted_items.push(
+            "Source object identities and table rows withheld; the Engine uses the frozen typed row selector".into(),
+        );
+    }
     if total > kept.len() {
         omitted_items.push(format!(
             "objects: {} less relevant objects left out",
@@ -172,7 +201,7 @@ pub fn compile(
         root_task_id: goal.root_task_id.clone(),
         task_revision: goal.task_revision,
         goal_summary: goal.user_text.clone(),
-        subgoal: subgoal.to_string(),
+        subgoal: projected_subgoal,
         snapshot_revision: env.revision,
         objects,
         candidates,
@@ -213,7 +242,7 @@ mod tests {
             pack: &rig.pack,
             env: &env,
         };
-        let resolution = Resolution::Bound(binding);
+        let resolution = Resolution::Bound(Box::new(binding));
         let candidates = build(
             &scope,
             &Basis::Step {
@@ -297,8 +326,11 @@ mod tests {
         field.secure = true;
         field.value = None;
         field.title = Some("Password".into());
+        field.identity_continuity =
+            interaction_contracts::desktop::source::ObjectIdentityContinuity::ReadScoped;
         snapshot.objects.push(field);
         snapshot.source_sequence = 99;
+        sim_world::app::refresh_simulated_observer_coverage(&mut snapshot);
         rig.state.admit(snapshot, 150, &rig.pack).unwrap();
         let state = state_with(&mut rig, &CompilerLimits::default(), 150).unwrap();
         assert!(state.objects.iter().all(|o| o.label != "Password"));

@@ -6,10 +6,13 @@ use interaction_contracts::desktop::device::ReleaseStatus;
 use interaction_contracts::desktop::effect::EffectClass;
 use interaction_contracts::desktop::ids::{AttemptId, DecisionId, RootTaskId};
 use interaction_contracts::desktop::planning::PlanBundle;
-use interaction_contracts::desktop::task::{AttemptQuota, AttemptState, GoalSpec, RootState};
+use interaction_contracts::desktop::task::{
+    AllowedControlScope, AttemptQuota, AttemptState, FrozenTaskProfile, GoalSpec, RootState,
+};
 use rusqlite::{Connection, OptionalExtension, Row, Transaction, params};
 
 use super::budget::BudgetKind;
+use crate::deliberation::accounting::PlanningRequestAttribution;
 use crate::infrastructure::storage::{StoreError, enum_to_str, str_to_enum};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -17,6 +20,12 @@ pub struct RootRow {
     pub root_id: RootTaskId,
     pub seq: u64,
     pub user_text: String,
+    /// Immutable user constraint; separate from the planner's compiled goal.
+    pub allowed_scope: Option<AllowedControlScope>,
+    /// The Host-resolved application bundle id bound to `allowed_scope`.
+    pub allowed_scope_app: Option<String>,
+    /// Immutable admission provenance; never read as planner or input authority.
+    pub frozen_profile: Option<FrozenTaskProfile>,
     pub state: RootState,
     pub state_origin: Option<RootState>,
     pub task_revision: u64,
@@ -88,12 +97,135 @@ fn id<T: TryFrom<String>>(text: String, what: &str) -> Result<T, StoreError> {
 pub struct TaskStore;
 
 impl TaskStore {
+    /// Persist a plan proposal with an exact S2 request reference only when
+    /// the completed Host accounting row proves its root, request, generation,
+    /// and phase. Missing accounting remains explicitly unknown.
+    pub fn insert_plan_installation(
+        tx: &Transaction<'_>,
+        root: &RootTaskId,
+        plan_revision: u64,
+        installed_ms: Option<u64>,
+        attribution: Option<&PlanningRequestAttribution>,
+    ) -> Result<(), StoreError> {
+        let mut status = "unknown";
+        let mut request_id: Option<&str> = None;
+        let mut generation: Option<i64> = None;
+        let mut reason: Option<String> = None;
+        if let Some(attribution) = attribution {
+            if &attribution.root != root {
+                return Err(StoreError::Conflict(
+                    "plan attribution belongs to another Root".into(),
+                ));
+            }
+            let expected_reason = enum_to_str(&attribution.reason);
+            let model_call = tx
+                .query_row(
+                    "SELECT reason, finished_ms, outcome FROM model_calls
+                     WHERE root_id = ?1 AND request_id = ?2 AND generation = ?3",
+                    params![
+                        root.as_str(),
+                        attribution.request.as_str(),
+                        attribution.generation as i64
+                    ],
+                    |row| {
+                        Ok((
+                            row.get::<_, Option<String>>(0)?,
+                            row.get::<_, Option<i64>>(1)?,
+                            row.get::<_, Option<String>>(2)?,
+                        ))
+                    },
+                )
+                .optional()?;
+            if let Some((recorded_reason, finished_ms, outcome)) = model_call {
+                if let Some(recorded_reason) = recorded_reason {
+                    if recorded_reason != expected_reason
+                        || finished_ms.is_none()
+                        || outcome.as_deref() != Some("proposal")
+                    {
+                        return Err(StoreError::Conflict(
+                            "planner accounting does not match the accepted plan request".into(),
+                        ));
+                    }
+                    status = "model_request";
+                    request_id = Some(attribution.request.as_str());
+                    generation = Some(attribution.generation as i64);
+                    reason = Some(expected_reason);
+                }
+            } else {
+                let same_id_other_generation: bool = tx.query_row(
+                    "SELECT EXISTS(SELECT 1 FROM model_calls WHERE root_id = ?1 AND request_id = ?2)",
+                    params![root.as_str(), attribution.request.as_str()],
+                    |row| row.get(0),
+                )?;
+                if same_id_other_generation {
+                    return Err(StoreError::Conflict(
+                        "planner accounting generation does not match the accepted request".into(),
+                    ));
+                }
+            }
+        }
+        let state = if installed_ms.is_some() {
+            "installed"
+        } else {
+            "proposed"
+        };
+        tx.execute(
+            "INSERT INTO plan_installations(
+                root_id, plan_revision, state, attribution_status, request_id, generation, reason, installed_ms
+             ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            params![
+                root.as_str(),
+                plan_revision as i64,
+                state,
+                status,
+                request_id,
+                generation,
+                reason,
+                installed_ms.map(|value| value as i64),
+            ],
+        )?;
+        Ok(())
+    }
+
+    /// Commit the first goal plan with the goal freeze. Existing roots that
+    /// predate this ledger receive an explicit unknown attribution row only
+    /// when they are newly frozen after migration.
+    pub fn install_proposed_plan(
+        tx: &Transaction<'_>,
+        root: &RootTaskId,
+        plan_revision: u64,
+        installed_ms: u64,
+    ) -> Result<(), StoreError> {
+        let changed = tx.execute(
+            "UPDATE plan_installations SET state = 'installed', installed_ms = ?3
+             WHERE root_id = ?1 AND plan_revision = ?2 AND state = 'proposed'",
+            params![root.as_str(), plan_revision as i64, installed_ms as i64],
+        )?;
+        if changed == 1 {
+            return Ok(());
+        }
+        let existing: Option<String> = tx
+            .query_row(
+                "SELECT state FROM plan_installations WHERE root_id = ?1 AND plan_revision = ?2",
+                params![root.as_str(), plan_revision as i64],
+                |row| row.get(0),
+            )
+            .optional()?;
+        if existing.is_some() {
+            return Err(StoreError::Conflict(
+                "plan revision already has a non-proposed installation record".into(),
+            ));
+        }
+        Self::insert_plan_installation(tx, root, plan_revision, Some(installed_ms), None)
+    }
+
     pub fn insert_root(tx: &Transaction<'_>, row: &RootRow) -> Result<(), StoreError> {
         tx.execute(
             "INSERT INTO root_tasks (root_id, seq, user_text, state, state_origin, task_revision,
                 root_epoch, draft_json, goal_json, plan_revision, plan_json, created_ms, frozen_ms,
-                deadline_ms, cancel_requested, cleanup, activation_seq, failure)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)",
+                deadline_ms, cancel_requested, cleanup, activation_seq, failure,
+                allowed_scope_json, allowed_scope_app, frozen_profile_json)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21)",
             params![
                 row.root_id.as_str(),
                 row.seq as i64,
@@ -113,6 +245,9 @@ impl TaskStore {
                 enum_to_str(&row.cleanup),
                 row.activation_seq as i64,
                 row.failure,
+                json(&row.allowed_scope)?,
+                row.allowed_scope_app,
+                json(&row.frozen_profile)?,
             ],
         )?;
         Ok(())
@@ -176,13 +311,17 @@ impl TaskStore {
             cleanup: str_to_enum(&text(15)?)?,
             activation_seq: row.get::<_, i64>(16)? as u64,
             failure: row.get(17)?,
+            allowed_scope: unjson(row.get(18)?)?,
+            allowed_scope_app: row.get(19)?,
+            frozen_profile: unjson(row.get(20)?)?,
         })
     }
 
     const ROOT_COLUMNS: &'static str =
         "root_id, seq, user_text, state, state_origin, task_revision,
         root_epoch, draft_json, goal_json, plan_revision, plan_json, created_ms, frozen_ms,
-        deadline_ms, cancel_requested, cleanup, activation_seq, failure";
+        deadline_ms, cancel_requested, cleanup, activation_seq, failure, allowed_scope_json,
+        allowed_scope_app, frozen_profile_json";
 
     pub fn load_root(conn: &Connection, root_id: &str) -> Result<Option<RootRow>, StoreError> {
         let sql = format!(

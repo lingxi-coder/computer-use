@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const cargo = process.env.CARGO ?? 'cargo';
 
-execFileSync(cargo, ['build', '--quiet', '-p', 'desktop-host', '-p', 'device-macos', '-p', 'source-macos', '--bins'], {
+execFileSync(cargo, ['build', '--quiet', '-p', 'desktop-host', '-p', 'harness-adapter', '-p', 'device-macos', '-p', 'source-macos', '--bins'], {
   cwd: root,
   stdio: 'inherit',
 });

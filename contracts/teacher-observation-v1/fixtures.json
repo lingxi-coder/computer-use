@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "messages": [
+    {
+      "type": "started",
+      "version": 1,
+      "request": {
+        "decision_id": "decision-fixture-1",
+        "lane_id": "teacher",
+        "request_generation": 1,
+        "root_task_id": "root-fixture-1",
+        "task_revision": 7,
+        "plan_revision": 2,
+        "root_epoch": 3,
+        "decision_program": "ui.ensure_value@1",
+        "calibration_revision": "fixture",
+        "state": {
+          "root_task_id": "root-fixture-1",
+          "task_revision": 7,
+          "goal_summary": "set the fixture value",
+          "subgoal": "choose the matching candidate",
+          "snapshot_revision": 11,
+          "objects": [],
+          "candidates": [
+            {
+              "candidate_id": "c-fixture",
+              "skill": "ui.ensure_value",
+              "semantic_target": null,
+              "binding": null,
+              "parameters": {"value": "fixture"},
+              "effect_class": "reversible_edit",
+              "precondition": {"state": "executable"},
+              "description": "set the fixture value"
+            }
+          ],
+          "recent_results": [],
+          "missing_fields": [],
+          "omitted_items": [],
+          "candidate_set_digest": "cs1:fixture"
+        },
+        "questions": [
+          {
+            "id": "q1",
+            "kind": "choice",
+            "prompt": "Choose the fixture candidate",
+            "options": [
+              {"key": "c-fixture", "description": "set the fixture value"}
+            ]
+          }
+        ],
+        "created_ms": 100,
+        "result_deadline_ms": 5000
+      }
+    },
+    {
+      "type": "finished",
+      "version": 1,
+      "scope": {
+        "decision_id": "decision-fixture-1",
+        "request_generation": 1,
+        "root_task_id": "root-fixture-1",
+        "root_epoch": 3,
+        "task_revision": 7,
+        "candidate_set_digest": "cs1:fixture"
+      },
+      "proposal": {
+        "decision_id": "decision-fixture-1",
+        "request_generation": 1,
+        "candidate_set_digest": "cs1:fixture",
+        "backend": "teacher-fixture",
+        "source": "teacher",
+        "model_revision": "fixture-v1",
+        "answers": [
+          {"question_id": "q1", "selected": "c-fixture", "confidence_milli": 950}
+        ],
+        "choice": {"action": "start_skill", "candidate": "c-fixture"},
+        "failure": null,
+        "truncated": false,
+        "queue_ms": 4,
+        "inference_ms": 8
+      }
+    },
+    {
+      "type": "cancelled",
+      "version": 1,
+      "scope": {
+        "decision_id": "decision-fixture-1",
+        "request_generation": 1,
+        "root_task_id": "root-fixture-1",
+        "root_epoch": 3,
+        "task_revision": 7,
+        "candidate_set_digest": "cs1:fixture"
+      },
+      "reason": "cancelled"
+    }
+  ]
+}

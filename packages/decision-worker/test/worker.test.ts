@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import type { Candidate, DecisionProposal, DecisionRequest } from '@computer-user/desktop-api';
+import type { Candidate, DecisionProposal, DecisionRequest } from '@computer-use/desktop-api';
 
 import { DecisionWorker, ScriptedTeacher, type DecisionBackend } from '../src/index.js';
 
@@ -81,6 +81,21 @@ class Manual implements DecisionBackend {
     await new Promise((done) => setImmediate(done));
   }
 }
+
+test('a failing local S1 backend stays an unavailable S1 result and exposes no raw error', async () => {
+  const worker = new DecisionWorker({
+    name: 'laya', source: 's1',
+    async decide() { throw new Error('private model path and payload must stay private'); },
+  });
+  const delivery = await worker.submit(request());
+  assert.equal(delivery.kind, 'proposal');
+  if (delivery.kind !== 'proposal') return;
+  assert.equal(delivery.proposal.source, 's1');
+  assert.equal(delivery.proposal.failure, 'unavailable');
+  assert.equal(delivery.proposal.choice, null);
+  assert.equal(delivery.proposal.backend, 'laya');
+  assert.ok(!JSON.stringify(delivery).includes('private model path'));
+});
 
 test('the scripted teacher picks the candidate its preference names, and is reproducible', async () => {
   const teacher = new ScriptedTeacher({ preferWord: 'Push' });

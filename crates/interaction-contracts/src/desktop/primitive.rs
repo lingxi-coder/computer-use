@@ -38,9 +38,17 @@ pub struct Modifiers {
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum AxActionKind {
     Press,
+    /// Absolute row-selection effect. This requires a dedicated
+    /// TableViewportV1 binding and can never be inferred from AXPress.
+    SetSelectedTrue,
     /// Absolute: repeating it leaves the same value.
     SetValue {
         value: String,
+    },
+    /// Save an already-open owned document only if its exact expected value
+    /// is still present. This is never a generic AX action.
+    SaveOwnedDocument {
+        expected_value: String,
     },
     ShowMenu,
     ScrollToVisible,
@@ -61,6 +69,12 @@ pub enum Primitive {
         y: i32,
         #[serde(default)]
         modifiers: Modifiers,
+    },
+    /// One absolute pointer event with no held buttons. Held/drag motion uses
+    /// PointerMove and remains subject to the separate held-input policy.
+    PointerPosition {
+        x: i32,
+        y: i32,
     },
     /// Atomic key press with modifier flags.
     KeyPress {
@@ -129,6 +143,7 @@ impl Primitive {
         matches!(
             self,
             Self::Click { .. }
+                | Self::PointerPosition { .. }
                 | Self::Scroll { .. }
                 | Self::PointerDown { .. }
                 | Self::PointerUp { .. }
@@ -140,7 +155,10 @@ impl Primitive {
     pub fn needs_hit_test(&self) -> bool {
         matches!(
             self,
-            Self::Click { .. } | Self::Scroll { .. } | Self::AxAction { .. }
+            Self::Click { .. }
+                | Self::PointerPosition { .. }
+                | Self::Scroll { .. }
+                | Self::AxAction { .. }
         )
     }
 
@@ -184,6 +202,11 @@ impl Primitive {
                 }
             }
             Self::ActivateWindow { app } => require_nonempty("primitive.app", app),
+            Self::AxAction {
+                action: AxActionKind::SaveOwnedDocument { expected_value },
+            } if expected_value.len() > 2048 || expected_value.contains('\0') => {
+                Err("owned document save value must be NUL-free and at most 2048 bytes".into())
+            }
             _ => Ok(()),
         }
     }
@@ -263,6 +286,12 @@ mod tests {
         assert!(click.needs_hit_test());
         assert!(click.held_token().is_none());
 
+        let position = Primitive::PointerPosition { x: 1, y: 2 };
+        assert!(
+            !position.is_held_class() && position.is_pointer_class() && position.needs_hit_test()
+        );
+        assert!(position.held_token().is_none());
+        assert!(Primitive::PointerMove { x: 1, y: 2 }.is_held_class());
         let ax = Primitive::AxAction {
             action: AxActionKind::Press,
         };
@@ -314,6 +343,27 @@ mod tests {
             .validate()
             .is_ok()
         );
+    }
+
+    #[test]
+    fn owned_document_save_value_is_bounded_and_nul_free() {
+        let valid = Primitive::AxAction {
+            action: AxActionKind::SaveOwnedDocument {
+                expected_value: String::new(),
+            },
+        };
+        assert!(valid.validate().is_ok());
+        for value in ["x\0y".to_owned(), "x".repeat(2049)] {
+            assert!(
+                Primitive::AxAction {
+                    action: AxActionKind::SaveOwnedDocument {
+                        expected_value: value,
+                    },
+                }
+                .validate()
+                .is_err()
+            );
+        }
     }
 
     #[test]

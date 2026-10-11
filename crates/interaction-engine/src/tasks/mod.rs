@@ -8,5 +8,5 @@ pub mod store;
 
 pub use runtime::{
     ActiveRoot, AdmitFault, ConfirmOutcome, CreateOutcome, DraftError, Pending, PlanInstallError,
-    RecoveryReport, StopDirective, TaskConfig, TaskError, TaskRuntime,
+    QueuedTask, RecoveryReport, StopDirective, TaskConfig, TaskError, TaskRuntime,
 };

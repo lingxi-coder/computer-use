@@ -1,0 +1,240 @@
+[
+  {
+    "bundle_id": "com.lingxi.computer-user.guard-fixture",
+    "name": "integer",
+    "pid": 700,
+    "source": {
+      "hidden": {
+        "state": "known",
+        "value": false
+      },
+      "minimized": {
+        "state": "known",
+        "value": false
+      },
+      "target_context_hash": "tc1:729aef5f8552e5ec8e8a80324b9dd0a35ba66b6d715dea54419b082a8b218ef3",
+      "window": {
+        "origin_window_frame": {
+          "height": 180.0,
+          "width": 360.0,
+          "x": 0.0,
+          "y": 120.0
+        },
+        "origin_window_id": "window-42",
+        "process": {
+          "pid": 700,
+          "start_micros": 20,
+          "start_seconds": 100
+        },
+        "session_epoch": 7,
+        "source_session_id": "source-session",
+        "verified_observed_ms": 1000,
+        "verified_source_sequence": 3
+      }
+    }
+  },
+  {
+    "bundle_id": "com.lingxi.computer-user.guard-fixture",
+    "name": "fractional",
+    "pid": 700,
+    "source": {
+      "hidden": {
+        "state": "known",
+        "value": false
+      },
+      "minimized": {
+        "state": "known",
+        "value": false
+      },
+      "target_context_hash": "tc1:4183d55e752d66c3198d6e534ca8516cc9e41b4d4a08678f0d04e796fdef039a",
+      "window": {
+        "origin_window_frame": {
+          "height": 180.25,
+          "width": 360.75,
+          "x": -13.5,
+          "y": 5.125
+        },
+        "origin_window_id": "window-42",
+        "process": {
+          "pid": 700,
+          "start_micros": 20,
+          "start_seconds": 100
+        },
+        "session_epoch": 7,
+        "source_session_id": "source-session",
+        "verified_observed_ms": 1000,
+        "verified_source_sequence": 3
+      }
+    }
+  },
+  {
+    "bundle_id": "com.lingxi.computer-user.guard-fixture",
+    "name": "negative_zero",
+    "pid": 700,
+    "source": {
+      "hidden": {
+        "state": "known",
+        "value": false
+      },
+      "minimized": {
+        "state": "known",
+        "value": false
+      },
+      "target_context_hash": "tc1:8ebcdf96e8b05a56a66703e0884fec457c5dd30e7a0f492a9a9e1b0ac6baca29",
+      "window": {
+        "origin_window_frame": {
+          "height": 180.0,
+          "width": 360.0,
+          "x": -0.0,
+          "y": 0.0
+        },
+        "origin_window_id": "window-42",
+        "process": {
+          "pid": 700,
+          "start_micros": 20,
+          "start_seconds": 100
+        },
+        "session_epoch": 7,
+        "source_session_id": "source-session",
+        "verified_observed_ms": 1000,
+        "verified_source_sequence": 3
+      }
+    }
+  },
+  {
+    "bundle_id": "com.lingxi.computer-user.guard-fixture",
+    "name": "small_exponent",
+    "pid": 700,
+    "source": {
+      "hidden": {
+        "state": "known",
+        "value": false
+      },
+      "minimized": {
+        "state": "known",
+        "value": false
+      },
+      "target_context_hash": "tc1:ce6f6ef3034c206bef43cc5956e8b29a97e798eb622c63f847dd541021459d02",
+      "window": {
+        "origin_window_frame": {
+          "height": 180.0,
+          "width": 360.0,
+          "x": 1e-6,
+          "y": -1e-6
+        },
+        "origin_window_id": "window-42",
+        "process": {
+          "pid": 700,
+          "start_micros": 20,
+          "start_seconds": 100
+        },
+        "session_epoch": 7,
+        "source_session_id": "source-session",
+        "verified_observed_ms": 1000,
+        "verified_source_sequence": 3
+      }
+    }
+  },
+  {
+    "bundle_id": "com.lingxi.computer-user.guard-fixture",
+    "name": "small_decimal",
+    "pid": 700,
+    "source": {
+      "hidden": {
+        "state": "known",
+        "value": false
+      },
+      "minimized": {
+        "state": "known",
+        "value": false
+      },
+      "target_context_hash": "tc1:cdd5bdc7c1a11646eff5df8237f60f59d72505d82e621bc202dd6af6431784ce",
+      "window": {
+        "origin_window_frame": {
+          "height": 180.0,
+          "width": 360.0,
+          "x": 0.00001,
+          "y": -0.00001
+        },
+        "origin_window_id": "window-42",
+        "process": {
+          "pid": 700,
+          "start_micros": 20,
+          "start_seconds": 100
+        },
+        "session_epoch": 7,
+        "source_session_id": "source-session",
+        "verified_observed_ms": 1000,
+        "verified_source_sequence": 3
+      }
+    }
+  },
+  {
+    "bundle_id": "com.lingxi.computer-user.guard-fixture",
+    "name": "small_size",
+    "pid": 700,
+    "source": {
+      "hidden": {
+        "state": "known",
+        "value": false
+      },
+      "minimized": {
+        "state": "known",
+        "value": false
+      },
+      "target_context_hash": "tc1:5d8a0c908fd2adb6f66955e571b41ddc163b9310a95fbb216941f74c63d96301",
+      "window": {
+        "origin_window_frame": {
+          "height": 1e-10,
+          "width": 1e-10,
+          "x": 0.0,
+          "y": 0.0
+        },
+        "origin_window_id": "window-42",
+        "process": {
+          "pid": 700,
+          "start_micros": 20,
+          "start_seconds": 100
+        },
+        "session_epoch": 7,
+        "source_session_id": "source-session",
+        "verified_observed_ms": 1000,
+        "verified_source_sequence": 3
+      }
+    }
+  },
+  {
+    "bundle_id": "com.lingxi.computer-user.guard-fixture",
+    "name": "large_fraction",
+    "pid": 700,
+    "source": {
+      "hidden": {
+        "state": "known",
+        "value": false
+      },
+      "minimized": {
+        "state": "known",
+        "value": false
+      },
+      "target_context_hash": "tc1:2094d563c84fc1ec01dac69d0b471d78cad6f2bbf069fb486683a4d105c63d1c",
+      "window": {
+        "origin_window_frame": {
+          "height": 768.75,
+          "width": 1024.5,
+          "x": -65535.5,
+          "y": 65535.25
+        },
+        "origin_window_id": "window-42",
+        "process": {
+          "pid": 700,
+          "start_micros": 20,
+          "start_seconds": 100
+        },
+        "session_epoch": 7,
+        "source_session_id": "source-session",
+        "verified_observed_ms": 1000,
+        "verified_source_sequence": 3
+      }
+    }
+  }
+]

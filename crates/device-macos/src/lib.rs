@@ -7,15 +7,16 @@
 //! supervisor or the host closes the submit gate, on its own, without asking
 //! anyone.
 //!
-//! The only backend here is simulated: inputs go into a world log that the
-//! source process replays. A real macOS backend replaces `SimWorldBackend`
-//! in M2 and is where the platform code, and the unsafe code it needs, will
-//! live.
+//! Simulated sessions send inputs to a world log. Native observation sessions
+//! explicitly refuse input; foreground fixed-target and separately consented
+//! background AXPress sessions use distinct guarded backends.
 #![forbid(unsafe_code)]
 
 pub mod backend;
 pub mod config;
+pub mod guard;
+pub mod owned_document_bootstrap;
 pub mod shell;
 
-pub use backend::SimWorldBackend;
-pub use config::DeviceConfig;
+pub use backend::{DeviceBackend, SimWorldBackend};
+pub use config::{DeviceBackendMode, DeviceConfig};

@@ -1,4 +1,4 @@
-//! desktop v1: the wire protocol between the desktop processes.
+//! desktop v2: the wire protocol between the desktop processes.
 //!
 //! It lives in its own namespace and version. The I0 protocol in [`crate::i0`]
 //! stays frozen; the primitives here are a superset of I0's inputs so the
@@ -10,12 +10,17 @@
 //! Everything above the device uses the validated newtype identifiers from
 //! [`ids`].
 
-pub const PROTOCOL_VERSION: u16 = 1;
+pub const PROTOCOL_VERSION: u16 = 2;
 pub const NAMESPACE: &str = "desktop";
 
 pub mod binding;
+pub mod browser;
+pub mod browser_control;
+pub mod browser_execution;
+pub mod computer;
 pub mod decision;
 pub mod device;
+pub mod domain;
 pub mod effect;
 pub mod error;
 pub mod frame;
@@ -23,12 +28,19 @@ pub mod handshake;
 pub mod ids;
 pub mod message;
 pub mod operator;
+pub mod owned_document;
+pub mod owned_input;
+pub mod owned_registration;
 pub mod planning;
 pub mod primitive;
+pub mod row;
 pub mod samples;
 pub mod source;
+pub mod table_scope;
 pub mod task;
 pub mod verification;
+
+pub use owned_document::OwnedDocumentReceiverEvidence;
 
 /// Reject empty, whitespace-only and control-character text, like I0 does.
 pub(crate) fn require_nonempty(field: &str, value: &str) -> Result<(), String> {

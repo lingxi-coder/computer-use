@@ -178,7 +178,10 @@ fn run() -> Result<Value, String> {
 
 fn main() {
     match run() {
-        Ok(report) => {
+        Ok(mut report) => {
+            // SDK feature unification may enable serde_json/preserve_order.
+            // The frozen I0 report always uses lexicographic object keys.
+            report.sort_all_objects();
             println!(
                 "{}",
                 serde_json::to_string_pretty(&report).expect("serializable report")

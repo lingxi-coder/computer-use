@@ -1,8 +1,11 @@
 //! Envelopes on a stream: building and sending them, and reading frames back.
 
 use std::io::{self, Read, Write};
-use std::sync::mpsc::Sender;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::mpsc::{self, Receiver, Sender, SyncSender, TrySendError};
 use std::thread::JoinHandle;
+use std::time::Duration;
 
 use interaction_contracts::desktop::PROTOCOL_VERSION;
 use interaction_contracts::desktop::frame::{FrameDecoder, FrameError, encode_frame};
@@ -71,6 +74,117 @@ impl<W: Write> Link<W> {
 
     pub fn get_ref(&self) -> &W {
         &self.writer
+    }
+
+    pub fn get_mut(&mut self) -> &mut W {
+        &mut self.writer
+    }
+
+    /// Move blocking writes off a control loop without changing message ids.
+    pub fn queued(self, name: &str, capacity: usize) -> Link<QueuedWriter>
+    where
+        W: Send + 'static,
+    {
+        Link {
+            writer: QueuedWriter::new(name, self.writer, capacity),
+            producer: self.producer,
+            sequence: self.sequence,
+            clock: self.clock,
+        }
+    }
+}
+
+/// A bounded output queue. The caller never waits for the peer to read: a full
+/// queue or a failed worker makes all further writes fail, so a safety loop can
+/// close its gate. Each admission is one complete frame; nothing is silently
+/// dropped. The owner must check `failed()` even when it has nothing to send.
+pub struct QueuedWriter {
+    sender: Option<SyncSender<Vec<u8>>>,
+    failed: Arc<AtomicBool>,
+    finished: Receiver<()>,
+}
+
+impl QueuedWriter {
+    pub fn new<W: Write + Send + 'static>(name: &str, mut writer: W, capacity: usize) -> Self {
+        assert!(capacity > 0, "an output queue must have space for a frame");
+        let (sender, receiver) = mpsc::sync_channel::<Vec<u8>>(capacity);
+        let failed = Arc::new(AtomicBool::new(false));
+        let worker_failed = failed.clone();
+        let (done, finished) = mpsc::channel();
+        std::thread::Builder::new()
+            .name(name.to_string())
+            .spawn(move || {
+                while let Ok(frame) = receiver.recv() {
+                    if worker_failed.load(Ordering::Acquire) {
+                        break;
+                    }
+                    if writer
+                        .write_all(&frame)
+                        .and_then(|()| writer.flush())
+                        .is_err()
+                    {
+                        worker_failed.store(true, Ordering::Release);
+                        break;
+                    }
+                }
+                let _ = done.send(());
+            })
+            .expect("an output worker can be spawned");
+        Self {
+            sender: Some(sender),
+            failed,
+            finished,
+        }
+    }
+
+    pub fn failed(&self) -> bool {
+        self.failed.load(Ordering::Acquire)
+    }
+
+    /// Let queued final acknowledgements drain on normal shutdown, with a hard
+    /// bound when the peer has stopped reading. Never call from a running loop.
+    pub fn finish(&mut self, timeout: Duration) -> bool {
+        self.sender = None;
+        self.finished.recv_timeout(timeout).is_ok()
+    }
+}
+
+impl Write for QueuedWriter {
+    fn write(&mut self, frame: &[u8]) -> io::Result<usize> {
+        if self.failed() {
+            return Err(io::Error::new(
+                io::ErrorKind::BrokenPipe,
+                "output worker failed",
+            ));
+        }
+        let Some(sender) = self.sender.as_ref() else {
+            return Err(io::Error::new(
+                io::ErrorKind::BrokenPipe,
+                "output queue closed",
+            ));
+        };
+        match sender.try_send(frame.to_vec()) {
+            Ok(()) => Ok(frame.len()),
+            Err(error) => {
+                self.failed.store(true, Ordering::Release);
+                let kind = match error {
+                    TrySendError::Full(_) => io::ErrorKind::WouldBlock,
+                    TrySendError::Disconnected(_) => io::ErrorKind::BrokenPipe,
+                };
+                Err(io::Error::new(kind, "output queue is full or disconnected"))
+            }
+        }
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        if self.failed() {
+            Err(io::Error::new(
+                io::ErrorKind::BrokenPipe,
+                "output worker failed",
+            ))
+        } else {
+            Ok(())
+        }
     }
 }
 
@@ -247,5 +361,88 @@ mod tests {
         assert!(matches!(rx.recv().unwrap(), Inbound::Frame(_)));
         assert!(matches!(rx.recv().unwrap(), Inbound::Closed));
         assert!(rx.recv().is_err(), "the thread ended");
+    }
+
+    struct BlockedWriter {
+        started: Sender<()>,
+        release: Receiver<()>,
+    }
+
+    impl Write for BlockedWriter {
+        fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+            self.started.send(()).unwrap();
+            self.release.recv().unwrap();
+            Ok(bytes.len())
+        }
+
+        fn flush(&mut self) -> io::Result<()> {
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn a_blocked_peer_cannot_block_admission_and_a_full_queue_fails_closed() {
+        let (started, began) = mpsc::channel();
+        let (release, released) = mpsc::channel();
+        let mut writer = QueuedWriter::new(
+            "blocked-output-test",
+            BlockedWriter {
+                started,
+                release: released,
+            },
+            1,
+        );
+        writer.write_all(b"first").unwrap();
+        began.recv_timeout(Duration::from_secs(1)).unwrap();
+        writer.write_all(b"second").unwrap();
+        assert_eq!(
+            writer.write_all(b"third").unwrap_err().kind(),
+            io::ErrorKind::WouldBlock
+        );
+        assert!(writer.failed());
+        assert_eq!(
+            writer.write_all(b"fourth").unwrap_err().kind(),
+            io::ErrorKind::BrokenPipe
+        );
+        release.send(()).unwrap();
+        assert!(writer.finish(Duration::from_secs(1)));
+    }
+
+    #[test]
+    fn queued_shutdown_has_a_bound_when_the_peer_never_reads() {
+        let (started, began) = mpsc::channel();
+        let (release, released) = mpsc::channel();
+        let mut writer = QueuedWriter::new(
+            "blocked-shutdown-test",
+            BlockedWriter {
+                started,
+                release: released,
+            },
+            1,
+        );
+        writer.write_all(b"first").unwrap();
+        began.recv_timeout(Duration::from_secs(1)).unwrap();
+        assert!(!writer.finish(Duration::from_millis(20)));
+        release.send(()).unwrap();
+        assert!(writer.finish(Duration::from_secs(1)));
+    }
+
+    #[test]
+    fn a_background_write_failure_is_visible_without_sending_another_frame() {
+        struct FailedWriter;
+        impl Write for FailedWriter {
+            fn write(&mut self, _bytes: &[u8]) -> io::Result<usize> {
+                Err(io::Error::new(io::ErrorKind::BrokenPipe, "peer left"))
+            }
+
+            fn flush(&mut self) -> io::Result<()> {
+                Ok(())
+            }
+        }
+        let mut writer = QueuedWriter::new("failed-output-test", FailedWriter, 1);
+        // Admission succeeds; the separate writer discovers the peer loss.
+        let _ = writer.write_all(b"first");
+        assert!(writer.finish(Duration::from_secs(1)));
+        assert!(writer.failed());
     }
 }

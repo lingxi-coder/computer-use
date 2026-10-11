@@ -1,0 +1,49 @@
+{
+  "frame_id": "frame-event-1",
+  "session_epoch": 7,
+  "surface": {
+    "id": "main",
+    "epoch": 1
+  },
+  "clock_domain": "macos/7/wall",
+  "source_sequence": 1,
+  "source_ms": 10,
+  "status": "complete",
+  "geometry_revision": 1,
+  "width_px": 320,
+  "height_px": 200,
+  "scale_factor": 2.0,
+  "byte_length": 739,
+  "checksum": "311dadc3b18202a9173effbff9888c7879ec64552450e14bc56e52b06d1ff818",
+  "provenance": {
+    "kind": "stream",
+    "stream": {
+      "stream_id": "stream-a",
+      "image_frame_id": "image-a-1",
+      "display_time_ticks": 1000000000,
+      "display_time_ns": 1000000000,
+      "received_uptime_ns": 1020000000,
+      "received_unix_ms": 1000030,
+      "callback_ms": 30,
+      "source_clock": "mach_absolute",
+      "window_id": "window-1",
+      "pid": 42,
+      "window_frame": {
+        "x": 20.0,
+        "y": 30.0,
+        "width": 640.0,
+        "height": 400.0
+      },
+      "content_rect": {
+        "x": 0.0,
+        "y": 0.0,
+        "width": 160.0,
+        "height": 100.0
+      },
+      "content_scale": 0.25,
+      "dirty_rects": [],
+      "dropped_frames": 0,
+      "capture_interval_ms": 1000
+    }
+  }
+}

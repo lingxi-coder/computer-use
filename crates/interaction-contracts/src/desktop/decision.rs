@@ -26,6 +26,8 @@ pub enum DecisionSource {
     Teacher,
     /// A choice obtained by escalating to the planner.
     Llm,
+    /// A choice proposed by the independent computer-use model lane.
+    Computer,
     Human,
 }
 
@@ -230,6 +232,79 @@ impl DecisionRequest {
         }
         Ok(())
     }
+
+    /// Validate a backend's answers against the exact questions that were
+    /// issued. Choice options are finite values, but their keys may describe
+    /// ordinary business choices rather than candidate IDs.
+    pub fn validate_answers(&self, answers: &[Answer]) -> Result<(), String> {
+        self.validate()?;
+        if answers.len() != self.questions.len() {
+            return Err("answers must cover every decision question exactly once".into());
+        }
+
+        let mut questions = BTreeMap::new();
+        for question in &self.questions {
+            if question.id.is_empty() || questions.insert(question.id.as_str(), question).is_some()
+            {
+                return Err("decision question IDs must be nonempty and unique".into());
+            }
+        }
+
+        let mut answered = std::collections::BTreeSet::new();
+        for answer in answers {
+            let Some(question) = questions.get(answer.question_id.as_str()) else {
+                return Err("answer references an unknown decision question".into());
+            };
+            if !answered.insert(answer.question_id.as_str()) {
+                return Err("a decision question has more than one answer".into());
+            }
+            if answer
+                .confidence_milli
+                .is_some_and(|confidence| confidence > 1000)
+            {
+                return Err("answer confidence must be between zero and one thousand".into());
+            }
+
+            if let Some(selected) = answer.selected.as_deref() {
+                if selected.is_empty()
+                    || selected.len() > 256
+                    || selected.chars().any(char::is_control)
+                {
+                    return Err(
+                        "selected answer is empty, unbounded, or contains control characters"
+                            .into(),
+                    );
+                }
+                if !question.options.is_empty()
+                    && !question.options.iter().any(|option| option.key == selected)
+                {
+                    return Err("selected answer is not one of the supplied options".into());
+                }
+            }
+
+            match question.kind {
+                QuestionKind::Choice
+                    if question.options.is_empty() && answer.selected.is_some() =>
+                {
+                    return Err("a choice without options cannot have a selected answer".into());
+                }
+                QuestionKind::Choice
+                    if !question.options.is_empty() && answer.selected.is_none() =>
+                {
+                    return Err("a choice with options requires one selected option".into());
+                }
+                QuestionKind::Noul if answer.selected.is_some() => {
+                    return Err("a noul question cannot have a selected option".into());
+                }
+                QuestionKind::Choice | QuestionKind::Score | QuestionKind::Noul => {}
+            }
+        }
+
+        if answered.len() != questions.len() {
+            return Err("answers are missing a decision question".into());
+        }
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -299,6 +374,128 @@ mod tests {
     }
 
     #[test]
+    fn empty_choice_options_allow_no_selection_but_reject_arbitrary_text() {
+        let request = request();
+        let no_selection = Answer {
+            question_id: "q1".into(),
+            selected: None,
+            confidence_milli: None,
+        };
+        assert!(request.validate_answers(&[no_selection]).is_ok());
+
+        let arbitrary = Answer {
+            question_id: "q1".into(),
+            selected: Some("invented candidate".into()),
+            confidence_milli: None,
+        };
+        assert!(request.validate_answers(&[arbitrary]).is_err());
+    }
+
+    #[test]
+    fn answers_must_match_question_ids_once_and_without_gaps() {
+        let request = request();
+        let answer = Answer {
+            question_id: "q1".into(),
+            selected: None,
+            confidence_milli: None,
+        };
+        assert!(request.validate_answers(&[]).is_err());
+        assert!(
+            request
+                .validate_answers(&[Answer {
+                    question_id: "unknown".into(),
+                    ..answer.clone()
+                }])
+                .is_err()
+        );
+
+        let mut two_questions = request;
+        two_questions.questions.push(Question {
+            id: "q2".into(),
+            kind: QuestionKind::Noul,
+            prompt: "Does the page say a save is required?".into(),
+            options: vec![],
+        });
+        assert!(
+            two_questions
+                .validate_answers(&[answer.clone(), answer])
+                .is_err()
+        );
+    }
+
+    #[test]
+    fn finite_options_are_generic_and_validate_confidence_and_selected_values() {
+        let mut request = request();
+        request.questions[0].options = vec![
+            QuestionOption {
+                key: "weekly".into(),
+                description: "Weekly schedule".into(),
+            },
+            QuestionOption {
+                key: "monthly".into(),
+                description: "Monthly schedule".into(),
+            },
+        ];
+        let ordinary_choice = Answer {
+            question_id: "q1".into(),
+            selected: Some("weekly".into()),
+            confidence_milli: Some(1000),
+        };
+        assert!(
+            request
+                .validate_answers(std::slice::from_ref(&ordinary_choice))
+                .is_ok()
+        );
+
+        let mut invalid = ordinary_choice.clone();
+        invalid.selected = Some("c-1".into());
+        assert!(request.validate_answers(&[invalid]).is_err());
+        let mut invalid = ordinary_choice.clone();
+        invalid.confidence_milli = Some(1001);
+        assert!(request.validate_answers(&[invalid]).is_err());
+        let mut invalid = ordinary_choice.clone();
+        invalid.selected = Some("".into());
+        assert!(request.validate_answers(&[invalid]).is_err());
+        let mut invalid = ordinary_choice;
+        invalid.selected = Some("bad\u{0007}value".into());
+        assert!(request.validate_answers(&[invalid]).is_err());
+
+        let mut score_request = self::request();
+        score_request.questions[0].kind = QuestionKind::Score;
+        let score = Answer {
+            question_id: "q1".into(),
+            selected: Some("0.73".into()),
+            confidence_milli: None,
+        };
+        assert!(score_request.validate_answers(&[score]).is_ok());
+
+        let oversized = Answer {
+            question_id: "q1".into(),
+            selected: Some("x".repeat(257)),
+            confidence_milli: None,
+        };
+        assert!(score_request.validate_answers(&[oversized]).is_err());
+    }
+
+    #[test]
+    fn noul_answers_do_not_select_options() {
+        let mut request = request();
+        request.questions[0].kind = QuestionKind::Noul;
+        let no_answer = Answer {
+            question_id: "q1".into(),
+            selected: None,
+            confidence_milli: None,
+        };
+        assert!(request.validate_answers(&[no_answer]).is_ok());
+        let selected = Answer {
+            question_id: "q1".into(),
+            selected: Some("c-1".into()),
+            confidence_milli: None,
+        };
+        assert!(request.validate_answers(&[selected]).is_err());
+    }
+
+    #[test]
     fn sources_serialise_as_the_attribution_names() {
         for (source, name) in [
             (DecisionSource::Plan, "plan"),
@@ -306,6 +503,7 @@ mod tests {
             (DecisionSource::S1, "s1"),
             (DecisionSource::Teacher, "teacher"),
             (DecisionSource::Llm, "llm"),
+            (DecisionSource::Computer, "computer"),
             (DecisionSource::Human, "human"),
         ] {
             assert_eq!(

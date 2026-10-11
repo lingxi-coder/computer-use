@@ -1,24 +1,27 @@
 {
-  "name": "@computer-user/desktop",
+  "name": "@computer-use/desktop",
+  "productName": "Computer Use",
   "version": "0.1.0",
   "private": true,
-  "description": "Computer User Operator: the Electron shell that supervises the native processes and gives the person a way to start, watch and stop a task",
+  "description": "Computer Use Operator: the Electron shell that supervises the native processes and gives the person a way to start, watch and stop a task",
   "license": "MIT",
   "type": "module",
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
+    "package:mac:local": "node ../../scripts/package-macos-local-app.mjs",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
     "test": "node --import tsx --test --test-concurrency=1 test/*.test.ts"
   },
   "dependencies": {
-    "@computer-user/decision-worker": "*",
-    "@computer-user/desktop-api": "*"
+    "@computer-use/decision-worker": "*",
+    "@computer-use/desktop-api": "*"
   },
   "devDependencies": {
+    "@electron/packager": "20.3.0",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^5.2.0",

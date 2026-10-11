@@ -1,0 +1,21 @@
+{
+  "source_commit": "2e4d9c87e8b1621deb344eac7de5c7258f32f849",
+  "typescript_version": "5.9.3",
+  "compiler_options": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "strict": true,
+    "noUncheckedIndexedAccess": false,
+    "declaration": true
+  },
+  "source_sha256": {
+    "src/common.ts": "1bcc5b3cf077e8ac016ce526fcfcfec15adf3406aa2b6a4238c69a74601b0287",
+    "src/tokenizer.ts": "94c5e2b14536c762f8ecd0247343b19b6195c61122d395cf4f1f380459574f1f"
+  },
+  "runtime_sha256": {
+    "runtime/common.d.ts": "1c1cc9f1d8a5258f688a07feaf51a1761c53815bf9f42a147111a362ee3dd5ea",
+    "runtime/common.js": "b9f5f9d97e8da92a4bd9462a59f03296ef9b9e0680c3fc1e5ac7bf0f1c21f0fc",
+    "runtime/tokenizer.d.ts": "8a5095f56c70f35716a54382584e4602ea366af54435613fad46e4ec35ecb94d",
+    "runtime/tokenizer.js": "38244b897ee4d9e0411a6934ce7a2f474ea86794c28b4ba67ee72bb15f630615"
+  }
+}

@@ -1,13 +1,15 @@
+import { demoModels, demoProviders } from './demoProviderFixture.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import type { StopAck, StopSource } from '@computer-user/desktop-api';
-import { DecisionWorker, ScriptedTeacher } from '@computer-user/decision-worker';
+import type { StopAck, StopSource } from '@computer-use/desktop-api';
+import { DecisionWorker, ScriptedTeacher } from '@computer-use/decision-worker';
 
 import { DecisionRelay } from '../src/main/decisionRelay.js';
 import { HostBridge } from '../src/main/hostBridge.js';
 import { Supervisor } from '../src/main/supervisor.js';
 import { DEFAULT_ACCELERATOR, StopBridge, type HotkeyRegistry } from '../src/main/stopBridge.js';
+import { toViewModel } from '../src/renderer/viewModel.js';
 import { binaries, collectLogs, TEXT, TEXT_AMBIGUOUS, until, worldInputs } from './helpers.js';
 
 class FakeHotkeys implements HotkeyRegistry {
@@ -37,7 +39,9 @@ async function confirmedButNotRunning() {
   const hotkeys = new FakeHotkeys();
   const stop = new StopBridge(supervisor, hotkeys, { confirmTimeoutMs: 5_000 });
   assert.equal(stop.start(), true);
-  const bridge = new HostBridge(supervisor, stop);
+  if (supervisor.projection) stop.observeProjection(supervisor.projection);
+  supervisor.on('projection', (projection) => stop.observeProjection(projection));
+  const bridge = new HostBridge(supervisor, stop, undefined, undefined, demoModels, undefined, demoProviders);
   bridge.createTask(TEXT);
   await until(() => supervisor.projection?.pending_confirmation != null, 'the goal to be ready', logs);
   bridge.confirm(supervisor.projection!.pending_confirmation!.confirmation_id, true);
@@ -111,7 +115,7 @@ test('a stop while a decision is pending isolates the late answer, and no input 
   stop.start();
   try {
     const requested = new Promise<void>((done) => supervisor.once('decisionRequest', () => done()));
-    const bridge = new HostBridge(supervisor, stop);
+    const bridge = new HostBridge(supervisor, stop, undefined, undefined, demoModels, undefined, demoProviders);
     bridge.createTask(TEXT_AMBIGUOUS);
     await until(() => supervisor.projection?.pending_confirmation != null, 'the goal', logs);
     bridge.confirm(supervisor.projection!.pending_confirmation!.confirmation_id, true);
@@ -128,5 +132,27 @@ test('a stop while a decision is pending isolates the late answer, and no input 
   } finally {
     stop.dispose();
     await supervisor.shutdown();
+  }
+});
+
+test('a new task producing inputs does not inherit the previous task’s stopped banner', async () => {
+  const session = await confirmedButNotRunning();
+  try {
+    session.stop.press('operator_button');
+    await until(() => session.supervisor.projection?.root?.state === 'cancelled', 'the first task to stop', session.logs);
+    await until(() => session.stop.status === 'confirmed', 'the direct acknowledgement', session.logs);
+    const oldRoot = session.supervisor.projection?.root?.root_task_id;
+    session.bridge.createTask(TEXT);
+    await until(() => session.supervisor.projection?.pending_confirmation != null, 'the new goal', session.logs);
+    assert.notEqual(session.supervisor.projection?.root?.root_task_id, oldRoot);
+    session.bridge.confirm(session.supervisor.projection!.pending_confirmation!.confirmation_id, true);
+    session.bridge.setMode('execute');
+    await until(() => worldInputs(session.supervisor).length > 0, 'new task input', session.logs);
+    assert.equal(session.stop.status, 'idle');
+    assert.equal(session.supervisor.projection?.stop_status, 'not_stopped');
+    assert.equal(toViewModel(session.supervisor.projection, session.stop.status).stop.level, 'none');
+  } finally {
+    session.stop.dispose();
+    await session.supervisor.shutdown();
   }
 });

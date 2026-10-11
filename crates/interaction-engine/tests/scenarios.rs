@@ -8,7 +8,7 @@ mod common;
 use common::world::*;
 use interaction_contracts::desktop::device::{StopDisposition, StopScope};
 use interaction_contracts::desktop::operator::StopStatus;
-use interaction_contracts::desktop::primitive::{AxActionKind, Primitive};
+use interaction_contracts::desktop::primitive::{AxActionKind, Modifiers, MouseButton, Primitive};
 use interaction_contracts::desktop::task::RootState;
 use interaction_contracts::desktop::verification::{Causality, EffectStatus};
 use interaction_engine::verification::VerificationStore;
@@ -27,6 +27,15 @@ fn set_value(on: &str) -> Primitive {
 fn press() -> Primitive {
     Primitive::AxAction {
         action: AxActionKind::Press,
+    }
+}
+
+fn click_at(x: i32, y: i32) -> Primitive {
+    Primitive::Click {
+        button: MouseButton::Left,
+        x,
+        y,
+        modifiers: Modifiers::default(),
     }
 }
 
@@ -55,7 +64,7 @@ fn a_notification_task_completes_and_only_the_named_switch_changes() {
         .collect();
     assert_eq!(
         inputs,
-        vec![set_value("off"), press(), press()],
+        vec![set_value("off"), click_at(70, 52), click_at(70, 84)],
         "{}",
         world.report()
     );
@@ -423,7 +432,7 @@ fn a_backend_that_picks_what_was_not_offered_as_executable_is_ignored() {
         world
             .engine
             .timeline()
-            .any(|e| e.text.contains("not executable")),
+            .any(|e| e.text.contains("not one of the supplied options")),
         "{}",
         world.report()
     );
@@ -450,6 +459,7 @@ fn a_backend_that_picks_what_was_not_offered_as_executable_is_ignored() {
 #[test]
 fn a_frame_from_before_the_input_neither_confirms_nor_contradicts_it() {
     let mut world = World::new();
+    world.run_for(10);
     // A frame captured before anything happened: the switch is still on.
     let stale = world.app.borrow().snapshot(&sim_world::app::SnapshotMeta {
         snapshot_id: "stale".into(),
@@ -460,9 +470,14 @@ fn a_frame_from_before_the_input_neither_confirms_nor_contradicts_it() {
         },
         clock_domain: "sim/1/monotonic".into(),
         source_sequence: 0,
-        observed_ms: 10,
+        observed_ms: world.now,
     });
+    world.run_for(10);
     world.start(TEXT);
+    assert!(
+        stale.observed_ms < world.applied()[0].at_ms,
+        "the stale frame really predates the synchronous input"
+    );
     assert_eq!(
         world.switch("Push", "Daily picks"),
         Some(false),
@@ -515,7 +530,10 @@ fn a_frame_from_before_the_input_neither_confirms_nor_contradicts_it() {
         .iter()
         .map(|i| i.primitive.clone())
         .collect();
-    assert_eq!(inputs, vec![set_value("off"), press(), press()]);
+    assert_eq!(
+        inputs,
+        vec![set_value("off"), click_at(70, 52), click_at(70, 84)]
+    );
 }
 
 // ---- A backend that is not there -----------------------------------------------------------------
@@ -674,7 +692,7 @@ fn a_person_touching_the_keyboard_pauses_the_task_and_only_an_explicit_resume_co
         .collect();
     assert_eq!(
         inputs,
-        vec![set_value("off"), press(), press()],
+        vec![set_value("off"), click_at(70, 52), click_at(70, 84)],
         "{}",
         world.report()
     );
@@ -782,7 +800,7 @@ fn a_restart_between_the_input_and_its_receipt_does_not_replay_the_input() {
         .collect();
     assert_eq!(
         inputs,
-        vec![set_value("off"), press(), press()],
+        vec![set_value("off"), click_at(70, 52), click_at(70, 84)],
         "the switch was set once, before the restart, and never again: {}",
         world.report()
     );

@@ -21,13 +21,13 @@ function build(): Ajv2020 {
   // Strict: an unknown keyword in the published schema is a bug, not something to skip.
   const ajv = new Ajv2020({ strict: true, allErrors: true });
   for (const format of collectFormats(envelopeSchema)) ajv.addFormat(format, true);
-  ajv.addSchema(envelopeSchema, 'desktop-v1');
+  ajv.addSchema(envelopeSchema, 'desktop-v2');
   return ajv;
 }
 
 const ajv = build();
-const validateEnvelopeSchema = ajv.getSchema('desktop-v1') as ValidateFunction;
-const validateOperatorCommandSchema = ajv.getSchema('desktop-v1#/$defs/OperatorCommand') as ValidateFunction;
+const validateEnvelopeSchema = ajv.getSchema('desktop-v2') as ValidateFunction;
+const validateOperatorCommandSchema = ajv.getSchema('desktop-v2#/$defs/OperatorCommand') as ValidateFunction;
 
 export type Validation<T> = { ok: true; value: T } | { ok: false; errors: string[] };
 
@@ -36,9 +36,9 @@ function errorsOf(validate: ValidateFunction): string[] {
 }
 
 /**
- * Whether a value is a desktop v1 envelope by the published schema. This is the
- * structural check; the Rust side also applies semantic rules (for example a
- * latest start that overflows) and is the authority on those.
+ * Whether a value is a desktop v2 envelope by the published schema. This is
+ * the structural check; Rust and the browser-specific runtime validators also
+ * apply semantic rules that JSON Schema cannot express.
  */
 export function validateEnvelope(value: unknown): Validation<Envelope> {
   return validateEnvelopeSchema(value)
@@ -48,7 +48,7 @@ export function validateEnvelope(value: unknown): Validation<Envelope> {
 
 export function assertEnvelope(value: unknown): Envelope {
   const result = validateEnvelope(value);
-  if (!result.ok) throw new Error(`not a desktop v1 envelope: ${result.errors.join('; ')}`);
+  if (!result.ok) throw new Error(`not a desktop v2 envelope: ${result.errors.join('; ')}`);
   return result.value;
 }
 

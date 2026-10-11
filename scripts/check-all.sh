@@ -16,6 +16,12 @@ if [ ! -d node_modules ]; then
   exit 1
 fi
 
+step "MVP business denominators and quality aggregation"
+node --test scripts/mvp/business-results.test.mjs
+
+step "pinned model dependency source identities"
+bash scripts/check-model-source.sh
+
 step "rust: format"
 cargo fmt --all -- --check
 
@@ -36,5 +42,16 @@ npm test
 
 step "typescript: production build"
 npm run build
+
+if [ "$(uname -s)" = Darwin ]; then
+  step "macOS source: Swift 6 build and generated-image Vision checks"
+  bash scripts/check-macos-source.sh
+  step "macOS device: guard/atomic-submit Swift 6 build and safety checks"
+  bash scripts/check-macos-device.sh
+  step "macOS device: mocked blocked-submission and Stop isolation checks"
+  bash scripts/check-macos-stop-gate.sh
+  step "macOS Keychain: owned temporary test namespace roundtrip"
+  bash scripts/check-macos-keychain.sh
+fi
 
 printf '\nall checks passed\n'

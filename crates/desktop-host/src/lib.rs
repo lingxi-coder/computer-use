@@ -9,7 +9,23 @@
 #![forbid(unsafe_code)]
 
 pub mod bridge;
+mod browser_reference;
+pub mod computer_image;
+mod computer_session;
 pub mod config;
+pub mod model_bootstrap;
+mod native_reference;
+pub mod owned_document_bootstrap;
+mod owned_reference;
+mod owned_revisit_control;
 pub mod shell;
+mod source_capture;
+mod source_refresh;
+pub mod teacher_observation;
 
 pub use config::HostConfig;
+
+#[doc(hidden)]
+pub fn open_owned_revisit_control_fd3() -> Result<std::os::unix::net::UnixStream, String> {
+    owned_revisit_control::open_inherited_fd3()
+}

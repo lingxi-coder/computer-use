@@ -25,6 +25,7 @@ fn request(generation: u64, reason: PlanningReason) -> PlanningRequest {
         reason,
         context: PlanningContext {
             user_text: TEXT.into(),
+            allowed_scope: None,
             unknown_items: vec![],
             allowed_skills: vec!["ui.ensure_value".into()],
             recent_failures: vec![],

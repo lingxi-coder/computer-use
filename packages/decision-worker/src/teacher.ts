@@ -1,4 +1,4 @@
-import type { Candidate, DecisionProposal, DecisionRequest } from '@computer-user/desktop-api';
+import type { Candidate, DecisionProposal, DecisionRequest } from '@computer-use/desktop-api';
 
 import { unavailable, type DecisionBackend } from './worker.js';
 

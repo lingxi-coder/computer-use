@@ -1,4 +1,4 @@
-import type { DecisionCancel, DecisionProposal, DecisionRequest } from '@computer-user/desktop-api';
+import type { DecisionCancel, DecisionProposal, DecisionRequest } from '@computer-use/desktop-api';
 
 /**
  * Whatever makes the choice: a scripted stand-in here, a local model or a cloud
@@ -8,6 +8,7 @@ import type { DecisionCancel, DecisionProposal, DecisionRequest } from '@compute
  */
 export interface DecisionBackend {
   readonly name: string;
+  readonly source?: DecisionProposal['source'];
   decide(request: DecisionRequest, signal: AbortSignal): Promise<DecisionProposal>;
 }
 
@@ -108,7 +109,7 @@ export class DecisionWorker {
         proposal = await this.backend.decide(request, entry.controller.signal);
       } catch {
         // The backend could not answer. That is an answer the host understands.
-        proposal = unavailable(request, this.backend.name);
+        proposal = unavailable(request, this.backend.name, this.backend.source ?? 'teacher');
       }
       const dropped = (reason: DropReason): Delivery => ({ kind: 'dropped', reason, decisionId: id, generation });
       if (entry.ended) return dropped(entry.ended);
@@ -129,13 +130,13 @@ export class DecisionWorker {
 }
 
 /** "I could not answer", in the terms the host waits on. */
-export function unavailable(request: DecisionRequest, backend: string): DecisionProposal {
+export function unavailable(request: DecisionRequest, backend: string, source: DecisionProposal['source'] = 'teacher'): DecisionProposal {
   return {
     decision_id: request.decision_id,
     request_generation: request.request_generation,
     candidate_set_digest: request.state.candidate_set_digest,
     backend,
-    source: 'teacher',
+    source,
     model_revision: 'none',
     answers: [],
     choice: null,

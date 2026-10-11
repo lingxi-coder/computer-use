@@ -13,10 +13,25 @@ interaction-contracts.workspace = true
 schemars.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+llm-runtime.workspace = true
+lingxi-llm-client.workspace = true
+tokio.workspace = true
+jsonschema.workspace = true
+url.workspace = true
+zeroize.workspace = true
+desktop-ipc = { path = "../desktop-ipc" }
+async-trait = "0.1"
+futures = "0.3"
+base64 = "0.22"
 
 [dev-dependencies]
+bytes = "1"
 interaction-engine = { path = "../interaction-engine" }
 sim-world.workspace = true
 
 [lints]
 workspace = true
+
+[[bin]]
+name = "cu-auth"
+path = "src/bin/cu_auth.rs"

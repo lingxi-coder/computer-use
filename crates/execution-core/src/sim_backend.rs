@@ -3,16 +3,17 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use interaction_contracts::desktop::binding::BindingProof;
 use interaction_contracts::desktop::device::{SimFault, SimHitTest, SimOp};
 use interaction_contracts::desktop::primitive::Primitive;
 
 use crate::backend::{
-    HeldState, HitTestOutcome, HitTestRequest, InputBackend, ReleaseFailure, SubmitContext,
-    SubmitOutcome,
+    HeldState, HitTestOutcome, HitTestRequest, InputBackend, ReleaseFailure, SubmissionAuthority,
+    SubmitContext, SubmitOutcome,
 };
 
 /// One input the simulated operating system received.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct AppliedInput {
     pub at_ms: u64,
     pub primitive: Primitive,
@@ -20,6 +21,8 @@ pub struct AppliedInput {
     /// What the input was aimed at; empty for cleanup releases.
     pub target_ref: String,
     pub binding_fingerprint: Option<String>,
+    pub binding_proof: Option<BindingProof>,
+    pub authority: Option<SubmissionAuthority>,
 }
 
 #[derive(Debug)]
@@ -111,9 +114,11 @@ impl SimBackend {
             primitive,
             cleanup,
             target_ref: context
-                .map(|c| c.target_ref.to_string())
+                .map(|c| c.intent.target_ref.clone())
                 .unwrap_or_default(),
-            binding_fingerprint: context.and_then(|c| c.binding_fingerprint.map(String::from)),
+            binding_fingerprint: context.and_then(|c| c.intent.binding_fingerprint.clone()),
+            binding_proof: context.and_then(|c| c.intent.binding_proof.clone()),
+            authority: context.map(|c| c.authority.clone()),
         });
     }
 }
@@ -162,7 +167,14 @@ impl InputBackend for SimBackend {
 
     fn hit_test(&mut self, request: &HitTestRequest<'_>) -> HitTestOutcome {
         match &self.hit_test {
-            SimHitTest::Match => HitTestOutcome::Element(request.expected_fingerprint.to_string()),
+            SimHitTest::Match => HitTestOutcome::Element(
+                request
+                    .context
+                    .intent
+                    .binding_fingerprint
+                    .clone()
+                    .unwrap_or_default(),
+            ),
             SimHitTest::Element { fingerprint } => HitTestOutcome::Element(fingerprint.clone()),
             SimHitTest::Unresolved => HitTestOutcome::Unresolved,
         }

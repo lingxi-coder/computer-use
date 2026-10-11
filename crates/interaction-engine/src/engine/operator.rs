@@ -5,7 +5,7 @@
 use std::collections::BTreeSet;
 
 use interaction_contracts::desktop::device::{
-    RootGrant, StopCommand, StopDisposition, StopScope, StopSource,
+    ReleaseStatus, RootGrant, StopCommand, StopDisposition, StopScope, StopSource,
 };
 use interaction_contracts::desktop::ids::{DecisionId, RootTaskId};
 use interaction_contracts::desktop::operator::{OperatorCommand, RunMode, StopStatus};
@@ -19,13 +19,64 @@ use crate::tasks::{ConfirmOutcome, StopDirective, TaskError};
 use crate::verification::Verification;
 
 impl Engine {
+    /// A release confirmed for a previous stop does not mean the new or
+    /// resumed task is stopped. An unresolved release remains visible.
+    pub(super) fn clear_confirmed_stop(&mut self) {
+        if self.stop_status == StopStatus::StoppedConfirmed
+            && matches!(
+                self.cleanup,
+                ReleaseStatus::Released | ReleaseStatus::NotNeeded
+            )
+        {
+            self.stop_status = StopStatus::NotStopped;
+            self.cleanup = ReleaseStatus::NotNeeded;
+        }
+    }
+
     pub(super) fn on_operator(&mut self, command: OperatorCommand) -> Result<(), EngineError> {
         match command {
             OperatorCommand::CreateTask { text } => self.start_task(&text),
+            OperatorCommand::CreateScopedTask {
+                objective,
+                allowed_scope,
+            } => self.start_scoped_task(&objective, allowed_scope),
+            OperatorCommand::CreateFrozenTask {
+                objective,
+                allowed_scope,
+                profile,
+            } => self.start_frozen_task(&objective, allowed_scope, profile),
             OperatorCommand::ConfirmGoal {
                 confirmation_id,
                 approved,
             } => {
+                let pending_goal = self
+                    .tasks
+                    .active()
+                    .is_some_and(|active| active.row.draft.is_some() && active.row.goal.is_none());
+                if approved && pending_goal {
+                    let frozen_domain = self
+                        .tasks
+                        .active()
+                        .and_then(|active| active.row.draft.as_ref())
+                        .map(|draft| draft.execution_domain);
+                    let frozen_browser_profile = self
+                        .tasks
+                        .active()
+                        .and_then(|active| active.row.draft.as_ref())
+                        .and_then(|draft| draft.browser_page_profile);
+                    let current_manifest = self.device.manifest();
+                    if current_manifest.is_none_or(|manifest| {
+                        Some(manifest.execution_domain) != frozen_domain
+                            || frozen_browser_profile != self.cfg.browser_page_profile
+                            || manifest.validate().is_err()
+                            || !self.device.execution_domain_available()
+                    }) {
+                        self.note(
+                            "goal confirmation was refused because the trusted execution profile changed or is unavailable",
+                        );
+                        return Ok(());
+                    }
+                }
                 let outcome = match self.tasks.answer_confirmation(
                     &mut self.storage,
                     self.now_ms,
@@ -80,6 +131,11 @@ impl Engine {
             ))
         })?;
         let frozen_ms = active.row.frozen_ms.unwrap_or(self.now_ms);
+        if goal.execution_domain
+            == interaction_contracts::desktop::domain::ExecutionDomain::BackgroundAx
+        {
+            self.state.require_fresh_source_after(frozen_ms);
+        }
         let mut plan_targets: BTreeSet<String> = active
             .row
             .plan
@@ -95,6 +151,8 @@ impl Engine {
         plan_targets.insert(goal.target.semantic_target.as_str().to_string());
         let root = goal.root_task_id.clone();
         self.run = Some(RootRun {
+            window_activated: false,
+            keyboard_result_context: None,
             verification: Verification::new(frozen_ms),
             goal,
             pack,
@@ -117,6 +175,9 @@ impl Engine {
             resume_authorized: false,
             reconcile: Vec::new(),
             reconciling: None,
+            reconciliation_retries: 0,
+            reconciled_input: BTreeSet::new(),
+            effect_verification_only: false,
             revalidate_floor: None,
             permits: Vec::new(),
             stop_wait_since: None,
@@ -196,6 +257,7 @@ impl Engine {
         &mut self,
         directive: StopDirective,
     ) -> Result<(), EngineError> {
+        self.clear_source_table_scope(false);
         self.abandon_work()?;
         match directive {
             StopDirective::Finished => {
@@ -213,13 +275,16 @@ impl Engine {
 
     /// Forget every request that belonged to the root that is ending.
     pub(super) fn abandon_work(&mut self) -> Result<(), EngineError> {
+        self.cancel_computer_lane("the root's current work was abandoned");
         if let Some(cancel) = self
             .decisions
             .close(&mut self.storage, DecisionLifecycle::Superseded)?
         {
             self.emit(super::Output::CancelDecision(cancel));
         }
-        self.planning.cancel();
+        if let Some(request) = self.planning.cancel() {
+            self.emit(super::Output::CancelPlan(request));
+        }
         if let Some(run) = self.run.as_mut() {
             run.wait = None;
         }
@@ -269,6 +334,7 @@ impl Engine {
         }
         let root_id = active.row.root_id.as_str().to_string();
         self.tasks.pause_requested(&mut self.storage, self.now_ms)?;
+        self.clear_source_table_scope(false);
         self.abandon_work()?;
         let session = self.device.session_epoch();
         if let Some(run) = self.run.as_mut() {
@@ -302,8 +368,18 @@ impl Engine {
             self.note("the resume names another task; it was ignored");
             return Ok(());
         }
+        if active.row.goal.as_ref().is_some_and(|goal| {
+            goal.execution_domain
+                == interaction_contracts::desktop::domain::ExecutionDomain::HeadlessBrowser
+        }) {
+            self.note(
+                "the browser page scope is single-use; cancel this root, start a fresh browser session, and create a new task",
+            );
+            return Ok(());
+        }
         match active.row.state {
             RootState::Suspended => {
+                self.clear_computer_block();
                 if let Some(run) = self.run.as_mut() {
                     run.resume_authorized = true;
                 }
@@ -318,6 +394,8 @@ impl Engine {
                 self.note("the operator asked to resume the task");
             }
             RootState::NeedsRevalidation => {
+                self.clear_computer_block();
+                self.clear_confirmed_stop();
                 if let Some(run) = self.run.as_mut() {
                     run.resume_authorized = true;
                 }
@@ -334,5 +412,216 @@ fn mode_name(mode: RunMode) -> &'static str {
         RunMode::Observe => "observe",
         RunMode::Shadow => "shadow",
         RunMode::Execute => "execute",
+    }
+}
+
+#[cfg(test)]
+mod browser_resume_tests {
+    use super::*;
+    use crate::engine::{EngineConfig, Input, Output};
+    use crate::environment::pack::AppPack;
+    use crate::infrastructure::storage::Storage;
+    use crate::tasks::TaskConfig;
+    use crate::tasks::store::TaskStore;
+    use interaction_contracts::desktop::browser::BrowserPageProfile;
+    use interaction_contracts::desktop::device::{
+        BackendKind, CapabilityState, ExecutionDomainCapability,
+    };
+    use interaction_contracts::desktop::domain::{DomainAction, ExecutionDomain};
+    use interaction_contracts::desktop::effect::EffectClass;
+    use interaction_contracts::desktop::ids::{AttemptId, RootTaskId, SemanticTargetRef};
+    use interaction_contracts::desktop::planning::{GoalDraft, PlanBundle, Subgoal};
+    use interaction_contracts::desktop::task::{
+        ConfirmationScope, ExpectedValue, RootState, TargetSpec,
+    };
+
+    const TASK_TEXT: &str = "Enable browser fixture checkbox";
+
+    fn headless_manifest() -> interaction_contracts::desktop::device::CapabilityManifest {
+        let mut manifest = interaction_contracts::desktop::samples::manifest();
+        manifest.backend = BackendKind::HeadlessBrowser;
+        manifest.execution_domain = ExecutionDomain::HeadlessBrowser;
+        manifest.human_input = CapabilityState::Unavailable;
+        manifest.hit_test = CapabilityState::Unavailable;
+        manifest.input = CapabilityState::Available;
+        manifest.domains = ExecutionDomainCapability::all_unavailable();
+        let browser = manifest
+            .domains
+            .iter_mut()
+            .find(|capability| capability.domain == ExecutionDomain::HeadlessBrowser)
+            .unwrap();
+        browser.state = CapabilityState::Available;
+        browser.actions = vec![DomainAction::HeadlessBrowserAction];
+        manifest
+    }
+
+    fn browser_root(
+        needs_revalidation: bool,
+        retain_unknown_reconcile: bool,
+    ) -> (Engine, RootTaskId) {
+        let profile = BrowserPageProfile::FixtureBackgroundOption;
+        let mut tasks = TaskConfig::new(vec![AppPack::browser_fixture()]);
+        tasks.default_budget.max_observations = 1;
+        let mut config = EngineConfig::new(tasks);
+        config.browser_page_profile = Some(profile);
+        config.initial_mode = RunMode::Execute;
+        config.refresh_timeout_ms = 5;
+        let mut engine = Engine::new(config, Storage::open_in_memory().unwrap());
+        engine.device.install_manifest(headless_manifest());
+
+        let root = match engine
+            .tasks
+            .create_root(&mut engine.storage, 0, TASK_TEXT)
+            .unwrap()
+        {
+            crate::tasks::CreateOutcome::Started(root) => root,
+            crate::tasks::CreateOutcome::Queued => panic!("no root should already be active"),
+        };
+        let target = SemanticTargetRef::new(profile.semantic_target()).unwrap();
+        let draft = GoalDraft {
+            app: profile.app().into(),
+            account: None,
+            target: TargetSpec {
+                row: None,
+                semantic_target: target.clone(),
+                label: profile.label().into(),
+                group: None,
+                role_hint: Some(profile.role().into()),
+            },
+            desired: ExpectedValue::Bool { value: true },
+            confirmation_scope: ConfirmationScope::CurrentUi,
+            max_effect_class: EffectClass::ReversibleEdit,
+        };
+        let bundle = PlanBundle {
+            subgoals: vec![Subgoal {
+                id: "ensure".into(),
+                description: "enable the registered checkbox".into(),
+                skill: "ui.ensure_value".into(),
+                target: Some(target),
+                expects: vec!["value".into()],
+                scroll: None,
+                select: None,
+            }],
+            dependencies: vec![],
+            required_observations: vec![],
+            expected_effects: vec!["goal".into()],
+            recovery_branches: vec![],
+            termination: vec!["goal.required".into()],
+        };
+        let confirmation = engine
+            .tasks
+            .accept_draft_with_profile(
+                &mut engine.storage,
+                1,
+                &draft,
+                ExecutionDomain::HeadlessBrowser,
+                Some(profile),
+                &bundle,
+            )
+            .unwrap();
+        let crate::tasks::ConfirmOutcome::GoalFrozen { goal, grant } = engine
+            .tasks
+            .answer_confirmation(&mut engine.storage, 2, &confirmation.confirmation_id, true)
+            .unwrap()
+        else {
+            panic!("the fixed checkbox goal should freeze")
+        };
+        engine
+            .tasks
+            .admission_passed(&mut engine.storage, 3)
+            .unwrap();
+        engine
+            .tasks
+            .pause_requested(&mut engine.storage, 4)
+            .unwrap();
+        engine
+            .tasks
+            .suspend_unconfirmed(&mut engine.storage, 5)
+            .unwrap();
+        if needs_revalidation {
+            engine
+                .tasks
+                .resume_requested(&mut engine.storage, 6)
+                .unwrap();
+        }
+        engine.begin_run(*goal, grant).unwrap();
+        let run = engine.run.as_mut().unwrap();
+        run.registered = true;
+        if retain_unknown_reconcile {
+            run.reconcile.push((
+                AttemptId::new("unknown-browser-attempt").unwrap(),
+                "unknown-browser-intent".into(),
+            ));
+        }
+        (engine, root)
+    }
+
+    fn no_browser_or_native_refresh(outputs: &[Output]) -> bool {
+        outputs.iter().all(|output| {
+            !matches!(output, Output::BrowserRefresh(_)) && !matches!(output, Output::Source { .. })
+        })
+    }
+
+    #[test]
+    fn browser_root_resume_is_rejected_without_refresh_or_observation_budget_spend() {
+        let (mut engine, root) = browser_root(true, false);
+        let before = TaskStore::load_budget(engine.storage().read(), root.as_str()).unwrap();
+        assert_eq!(before.observations, 0);
+        assert_eq!(engine.root_state(), Some(RootState::NeedsRevalidation));
+
+        let outputs = engine.handle(
+            10,
+            Input::Operator(OperatorCommand::ResumeTask {
+                root_task_id: root.clone(),
+            }),
+        );
+        assert!(no_browser_or_native_refresh(&outputs));
+        assert_eq!(engine.root_state(), Some(RootState::NeedsRevalidation));
+        assert!(!engine.run.as_ref().unwrap().resume_authorized);
+        assert!(engine.run.as_ref().unwrap().wait.is_none());
+
+        for now_ms in [20, 100, 1_000, 5_000] {
+            let tick = engine.handle(now_ms, Input::Tick);
+            assert!(no_browser_or_native_refresh(&tick));
+        }
+        let after = TaskStore::load_budget(engine.storage().read(), root.as_str()).unwrap();
+        assert_eq!(after.observations, before.observations);
+        assert_eq!(engine.root_state(), Some(RootState::NeedsRevalidation));
+        assert!(
+            engine
+                .timeline()
+                .all(|entry| !entry.text.contains("observation budget is exhausted"))
+        );
+        assert!(engine.timeline().any(|entry| {
+            entry.text.contains("single-use") && entry.text.contains("fresh browser session")
+        }));
+    }
+
+    #[test]
+    fn rejected_browser_resume_keeps_unknown_receipt_reconciliation_queued() {
+        let (mut engine, root) = browser_root(true, true);
+        let outputs = engine.handle(
+            10,
+            Input::Operator(OperatorCommand::ResumeTask { root_task_id: root }),
+        );
+        assert!(no_browser_or_native_refresh(&outputs));
+        let run = engine.run.as_ref().unwrap();
+        assert_eq!(run.reconcile.len(), 1);
+        assert_eq!(run.reconcile[0].1, "unknown-browser-intent");
+        assert!(run.reconciling.is_none());
+        assert!(!run.resume_authorized);
+    }
+
+    #[test]
+    fn suspended_browser_root_cannot_rebind_its_single_use_scope() {
+        let (mut engine, root) = browser_root(false, false);
+        assert_eq!(engine.root_state(), Some(RootState::Suspended));
+        let outputs = engine.handle(
+            10,
+            Input::Operator(OperatorCommand::ResumeTask { root_task_id: root }),
+        );
+        assert!(no_browser_or_native_refresh(&outputs));
+        assert_eq!(engine.root_state(), Some(RootState::Suspended));
+        assert!(!engine.run.as_ref().unwrap().resume_authorized);
     }
 }

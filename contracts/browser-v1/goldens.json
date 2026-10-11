@@ -1,0 +1,137 @@
+[
+  {
+    "snapshot_id": "golden-1",
+    "source_sequence": 1,
+    "observed_ms": 110,
+    "read_finished_ms": 115,
+    "clock_domain": "headless-performance-monotonic-ms",
+    "context": {
+      "browser_session_id": "session-1",
+      "browser_context_id": "context-1",
+      "page_target_id": "target-1",
+      "cdp_session_id": "cdp-1",
+      "frame_id": "frame-1",
+      "document_loader_id": "loader-1",
+      "fixture_file_url": "file:///tmp/computer-use/fixtures/headless/readonly-page.html",
+      "session_epoch": 7
+    },
+    "target_context_hash": "tc1:450a130de5f22e3324cecd731df368361f9752d80c456bd869becba691ab3b72",
+    "root_ax_node_id": "root-ax",
+    "nodes": [
+      {
+        "ax_node_id": "root-ax",
+        "backend_dom_node_id": null,
+        "parent_ax_node_id": null,
+        "child_ax_node_ids": [
+          "checkbox-ax"
+        ],
+        "ignored": false,
+        "role": "RootWebArea",
+        "name": "Owned Headless Source Fixture",
+        "disabled": "unknown",
+        "checked": "unknown"
+      },
+      {
+        "ax_node_id": "checkbox-ax",
+        "backend_dom_node_id": 17,
+        "parent_ax_node_id": "root-ax",
+        "child_ax_node_ids": [],
+        "ignored": false,
+        "role": "checkbox",
+        "name": "Background option",
+        "disabled": "unknown",
+        "checked": "false"
+      }
+    ]
+  },
+  {
+    "snapshot_id": "golden-2",
+    "source_sequence": 2,
+    "observed_ms": 120,
+    "read_finished_ms": 125,
+    "clock_domain": "headless-performance-monotonic-ms",
+    "context": {
+      "browser_session_id": "session-雪",
+      "browser_context_id": "context-雪",
+      "page_target_id": "target-2",
+      "cdp_session_id": "cdp-2",
+      "frame_id": "frame-2",
+      "document_loader_id": "loader-2",
+      "fixture_file_url": "file:///tmp/computer-use/fixtures/headless/readonly-page.html",
+      "session_epoch": 8
+    },
+    "target_context_hash": "tc1:eba6ae18239e56a65cc3bf989dcbfd442535b8b8ae20fca3e657cdc6734d3716",
+    "root_ax_node_id": "root-ax",
+    "nodes": [
+      {
+        "ax_node_id": "root-ax",
+        "backend_dom_node_id": null,
+        "parent_ax_node_id": null,
+        "child_ax_node_ids": [
+          "checkbox-ax"
+        ],
+        "ignored": false,
+        "role": "RootWebArea",
+        "name": "Owned Headless Source Fixture",
+        "disabled": "unknown",
+        "checked": "unknown"
+      },
+      {
+        "ax_node_id": "checkbox-ax",
+        "backend_dom_node_id": 17,
+        "parent_ax_node_id": "root-ax",
+        "child_ax_node_ids": [],
+        "ignored": false,
+        "role": "checkbox",
+        "name": "Background option",
+        "disabled": "unknown",
+        "checked": "false"
+      }
+    ]
+  },
+  {
+    "snapshot_id": "golden-3",
+    "source_sequence": 3,
+    "observed_ms": 130,
+    "read_finished_ms": 135,
+    "clock_domain": "headless-performance-monotonic-ms",
+    "context": {
+      "browser_session_id": "session-3",
+      "browser_context_id": "context-3",
+      "page_target_id": "target-3",
+      "cdp_session_id": "cdp-3",
+      "frame_id": "frame-3",
+      "document_loader_id": "loader-3",
+      "fixture_file_url": "file:///tmp/with%20space%20%23%25/fixtures/headless/readonly-page.html",
+      "session_epoch": 9
+    },
+    "target_context_hash": "tc1:7ba8483edcd13ba010615b69ca879f94fc340239337397801412483ad6aa2200",
+    "root_ax_node_id": "root-ax",
+    "nodes": [
+      {
+        "ax_node_id": "root-ax",
+        "backend_dom_node_id": null,
+        "parent_ax_node_id": null,
+        "child_ax_node_ids": [
+          "checkbox-ax"
+        ],
+        "ignored": false,
+        "role": "RootWebArea",
+        "name": "Owned Headless Source Fixture",
+        "disabled": "unknown",
+        "checked": "unknown"
+      },
+      {
+        "ax_node_id": "checkbox-ax",
+        "backend_dom_node_id": 17,
+        "parent_ax_node_id": "root-ax",
+        "child_ax_node_ids": [],
+        "ignored": false,
+        "role": "checkbox",
+        "name": "Background option",
+        "disabled": "unknown",
+        "checked": "false"
+      }
+    ]
+  }
+]

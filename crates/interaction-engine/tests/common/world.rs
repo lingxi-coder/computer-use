@@ -12,8 +12,8 @@ use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
 use execution_core::backend::{
-    HeldState, HitTestOutcome, HitTestRequest, InputBackend, ReleaseFailure, SubmitContext,
-    SubmitOutcome,
+    HeldState, HitTestOutcome, HitTestRequest, InputBackend, ReleaseFailure, SubmitCompletion,
+    SubmitContext, SubmitOutcome,
 };
 use execution_core::core::{CoreConfig, CoreEvent, ExecutionCore};
 use interaction_contracts::desktop::decision::{
@@ -21,13 +21,16 @@ use interaction_contracts::desktop::decision::{
 };
 use interaction_contracts::desktop::device::{
     BackendKind, CapabilityManifest, CapabilityState, CommandAck, DependencyVersions, DeviceEvent,
-    DeviceEventKind, GrantOutcome, StopCommand, StopDisposition, StopScope, StopSource, SurfaceRef,
+    DeviceEventKind, ExecutionDomainCapability, GrantOutcome, Observation, Receipt, ReceiptStatus,
+    ReleaseStatus, StopCommand, StopDisposition, StopScope, StopSource, SurfaceRef,
 };
+use interaction_contracts::desktop::domain::{DomainAction, ExecutionDomain};
 use interaction_contracts::desktop::operator::{OperatorCommand, RunMode, UiProjection};
 use interaction_contracts::desktop::planning::PlanningRequest;
 use interaction_contracts::desktop::primitive::{Primitive, PrimitivePolicy};
-use interaction_contracts::desktop::source::SourceCommand;
+use interaction_contracts::desktop::source::{SourceCommand, StructureSnapshot};
 use interaction_contracts::desktop::task::RootState;
+use interaction_engine::engine::computer::ComputerCommand;
 use interaction_engine::engine::{Engine, EngineConfig, Input, Output};
 use interaction_engine::environment::pack::AppPack;
 use interaction_engine::execution::{DeviceCommand, DeviceNotice, DeviceReply};
@@ -36,12 +39,67 @@ use interaction_engine::tasks::TaskConfig;
 use sim_world::app::{Applied, ApplyEffect, SimApp, SnapshotMeta};
 use sim_world::policy::{ScriptedPlanner, ScriptedTeacher};
 
+/// Build a closed five-slot capability vector for the selected fixture trust
+/// profile. This file is also included directly by desktop-host tests, so the
+/// helper lives beside the shared world rather than in its caller's module.
+pub fn domain_capabilities_for_test_profile(
+    active_domain: ExecutionDomain,
+) -> Vec<ExecutionDomainCapability> {
+    ExecutionDomain::ALL
+        .into_iter()
+        .map(|domain| {
+            let actions = if domain == active_domain {
+                match domain {
+                    ExecutionDomain::ForegroundNative => vec![
+                        DomainAction::NativePointer,
+                        DomainAction::NativeKeyboard,
+                        DomainAction::NativeScroll,
+                        DomainAction::WindowActivation,
+                        DomainAction::ForegroundAx,
+                    ],
+                    ExecutionDomain::BackgroundAx => vec![DomainAction::BackgroundAxPress],
+                    ExecutionDomain::HeadlessBrowser => {
+                        vec![DomainAction::HeadlessBrowserAction]
+                    }
+                    ExecutionDomain::AppIntegration => {
+                        vec![DomainAction::AppIntegrationAction]
+                    }
+                    ExecutionDomain::Simulated => vec![DomainAction::SimulatedAction],
+                }
+            } else {
+                Vec::new()
+            };
+            let supported = matches!(
+                domain,
+                ExecutionDomain::ForegroundNative
+                    | ExecutionDomain::BackgroundAx
+                    | ExecutionDomain::Simulated
+            );
+            ExecutionDomainCapability {
+                domain,
+                state: if domain == active_domain && supported {
+                    CapabilityState::Available
+                } else {
+                    CapabilityState::Unavailable
+                },
+                actions: if domain == active_domain && supported {
+                    actions
+                } else {
+                    Vec::new()
+                },
+            }
+        })
+        .collect()
+}
+
 /// One input the simulated operating system received.
 #[derive(Debug, Clone)]
 pub struct InputRecord {
     pub at_ms: u64,
     pub primitive: Primitive,
     pub effect: ApplyEffect,
+    pub permit: interaction_contracts::desktop::device::PermitRef,
+    pub instance: Option<interaction_contracts::desktop::ids::ObjectRef>,
 }
 
 fn meta(at_ms: u64) -> SnapshotMeta {
@@ -61,9 +119,75 @@ fn meta(at_ms: u64) -> SnapshotMeta {
 /// The input backend of the simulated device: it applies inputs to the
 /// application and answers point-of-hit queries from what is really on screen.
 pub struct WorldBackend {
+    unknown_submission: Rc<Cell<bool>>,
+    ignored_submission: Rc<Cell<bool>>,
+    ignored_ax_setter: Rc<Cell<bool>>,
+    async_applied_clicks: Rc<Cell<bool>>,
+    pending_applied_submission: Rc<Cell<bool>>,
+    next_async_completion_sequence: u64,
+    pending_completion: Option<SubmitCompletion>,
     app: Rc<RefCell<SimApp>>,
     log: Rc<RefCell<Vec<InputRecord>>>,
     clock: Rc<Cell<u64>>,
+}
+
+impl WorldBackend {
+    fn pending_applied_outcome(
+        &mut self,
+        at_ms: u64,
+        context: &SubmitContext<'_>,
+    ) -> Option<SubmitOutcome> {
+        if !self.pending_applied_submission.replace(false) {
+            return None;
+        }
+
+        let sequence = self.next_async_completion_sequence;
+        self.next_async_completion_sequence = sequence
+            .checked_add(1)
+            .expect("simulated completion sequence does not wrap");
+        Some(SubmitOutcome::Pending {
+            sequence,
+            reply_deadline_ms: at_ms
+                .saturating_add(100)
+                .min(context.authority.valid_until_ms.saturating_add(500)),
+        })
+    }
+
+    fn applied_outcome(
+        &mut self,
+        at_ms: u64,
+        primitive: &Primitive,
+        context: &SubmitContext<'_>,
+    ) -> SubmitOutcome {
+        if !self.async_applied_clicks.get() || !matches!(primitive, Primitive::Click { .. }) {
+            return SubmitOutcome::Applied;
+        }
+
+        let sequence = self.next_async_completion_sequence;
+        self.next_async_completion_sequence = sequence
+            .checked_add(1)
+            .expect("simulated completion sequence does not wrap");
+        let input_end_ms = at_ms.saturating_add(1);
+        if input_end_ms > context.authority.valid_until_ms {
+            return SubmitOutcome::Applied;
+        }
+        let reply_deadline_ms = at_ms
+            .saturating_add(100)
+            .min(context.authority.valid_until_ms.saturating_add(500));
+        self.pending_completion = Some(SubmitCompletion {
+            sequence,
+            session_epoch: context.intent.session_epoch,
+            intent_id: context.intent.intent_id.clone(),
+            outcome: SubmitOutcome::Applied,
+            submitted_at_ms: Some(at_ms),
+            input_end_ms: Some(input_end_ms),
+            failure_code: None,
+        });
+        SubmitOutcome::Pending {
+            sequence,
+            reply_deadline_ms,
+        }
+    }
 }
 
 impl InputBackend for WorldBackend {
@@ -73,19 +197,74 @@ impl InputBackend for WorldBackend {
         primitive: &Primitive,
         context: &SubmitContext<'_>,
     ) -> SubmitOutcome {
+        if self.unknown_submission.get() {
+            self.log.borrow_mut().push(InputRecord {
+                at_ms,
+                primitive: primitive.clone(),
+                effect: ApplyEffect::Ignored("input outcome unknown"),
+                permit: context.intent.permit.clone(),
+                instance: context
+                    .intent
+                    .binding_proof
+                    .as_ref()
+                    .map(|proof| proof.instance.clone()),
+            });
+            return SubmitOutcome::Unknown;
+        }
+        if self.ignored_submission.get()
+            || self.ignored_ax_setter.get()
+                && matches!(
+                    primitive,
+                    Primitive::AxAction {
+                        action: interaction_contracts::desktop::primitive::AxActionKind::SetValue { .. }
+                    }
+                )
+        {
+            self.log.borrow_mut().push(InputRecord {
+                at_ms,
+                primitive: primitive.clone(),
+                effect: ApplyEffect::Ignored(
+                    "OS acknowledged input but no business effect occurred",
+                ),
+                permit: context.intent.permit.clone(),
+                instance: context
+                    .intent
+                    .binding_proof
+                    .as_ref()
+                    .map(|proof| proof.instance.clone()),
+            });
+            return self.applied_outcome(at_ms, primitive, context);
+        }
         let effect = self.app.borrow_mut().apply(
             &meta(at_ms),
             &Applied {
                 primitive: primitive.clone(),
-                binding_fingerprint: context.binding_fingerprint.map(str::to_string),
+                binding_fingerprint: context.intent.binding_fingerprint.clone(),
             },
         );
         self.log.borrow_mut().push(InputRecord {
             at_ms,
             primitive: primitive.clone(),
             effect,
+            permit: context.intent.permit.clone(),
+            instance: context
+                .intent
+                .binding_proof
+                .as_ref()
+                .map(|proof| proof.instance.clone()),
         });
-        SubmitOutcome::Applied
+        if let Some(outcome) = self.pending_applied_outcome(at_ms, context) {
+            return outcome;
+        }
+        self.applied_outcome(at_ms, primitive, context)
+    }
+
+    fn poll_completion(&mut self) -> Option<SubmitCompletion> {
+        self.pending_completion.take()
+    }
+
+    fn abandon_pending(&mut self) {
+        self.pending_completion = None;
     }
 
     fn release(&mut self, _at_ms: u64, _release: &Primitive) -> Result<(), ReleaseFailure> {
@@ -100,7 +279,12 @@ impl InputBackend for WorldBackend {
         match self.app.borrow().hit_test(
             &meta(self.clock.get()),
             request.primitive,
-            request.expected_fingerprint,
+            request
+                .context
+                .intent
+                .binding_fingerprint
+                .as_deref()
+                .unwrap_or(""),
         ) {
             Some(digest) => HitTestOutcome::Element(digest),
             None => HitTestOutcome::Unresolved,
@@ -121,7 +305,21 @@ pub enum Backend {
     HostileOnce,
 }
 
+pub type SnapshotTransform = Box<dyn Fn(&mut StructureSnapshot)>;
+
 pub struct World {
+    pub unknown_submission: Rc<Cell<bool>>,
+    pub ignored_submission: Rc<Cell<bool>>,
+    pub ignored_ax_setter: Rc<Cell<bool>>,
+    /// Opt-in deterministic native-return simulation for exact receipt tests.
+    pub async_applied_clicks: Rc<Cell<bool>>,
+    /// Apply one input, then withhold its completion receipt to model a true
+    /// in-flight submission. Disabled by default and consumed by one submit.
+    pub pending_applied_submission: Rc<Cell<bool>>,
+    /// Test-only receipt metadata fault: omit input_end_ms from the next
+    /// completed click receipt forwarded by this world.
+    missing_input_end_fault_armed: bool,
+    missing_input_end_faulted_intent: Option<String>,
     pub engine: Engine,
     pub core: ExecutionCore<WorldBackend>,
     pub app: Rc<RefCell<SimApp>>,
@@ -135,9 +333,16 @@ pub struct World {
     pub ui: Option<UiProjection>,
     pub decision_requests: Vec<DecisionRequest>,
     pub planning_requests: Vec<PlanningRequest>,
+    /// Computer commands emitted by Engine, available to provider/Host tests.
+    pub computer_commands: Vec<ComputerCommand>,
+    pub computer_log: Vec<ComputerCommand>,
+    pub source_capture_commands: Vec<SourceCommand>,
     pub source_sequence: u64,
     /// Snapshots stop while this is false.
     pub source_up: bool,
+    pub snapshot_transform: Option<SnapshotTransform>,
+    pub hold_refreshes: bool,
+    pub refreshes: Vec<u64>,
     clock: Rc<Cell<u64>>,
     inbox: VecDeque<Input>,
     /// What the device said but the host has not received yet.
@@ -148,10 +353,21 @@ pub struct World {
     pub mute_stop: bool,
     /// The device does not answer lease renewals, so the host never holds one.
     pub mute_lease: bool,
+    /// How many receipt queries receive no reply, while the device stays alive.
+    pub drop_query_replies: usize,
+    /// Hold an accepted permit response while source invalidation races it.
+    pub hold_grants: bool,
+    pub hold_observes: bool,
+    pub query_statuses: VecDeque<Option<ReceiptStatus>>,
     /// Every command the engine sent the device, in order.
     pub device_log: Vec<(u64, &'static str)>,
+    /// Dependency validity changes, kept separate from the command-name log.
+    pub dependency_updates: Vec<(String, Option<bool>)>,
+    /// Source observations passed to the simulated core.
+    pub observations: Vec<Observation>,
     path: Option<PathBuf>,
     config: EngineConfig,
+    execution_domain: ExecutionDomain,
     identity: interaction_contracts::desktop::device::DeviceIdentity,
     steps: u64,
 }
@@ -171,16 +387,31 @@ impl World {
         Self::build(engine_config(), Storage::open_in_memory().unwrap())
     }
 
+    pub fn with_config(config: EngineConfig) -> Self {
+        Self::build(config, Storage::open_in_memory().unwrap())
+    }
+
+    /// Use a matched foreground-native profile for tests that explicitly
+    /// inject pixels. The device and application remain deterministic fakes.
+    pub fn foreground_native_fixture() -> Self {
+        Self::with_config_foreground_native(engine_config())
+    }
+
+    pub fn with_config_foreground_native(config: EngineConfig) -> Self {
+        Self::build_with_domain(
+            config,
+            Storage::open_in_memory().unwrap(),
+            false,
+            ExecutionDomain::ForegroundNative,
+        )
+    }
+
     /// A device that never grants the host's control lease until told to.
     pub fn with_lease_withheld() -> Self {
         let mut world = Self::build_with(engine_config(), Storage::open_in_memory().unwrap(), true);
         world.mute_lease = true;
         world.introduce_device();
         world
-    }
-
-    pub fn with_config(config: EngineConfig) -> Self {
-        Self::build(config, Storage::open_in_memory().unwrap())
     }
 
     pub fn on_disk(path: &Path) -> Self {
@@ -209,25 +440,60 @@ impl World {
     }
 
     fn build(config: EngineConfig, storage: Storage) -> Self {
-        Self::build_with(config, storage, false)
+        Self::build_with_domain(config, storage, false, ExecutionDomain::Simulated)
     }
 
     /// `hold_back_introduction` builds the world without the device having said
     /// hello yet, for tests that change how it behaves first.
     fn build_with(config: EngineConfig, storage: Storage, hold_back_introduction: bool) -> Self {
+        Self::build_with_domain(
+            config,
+            storage,
+            hold_back_introduction,
+            ExecutionDomain::Simulated,
+        )
+    }
+
+    fn build_with_domain(
+        config: EngineConfig,
+        storage: Storage,
+        hold_back_introduction: bool,
+        execution_domain: ExecutionDomain,
+    ) -> Self {
         let config_for_restart = config.clone();
         let app = Rc::new(RefCell::new(SimApp::new()));
         let inputs = Rc::new(RefCell::new(Vec::new()));
         let clock = Rc::new(Cell::new(0));
+        let async_applied_clicks = Rc::new(Cell::new(false));
+        let pending_applied_submission = Rc::new(Cell::new(false));
         let backend = WorldBackend {
+            unknown_submission: Rc::new(Cell::new(false)),
+            ignored_submission: Rc::new(Cell::new(false)),
+            ignored_ax_setter: Rc::new(Cell::new(false)),
+            async_applied_clicks: async_applied_clicks.clone(),
+            pending_applied_submission: pending_applied_submission.clone(),
+            next_async_completion_sequence: 1,
+            pending_completion: None,
             app: app.clone(),
             log: inputs.clone(),
             clock: clock.clone(),
         };
-        let mut core = ExecutionCore::new(CoreConfig::production("sim"), backend);
+        let unknown_submission = backend.unknown_submission.clone();
+        let ignored_submission = backend.ignored_submission.clone();
+        let ignored_ax_setter = backend.ignored_ax_setter.clone();
+        let mut core_config = CoreConfig::production("sim");
+        core_config.execution_domain = execution_domain;
+        let mut core = ExecutionCore::new(core_config, backend);
         core.renew_lease(60_000);
         let identity = core.identity();
         let mut world = Self {
+            unknown_submission,
+            ignored_submission,
+            ignored_ax_setter,
+            async_applied_clicks,
+            pending_applied_submission,
+            missing_input_end_fault_armed: false,
+            missing_input_end_faulted_intent: None,
             engine: Engine::new(config, storage),
             core,
             app,
@@ -241,17 +507,30 @@ impl World {
             ui: None,
             decision_requests: Vec::new(),
             planning_requests: Vec::new(),
+            computer_commands: Vec::new(),
+            computer_log: Vec::new(),
+            source_capture_commands: Vec::new(),
             source_sequence: 0,
             source_up: true,
+            snapshot_transform: None,
+            hold_refreshes: false,
+            refreshes: Vec::new(),
             clock,
             inbox: VecDeque::new(),
             delayed: Vec::new(),
             hold_notices: false,
             mute_stop: false,
             mute_lease: false,
+            drop_query_replies: 0,
+            hold_grants: false,
+            hold_observes: false,
+            query_statuses: VecDeque::new(),
             device_log: Vec::new(),
+            dependency_updates: Vec::new(),
+            observations: Vec::new(),
             path: None,
             config: config_for_restart,
+            execution_domain,
             identity,
             steps: 0,
         };
@@ -265,13 +544,26 @@ impl World {
     pub fn introduce_device(&mut self) {
         let manifest = CapabilityManifest {
             identity: self.core.identity(),
-            backend: BackendKind::Simulated,
+            backend: match self.execution_domain {
+                ExecutionDomain::ForegroundNative | ExecutionDomain::BackgroundAx => {
+                    BackendKind::Macos
+                }
+                ExecutionDomain::Simulated => BackendKind::Simulated,
+                ExecutionDomain::HeadlessBrowser | ExecutionDomain::AppIntegration => {
+                    unreachable!("the simulator only provides native or simulated fixtures")
+                }
+            },
+            execution_domain: self.execution_domain,
             policy: PrimitivePolicy::AtomicOnly,
             human_input: CapabilityState::Available,
             hit_test: CapabilityState::Available,
             input: CapabilityState::Available,
+            domains: domain_capabilities_for_test_profile(self.execution_domain),
             max_uninterruptible_ms: 100,
         };
+        manifest
+            .validate()
+            .expect("the fixture manifest matches its closed execution profile");
         self.identity = manifest.identity.clone();
         self.send(Input::DeviceNotice(DeviceNotice::Manifest(Box::new(
             manifest,
@@ -300,6 +592,38 @@ impl World {
 
     pub fn operator(&mut self, command: OperatorCommand) {
         self.send(Input::Operator(command));
+    }
+
+    pub fn take_computer_commands(&mut self) -> Vec<ComputerCommand> {
+        std::mem::take(&mut self.computer_commands)
+    }
+
+    /// Explicitly inject a missing-input-end metadata fault on the next
+    /// completed click receipt. The device core's stored receipt stays intact.
+    pub fn inject_missing_input_end_fault_for_next_completed_click(&mut self) {
+        self.missing_input_end_fault_armed = true;
+        self.missing_input_end_faulted_intent = None;
+    }
+
+    fn apply_receipt_metadata_fault(&mut self, receipt: &mut Receipt) {
+        if self.missing_input_end_faulted_intent.as_deref() == Some(receipt.intent_id.as_str()) {
+            receipt.input_end_ms = None;
+            return;
+        }
+
+        let is_completed_click = receipt.status == ReceiptStatus::Completed
+            && receipt.input_end_ms.is_some()
+            && receipt.submitted.iter().any(|entry| {
+                !entry.cleanup()
+                    && entry
+                        .native_primitive()
+                        .is_some_and(|primitive| matches!(primitive, Primitive::Click { .. }))
+            });
+        if self.missing_input_end_fault_armed && is_completed_click {
+            self.missing_input_end_fault_armed = false;
+            self.missing_input_end_faulted_intent = Some(receipt.intent_id.clone());
+            receipt.input_end_ms = None;
+        }
     }
 
     pub fn create_task(&mut self, text: &str) {
@@ -333,11 +657,40 @@ impl World {
     fn carry(&mut self, output: Output) {
         match output {
             Output::Device { corr, command } => self.device(corr, *command),
-            Output::Source(SourceCommand::RefreshNow) => self.publish(),
+            Output::Source {
+                generation,
+                command: SourceCommand::RefreshNow { .. },
+            } => {
+                self.refreshes.push(generation);
+                if !self.hold_refreshes {
+                    self.inbox.push_back(Input::SourceRefreshStarted {
+                        generation,
+                        accepted: true,
+                    });
+                    // Match the real Source transport: retirement ACK precedes
+                    // reports from the replacement watcher.
+                    self.publish();
+                }
+            }
+            Output::BrowserRefresh(_) => {}
+            Output::Source {
+                command:
+                    command @ (SourceCommand::CaptureNow { .. } | SourceCommand::CancelCapture { .. }),
+                ..
+            } => {
+                // A simulator cannot assert that native pixels were captured.
+                // Computer tests explicitly inject a complete paired frame.
+                self.source_capture_commands.push(command);
+            }
             Output::Decision(request) => self.backend_answers(*request),
             Output::CancelDecision(_) => {}
+            Output::CancelPlan(_) => {}
             Output::Plan(request) => self.planner_answers(*request),
             Output::Ui(ui) => self.ui = Some(*ui),
+            Output::Computer(command) => {
+                self.computer_log.push((*command).clone());
+                self.computer_commands.push(*command);
+            }
         }
     }
 
@@ -355,6 +708,7 @@ impl World {
             DeviceCommand::RenewLease(_) => "renew_lease",
         };
         self.device_log.push((self.now, name));
+        let observing = matches!(&command, DeviceCommand::Observe(_));
         let reply = match command {
             DeviceCommand::RegisterRoot(grant) => {
                 DeviceReply::Ack(match self.core.register_root(&grant) {
@@ -363,6 +717,9 @@ impl World {
                 })
             }
             DeviceCommand::Observe(observation) => {
+                if let Some(native) = observation.native() {
+                    self.observations.push(native.clone());
+                }
                 DeviceReply::Ack(match self.core.observe(observation) {
                     Ok(()) => CommandAck::ok(),
                     Err(reason) => CommandAck::rejected(None, reason),
@@ -386,12 +743,47 @@ impl World {
                 Ok(()) => CommandAck::ok(),
                 Err(reason) => CommandAck::rejected(None, reason),
             }),
-            DeviceCommand::QueryReceipt(query) => DeviceReply::Receipt(
-                self.core
-                    .query_receipt(query.session_epoch, &query.intent_id)
-                    .map(Box::new),
-            ),
+            DeviceCommand::QueryReceipt(_) if self.drop_query_replies > 0 => {
+                self.drop_query_replies -= 1;
+                return;
+            }
+            DeviceCommand::QueryReceipt(query) => {
+                let mut receipt = self
+                    .core
+                    .query_receipt(query.session_epoch, &query.intent_id);
+                if let Some(status) = self.query_statuses.pop_front() {
+                    receipt = status.map(|status| {
+                        let mut receipt = receipt.unwrap_or_else(|| Receipt {
+                            intent_id: query.intent_id.clone(),
+                            attempt_id: query.intent_id.strip_prefix("intent-").and_then(|id| {
+                                id.rsplit_once('-').map(|(attempt, _)| attempt.into())
+                            }),
+                            session_epoch: query.session_epoch,
+                            status,
+                            reason_code: None,
+                            reason: None,
+                            submitted: vec![],
+                            release_status: ReleaseStatus::NotNeeded,
+                            command_end_ms: None,
+                            input_end_ms: None,
+                            at_ms: self.now,
+                        });
+                        receipt.status = status;
+                        if status != ReceiptStatus::Completed {
+                            receipt.submitted.clear();
+                            receipt.command_end_ms = None;
+                        }
+                        receipt
+                    });
+                }
+                if let Some(receipt) = receipt.as_mut() {
+                    self.apply_receipt_metadata_fault(receipt);
+                }
+                DeviceReply::Receipt(receipt.map(Box::new))
+            }
             DeviceCommand::UpdateDependency(update) => {
+                self.dependency_updates
+                    .push((update.name.clone(), update.valid));
                 self.core.update_dependency(&update.name, update.valid);
                 DeviceReply::Dependencies(DependencyVersions {
                     versions: self.core.dependency_versions(),
@@ -412,7 +804,13 @@ impl World {
                 DeviceReply::Ack(CommandAck::ok())
             }
         };
-        self.inbox.push_back(Input::Device { corr, reply });
+        if self.hold_grants && matches!(reply, DeviceReply::Grant(_))
+            || self.hold_observes && observing
+        {
+            self.delayed.push(Input::Device { corr, reply });
+        } else {
+            self.inbox.push_back(Input::Device { corr, reply });
+        }
         self.pump_core();
     }
 
@@ -420,7 +818,10 @@ impl World {
     fn pump_core(&mut self) {
         for event in self.core.drain_events() {
             let notice = match event {
-                CoreEvent::ReceiptChanged(receipt) => DeviceNotice::Receipt(Box::new(receipt)),
+                CoreEvent::ReceiptChanged(mut receipt) => {
+                    self.apply_receipt_metadata_fault(&mut receipt);
+                    DeviceNotice::Receipt(Box::new(receipt))
+                }
                 CoreEvent::PermitRevoked { permit, reason } => DeviceNotice::Event(DeviceEvent {
                     seq: 0,
                     at_ms: self.now,
@@ -470,13 +871,17 @@ impl World {
         self.drain();
     }
 
+    pub fn take_delayed(&mut self) -> Vec<Input> {
+        std::mem::take(&mut self.delayed)
+    }
+
     /// The source reports the application as it is now.
     pub fn publish(&mut self) {
         if !self.source_up {
             return;
         }
         self.source_sequence += 1;
-        let snapshot = self.app.borrow().snapshot(&SnapshotMeta {
+        let mut snapshot = self.app.borrow().snapshot(&SnapshotMeta {
             snapshot_id: format!("snap-{}", self.source_sequence),
             session_epoch: self.identity.session_epoch,
             surface: self.identity.surface.clone(),
@@ -484,6 +889,9 @@ impl World {
             source_sequence: self.source_sequence,
             observed_ms: self.now,
         });
+        if let Some(transform) = &self.snapshot_transform {
+            transform(&mut snapshot);
+        }
         self.inbox.push_back(Input::Structure(Box::new(snapshot)));
     }
 
@@ -515,7 +923,11 @@ impl World {
                     proposal.choice = Some(PolicyChoice::StartSkill {
                         candidate: refused.candidate_id.clone(),
                     });
-                    proposal.answers.clear();
+                    // Keep the question identity intact so this hostile case
+                    // exercises selection outside the offered action options.
+                    for answer in &mut proposal.answers {
+                        answer.selected = Some(refused.candidate_id.as_str().into());
+                    }
                 }
                 self.inbox.push_back(Input::Decision(Box::new(proposal)));
             }
@@ -651,6 +1063,9 @@ impl World {
             out.push_str(&format!("  [{:>6}] {}\n", entry.at_ms, entry.text));
         }
         out.push_str(&format!("inputs: {:?}\n", self.inputs.borrow()));
+        if !self.computer_log.is_empty() {
+            out.push_str(&format!("computer commands: {:?}\n", self.computer_log));
+        }
         out
     }
 }

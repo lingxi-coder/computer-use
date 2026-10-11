@@ -8,42 +8,204 @@
 //! allowed. Either way it reaches the device only through the one admission.
 
 use interaction_contracts::desktop::binding::{
-    BindRequest, BindScope, BindingOutcome, TargetDescription,
+    BindRequest, BindScope, BindingOutcome, TargetDescription, instance_fingerprint,
+    normalize_label,
 };
-use interaction_contracts::desktop::decision::{DecisionFailure, DecisionSource, Precondition};
-use interaction_contracts::desktop::ids::{RequestId, SemanticTargetRef};
+use interaction_contracts::desktop::decision::{
+    Candidate, DecisionFailure, DecisionSource, Precondition,
+};
+use interaction_contracts::desktop::effect::EffectClass;
+use interaction_contracts::desktop::ids::{CandidateId, RequestId, SemanticTargetRef};
 use interaction_contracts::desktop::operator::RunMode;
 use interaction_contracts::desktop::planning::Subgoal;
-use interaction_contracts::desktop::task::RootState;
+use interaction_contracts::desktop::task::{ExpectedValue, RootState, ScopedCommitKind};
 use interaction_contracts::desktop::verification::TriState;
 
 use super::{Engine, EngineError, Output, Step};
+use crate::environment::read::focused_window_id;
 use crate::environment::state_core::EnvSnapshot;
 use crate::execution::{DeviceCommand, Expect};
 use crate::ports::DecisionLifecycle;
 use crate::reaction::candidates::{
     Basis, Resolution, Scope, bind_layer_controls, build, layer_title, modal_in_front,
+    scoped_radio_choice_values, scoped_revisit_plan_is_allowed,
 };
 use crate::reaction::compiler::{CompileFailure, CompileInput, compile};
 use crate::reaction::decisions::{Control, DecisionBasis, Dropped, OpenSpec, Verdict};
-use crate::verification::{EvidenceContext, Verdict as GoalVerdict};
+use crate::reaction::owned_text::OwnedDocumentActionPlan;
+use crate::reaction::skills::{scoped_radio_choice_control, scoped_revisit_primary_binding_object};
+use crate::verification::{EvidenceContext, ScopedCommitReceiptStatus, Verdict as GoalVerdict};
 
 enum Verified {
     Completed,
     Pending(Box<GoalVerdict>),
 }
 
+const SCOPED_AUTO_SAVE_SETTLE_MS: u64 = 800;
+const SCOPED_AUTO_SAVE_POLL_INTERVAL_MS: u64 = 400;
+const SCOPED_AUTO_SAVE_MAX_WAIT_MS: u64 = 3_000;
+
 impl Engine {
+    /// A completed owned-document action may finish its already-authorized
+    /// read-only revisit after the device restarts with input unavailable.
+    /// This is deliberately not an execution profile: it only permits the
+    /// existing owned-revisit state machine to consume its independent Source
+    /// proof, and never reaches normal planning or attempt dispatch.
+    fn owned_revisit_read_only_continuation(&self) -> bool {
+        let Some(progress) = self.owned_revisit.as_ref() else {
+            return false;
+        };
+        let Some(run) = self.run.as_ref() else {
+            return false;
+        };
+        let Some(active) = self.tasks.active() else {
+            return false;
+        };
+        let Some(manifest) = self.device.manifest() else {
+            return false;
+        };
+
+        let challenge = &progress.challenge;
+        let phase_is_read_only = match progress.phase {
+            super::owned_revisit::OwnedRevisitPhase::HostCompletion => {
+                progress.completion.is_none()
+            }
+            super::owned_revisit::OwnedRevisitPhase::SourceProof => {
+                progress.completion.as_ref().is_some_and(|completion| {
+                    completion.version == 1
+                        && completion.transition_id == challenge.transition_id
+                        && completion.root_task_id == challenge.root_task_id
+                        && completion.task_revision == challenge.task_revision
+                        && completion.root_epoch == challenge.root_epoch
+                        && completion.new_device_session_epoch
+                            == challenge.expected_device_session_epoch
+                        && completion.clock_domain == challenge.clock_domain
+                })
+            }
+            _ => false,
+        };
+
+        run.effect_verification_only
+            && run.attempt.is_none()
+            && phase_is_read_only
+            && run.goal.execution_domain
+                == interaction_contracts::desktop::domain::ExecutionDomain::ForegroundNative
+            && manifest.execution_domain == run.goal.execution_domain
+            && manifest.backend == interaction_contracts::desktop::device::BackendKind::Macos
+            && manifest.input
+                == interaction_contracts::desktop::device::CapabilityState::Unavailable
+            && manifest.max_uninterruptible_ms == 0
+            && manifest.identity.session_epoch == challenge.expected_device_session_epoch
+            && self.now_ms < challenge.deadline_ms
+            && run.goal.root_task_id == challenge.root_task_id
+            && run.goal.task_revision == challenge.task_revision
+            && run.grant.root_epoch == challenge.root_epoch
+            && active.row.root_id == challenge.root_task_id
+            && active.row.task_revision == challenge.task_revision
+            && active.row.root_epoch == challenge.root_epoch
+            && !active.row.cancel_requested
+    }
+
+    /// Only the frozen row-selection step may use the independent table census.
+    /// Navigation and ordinary controls retain the whole-structure gate.
+    pub(super) fn row_root_evidence_usable(&self) -> bool {
+        let Some(run) = self.run.as_ref() else {
+            return false;
+        };
+        let Some(row) = run.goal.target.row.as_ref() else {
+            return false;
+        };
+        if run.goal.scope.app != run.pack.bundle_id
+            || run.attempt.as_ref().is_some_and(|attempt| {
+                attempt.skill.skill() != crate::reaction::skills::Skill::SelectRow
+            })
+            || (!run.effect_verification_only
+                && self
+                    .next_subgoal()
+                    .is_none_or(|step| step.skill != "ui.select_row"))
+        {
+            return false;
+        }
+        self.state
+            .row_scope_usable(&row.table_scope, self.now_ms, self.cfg.evidence_max_age_ms)
+            && self
+                .state
+                .latest()
+                .is_some_and(|env| env.snapshot.app.bundle_id == run.goal.scope.app)
+    }
+
+    fn owned_root_evidence_usable(&self) -> bool {
+        let Some(run) = self.run.as_ref() else {
+            return false;
+        };
+        let interaction_contracts::desktop::task::ExpectedValue::Text { value } = &run.goal.desired
+        else {
+            return false;
+        };
+        let next_subgoal = if !run.effect_verification_only {
+            let Some(subgoal) = self.next_subgoal() else {
+                return false;
+            };
+            if subgoal.skill != "ui.enter_text"
+                && (subgoal.skill != "ui.save_document" || !self.cfg.allow_owned_document_save)
+                || subgoal.scroll.is_some()
+                || subgoal.select.is_some()
+                || subgoal
+                    .target
+                    .as_ref()
+                    .is_some_and(|target| target != &run.goal.target.semantic_target)
+            {
+                return false;
+            }
+            Some(subgoal)
+        } else {
+            None
+        };
+        if value.len() > 2048 || value.contains('\0') {
+            return false;
+        }
+        if next_subgoal.as_ref().is_some_and(|subgoal| subgoal.skill == "ui.enter_text")
+            && interaction_contracts::desktop::owned_input::OwnedDocumentBindingProof::
+                validate_setter_value(value)
+                .is_err()
+        {
+            return false;
+        }
+        let Some(proof) = self.owned_document_proof_for(&run.goal.target.semantic_target) else {
+            return false;
+        };
+        if next_subgoal
+            .as_ref()
+            .is_some_and(|subgoal| subgoal.skill == "ui.save_document")
+        {
+            let ExpectedValue::Text { value } = &run.goal.desired else {
+                return false;
+            };
+            return self.cfg.allow_owned_document_save
+                && OwnedDocumentActionPlan::save(proof, value.clone()).is_ok();
+        }
+        true
+    }
+
     /// The situation a decision is made in, when there is evidence.
     pub(super) fn current_basis(&self) -> Option<DecisionBasis> {
         let env = self.state.latest()?;
         let active = self.tasks.active()?;
-        Some(DecisionBasis::capture(
+        let owned_document = self.owned_root_evidence_usable().then(|| {
+            let run = self
+                .run
+                .as_ref()
+                .expect("owned evidence requires an active root");
+            self.owned_document_proof_for(&run.goal.target.semantic_target)
+                .expect("owned evidence was just checked")
+        });
+        Some(DecisionBasis::capture_with_owned_document(
             env,
             &self.bindings,
             active.row.plan_revision,
             active.row.task_revision,
             active.row.root_epoch,
+            owned_document,
         ))
     }
 
@@ -55,7 +217,7 @@ impl Engine {
         if self.mode != RunMode::Execute || self.run.is_none() {
             return Ok(false);
         }
-        if !self.device.input_available()
+        if !self.execution_profile_matches_goal()
             || self.device.behind_on_stops()
             || !self.device.lease_established()
         {
@@ -78,7 +240,11 @@ impl Engine {
             return Ok(true);
         }
         // Registered: only current evidence is missing.
-        if !self.evidence_usable() {
+        if !(self.goal_evidence_usable()
+            || self.owned_root_evidence_usable()
+            || self.row_root_evidence_usable()
+            || self.activation_pending() && self.window_evidence_usable())
+        {
             if self.run.as_ref().is_some_and(|run| run.wait.is_some()) {
                 return Ok(false);
             }
@@ -103,6 +269,19 @@ impl Engine {
         if self.mode != RunMode::Execute {
             return Ok(false);
         }
+        if self.owned_revisit_read_only_continuation() {
+            return self.advance_owned_revisit();
+        }
+        if !self.execution_profile_matches_goal() {
+            if self.tasks.active_state() == Some(RootState::Running) {
+                self.pause_root("the selected execution-domain capability changed")?;
+                return Ok(true);
+            }
+            return Ok(false);
+        }
+        if self.owned_revisit.is_some() {
+            return self.advance_owned_revisit();
+        }
         if self.run.as_ref().is_some_and(|run| run.attempt.is_some()) {
             return self.drive_attempt();
         }
@@ -125,32 +304,208 @@ impl Engine {
         {
             return Ok(false);
         }
-        if !self.evidence_usable() {
+        if self.activation_pending() {
+            return self.start_window_attempt();
+        }
+        if self.run.as_ref().is_some_and(|run| {
+            run.goal.execution_domain
+                == interaction_contracts::desktop::domain::ExecutionDomain::HeadlessBrowser
+        }) {
+            return self.step_headless_browser();
+        }
+        if !self.goal_evidence_usable()
+            && !self.owned_root_evidence_usable()
+            && !self.row_root_evidence_usable()
+        {
             if self.run.as_ref().is_some_and(|run| run.wait.is_some()) {
                 return Ok(false);
             }
             let now = self.now_ms;
-            return self.request_refresh(now, "there is no current evidence");
+            return self.await_source(
+                now,
+                "there is no current evidence",
+                !self.state.requires_frames() && !self.computer.is_active(),
+            );
         }
         // The goal can only be read through its binding, so that comes first:
         // a baseline taken before the target is bound would be unknown, and so
         // would be the conclusion after a page was entered again.
         self.maintain_goal_binding();
         let verdict = match self.verify()? {
-            Verified::Completed => return Ok(true),
+            Verified::Completed => {
+                self.retire_computer_goal_satisfied();
+                return Ok(true);
+            }
             Verified::Pending(verdict) => *verdict,
         };
+        if let Some(result) = self.wait_for_scoped_auto_commit_receipt()? {
+            return Ok(result);
+        }
+        if self.native_context_settling() {
+            return Ok(false);
+        }
+        if self
+            .run
+            .as_ref()
+            .is_some_and(|run| run.effect_verification_only)
+        {
+            if self.bump_stalls() <= 1 {
+                return self.request_refresh(
+                    self.now_ms.saturating_add(1),
+                    "checking the completed input's goal evidence again",
+                );
+            }
+            self.note(
+                "the completed input's business effect could not be proved; no input is repeated",
+            );
+            self.abandon_work()?;
+            self.tasks.input_ended_unverified(
+                &mut self.storage,
+                self.now_ms,
+                "the completed input's business effect could not be proved",
+            )?;
+            return Ok(true);
+        }
+        if self.computer.is_active() {
+            return self.computer_drive();
+        }
+        if self.cfg.computer_proposals_enabled
+            && self
+                .next_subgoal()
+                .is_some_and(|subgoal| subgoal.skill == "ui.activate")
+            && self.computer_drive()?
+        {
+            return Ok(true);
+        }
+        if self.computer_blocks_current_subgoal() {
+            self.pause_root(
+                "the computer action scope ended; an explicit operator decision is required",
+            )?;
+            return Ok(true);
+        }
         self.choose_next(verdict)
+    }
+
+    /// Execute the one Host-frozen browser checkbox skill through the same
+    /// Running root, DecisionBook, effect gate, and durable Attempt admission
+    /// path used by a direct native plan step.
+    fn step_headless_browser(&mut self) -> Step {
+        if !self.goal_evidence_usable() {
+            if self.run.as_ref().is_some_and(|run| run.wait.is_some()) {
+                return Ok(false);
+            }
+            return self.await_source(
+                self.now_ms,
+                "the browser goal needs a fresh read from its installed page scope",
+                true,
+            );
+        }
+        let Some((profile, target, desired)) = self.run.as_ref().and_then(|run| {
+            let profile = run.goal.browser_page_profile?;
+            let ExpectedValue::Bool { value } = &run.goal.desired else {
+                return None;
+            };
+            Some((profile, run.goal.target.semantic_target.clone(), *value))
+        }) else {
+            self.fail_root("the browser goal has no frozen boolean page profile")?;
+            return Ok(true);
+        };
+        let Some(subgoal) = self.next_subgoal() else {
+            self.fail_root("the browser plan ended before its checkbox goal was verified")?;
+            return Ok(true);
+        };
+        if subgoal.skill != "ui.ensure_value"
+            || subgoal.target.as_ref() != Some(&target)
+            || subgoal.scroll.is_some()
+            || subgoal.select.is_some()
+            || target.as_str() != profile.semantic_target()
+        {
+            self.fail_root("the browser plan does not match its frozen checkbox target")?;
+            return Ok(true);
+        }
+        let Some(observation) = self.browser_execution_observation(profile) else {
+            return self.await_source(
+                self.now_ms,
+                "the browser checkbox binding is no longer current",
+                true,
+            );
+        };
+        let mut parameters = std::collections::BTreeMap::new();
+        parameters.insert("desired".into(), desired.to_string());
+        let candidate = Candidate {
+            candidate_id: CandidateId::new("browser-checkbox").expect("fixed candidate id"),
+            skill: "ui.ensure_value".into(),
+            semantic_target: Some(target),
+            binding: Some(observation.binding_ref),
+            parameters,
+            effect_class: EffectClass::ReversibleEdit,
+            precondition: Precondition::Executable,
+            description: format!(
+                "Set the fixed browser checkbox \"{}\" to {desired}",
+                profile.label()
+            ),
+        };
+        self.run_direct(candidate)
     }
 
     /// Bind the goal's own target as soon as it can be, and again whenever a
     /// page is entered anew. Whatever the bind answers besides "bound" is
     /// dealt with when a step needs the target.
-    fn maintain_goal_binding(&mut self) {
+    pub(super) fn maintain_goal_binding(&mut self) {
         let Some(env) = self.state.latest().cloned() else {
             return;
         };
-        if modal_in_front(&env) || self.run.is_none() {
+        let background_ax = self.run.as_ref().is_some_and(|run| {
+            run.goal.execution_domain
+                == interaction_contracts::desktop::domain::ExecutionDomain::BackgroundAx
+        });
+        if env.snapshot.menu_context.is_some()
+            || self.run.is_none()
+            || (!background_ax && modal_in_front(&env))
+        {
+            return;
+        }
+        if background_ax {
+            let Some((goal, pack, app)) = self.run.as_ref().map(|run| {
+                (
+                    run.goal.target.clone(),
+                    run.pack.clone(),
+                    run.goal.scope.app.clone(),
+                )
+            }) else {
+                return;
+            };
+            let Some(control) = pack.control(&goal.semantic_target) else {
+                self.bindings.invalidate(
+                    &goal.semantic_target,
+                    "BackgroundAX target is not a registered control",
+                );
+                return;
+            };
+            if goal.row.is_some()
+                || env.snapshot.app.bundle_id != app
+                || env.snapshot.app.bundle_id != pack.bundle_id
+                || normalize_label(&goal.label) != normalize_label(&control.label)
+                || goal.role_hint.as_deref() != Some(control.role.as_str())
+                || pack.effect_class(&control.role, &control.label)
+                    != interaction_contracts::desktop::effect::EffectClass::ReversibleEdit
+                || !self.background_ax_evidence_usable(None)
+            {
+                self.bindings.invalidate(
+                    &goal.semantic_target,
+                    "BackgroundAX target or fresh Host-scoped Source context is unavailable",
+                );
+                return;
+            }
+            let result = self.bindings.bind_background_ax(
+                &env,
+                &goal,
+                self.now_ms,
+                self.cfg.evidence_max_age_ms.min(2_000),
+            );
+            if let Err(reason) = result {
+                self.bindings.invalidate(&goal.semantic_target, &reason);
+            }
             return;
         }
         let target = self
@@ -159,6 +514,212 @@ impl Engine {
             .map(|run| run.goal.target.semantic_target.clone())
             .expect("checked above");
         let description = self.goal_description();
+        if self
+            .run
+            .as_ref()
+            .is_some_and(|run| run.goal.target.row.is_some())
+        {
+            self.resolve_row(&target, &env);
+            return;
+        }
+        if self
+            .run
+            .as_ref()
+            .is_some_and(|run| run.pack.keyboard_toggle(&target).is_some())
+        {
+            if let Some(binding) = self.bind_keyboard_goal(&env)
+                && let Some(run) = self.run.as_mut()
+            {
+                run.verification.visits.set_target_page(env.page.clone());
+                run.verification
+                    .visits
+                    .note_bound(binding.observed_ms, env.page.as_deref());
+            } else {
+                self.bindings.invalidate(
+                    &target,
+                    "current keyboard receiver or read-only kernel/root facts are unavailable",
+                );
+            }
+            return;
+        }
+        if let Resolution::Bound(binding) = self.resolve(&target, description, &env) {
+            // A hidden goal may first be bound by a container-scoped skill.
+            // Reusing that binding still establishes its page; rebinding after
+            // return must use the binding's actual evidence time, never now.
+            if let Some(run) = self.run.as_mut() {
+                run.verification.visits.set_target_page(env.page.clone());
+                run.verification
+                    .visits
+                    .note_bound(binding.observed_ms, env.page.as_deref());
+            }
+        }
+    }
+
+    /// Input binding comes from current actual focus; a completed keyboard
+    /// transaction may retain only its descriptor for independent UI reads.
+    pub(super) fn bind_keyboard_goal(
+        &mut self,
+        env: &EnvSnapshot,
+    ) -> Option<crate::environment::binding::Binding> {
+        if !self.evidence_usable()
+            || env.snapshot.validate().is_err()
+            || env.snapshot.menu_context.is_some()
+            || modal_in_front(env)
+        {
+            return None;
+        }
+        let run = self.run.as_ref()?;
+        let target = &run.goal.target;
+        let definition = run.pack.keyboard_toggle(&target.semantic_target)?;
+        if !matches!(
+            run.goal.desired,
+            interaction_contracts::desktop::task::ExpectedValue::Bool { .. }
+        ) || normalize_label(&target.label) != normalize_label(&definition.label)
+            || target
+                .role_hint
+                .as_ref()
+                .is_some_and(|role| role != &definition.role)
+        {
+            return None;
+        }
+        let readonly = run.keyboard_result_context.as_ref();
+        let context = readonly.or(env.snapshot.focus_context.as_ref())?;
+        if readonly.is_some() {
+            // A saved descriptor only identifies a result under newly proved
+            // current kernel/root facts. It grants no focus or input authority.
+            let window = env.snapshot.window_context.as_ref()?;
+            if window.session_epoch != env.snapshot.session_epoch
+                || window.process != context.process
+                || window.origin_window_id != context.origin_window_id
+                || window.origin_window_frame != context.origin_window_frame
+                || window.verified_source_sequence != env.snapshot.source_sequence
+                || window.verified_observed_ms != env.snapshot.observed_ms
+            {
+                return None;
+            }
+        }
+        if context.session_epoch != env.snapshot.session_epoch
+            || context.process.pid != env.snapshot.app.pid
+            || context.target_fingerprint.app != env.snapshot.app.bundle_id
+            || focused_window_id(&env.snapshot) != Some(context.origin_window_id.as_str())
+            || env
+                .snapshot
+                .windows
+                .iter()
+                .filter(|window| {
+                    window.window_id == context.origin_window_id
+                        && window.frame == context.origin_window_frame
+                        && !window.modal
+                        && window.owner_bundle_id == env.snapshot.app.bundle_id
+                })
+                .count()
+                != 1
+            || env
+                .snapshot
+                .focus_context
+                .as_ref()
+                .is_some_and(|current| readonly.is_some() && current.process != context.process)
+        {
+            return None;
+        }
+        if readonly.is_none()
+            && (context.verified_source_sequence != env.snapshot.source_sequence
+                || context.verified_observed_ms != env.snapshot.observed_ms)
+        {
+            return None;
+        }
+        let description = self.goal_description();
+        let mut objects = env.snapshot.objects.iter().filter(|object| {
+            object.window_id == context.origin_window_id
+                && object.role == definition.role
+                && normalize_label(
+                    object
+                        .title
+                        .as_deref()
+                        .or(object.description.as_deref())
+                        .unwrap_or(""),
+                ) == normalize_label(&description.label)
+                && target.group.as_ref().is_none_or(|group| {
+                    object
+                        .group
+                        .as_ref()
+                        .is_some_and(|actual| normalize_label(group) == normalize_label(actual))
+                })
+                && object.enabled
+                && object.in_view
+                && !object.secure
+                && keyboard_read_path_safe(&env.snapshot, object, context)
+                && object.frame == context.target_frame
+                && instance_fingerprint(&env.snapshot, object) == context.target_fingerprint
+                && (readonly.is_some() || object.instance_ref == context.target_instance)
+        });
+        let instance = objects.next()?.instance_ref.clone();
+        if objects.next().is_some() {
+            return None;
+        }
+        let semantic = target.semantic_target.clone();
+        self.bindings.bind_instance(env, semantic, &instance)
+    }
+
+    pub(super) fn maintain_keyboard_result_binding(&mut self) {
+        let eligible = self
+            .run
+            .as_ref()
+            .and_then(|run| run.attempt.as_ref())
+            .is_some_and(|attempt| {
+                !attempt.mechanical_unknown
+                    && attempt.dispatch.is_none()
+                    && attempt.skill.keyboard_context().is_some()
+                    && attempt.skill.input_floor().is_some_and(|floor| {
+                        self.state.latest_since(floor.saturating_add(1)).is_some()
+                    })
+            });
+        if !eligible {
+            return;
+        }
+        let Some(env) = self.state.latest().cloned() else {
+            return;
+        };
+        match self.bind_keyboard_goal(&env) {
+            Some(binding) => {
+                if let Some(attempt) = self.run.as_mut().and_then(|run| run.attempt.as_mut()) {
+                    attempt.skill.update_keyboard_read_binding(&binding);
+                }
+            }
+            None => {
+                if let Some(run) = self.run.as_ref() {
+                    self.bindings.invalidate(
+                        &run.goal.target.semantic_target,
+                        "fresh keyboard result lacks its current kernel/root proof",
+                    );
+                }
+            }
+        }
+    }
+
+    pub(super) fn maintain_menu_result_binding(&mut self) {
+        let Some(target) = self
+            .run
+            .as_ref()
+            .and_then(|run| run.attempt.as_ref())
+            .filter(|attempt| {
+                attempt.menu_opening.is_some()
+                    && attempt.dispatch.is_none()
+                    && !attempt.mechanical_unknown
+                    && attempt.skill.menu_readonly_result_ready()
+            })
+            .and_then(|attempt| attempt.skill.menu_target())
+            .cloned()
+        else {
+            return;
+        };
+        let Some(env) = self.state.latest().cloned() else {
+            return;
+        };
+        if env.snapshot.menu_context.is_some() || !self.evidence_usable() {
+            return;
+        }
+        let description = self.describe_target(&target);
         self.resolve(&target, description, &env);
     }
 
@@ -166,6 +727,7 @@ impl Engine {
     /// predicate is true, does the root complete.
     fn verify(&mut self) -> Result<Verified, EngineError> {
         let now = self.now_ms;
+        let max_age_ms = self.cfg.evidence_max_age_ms;
         let Engine {
             state,
             bindings,
@@ -176,6 +738,8 @@ impl Engine {
         } = self;
         let run = run.as_mut().expect("a running root has a run");
         let ctx = EvidenceContext {
+            now_ms: now,
+            max_age_ms,
             state,
             bindings,
             pack: &run.pack,
@@ -184,6 +748,7 @@ impl Engine {
         if run.verification.last_input_end_ms().is_none() {
             let status = run.verification.evaluate(&run.goal.required, &ctx);
             run.verification.note_baseline(status);
+            run.verification.capture_scoped_commit_baseline(&ctx);
         }
         let verdict = run.verification.verdict(&ctx);
         let root = run.goal.root_task_id.clone();
@@ -205,10 +770,98 @@ impl Engine {
         Ok(Verified::Pending(Box::new(verdict)))
     }
 
+    /// Wait only for the visible autosave receipt before the Host-frozen
+    /// revisit step. This is a Source-only wait; the observation budget and
+    /// root deadline bound it, and a missing receipt never re-enters planning.
+    fn wait_for_scoped_auto_commit_receipt(&mut self) -> Result<Option<bool>, EngineError> {
+        let Some(run) = self.run.as_ref() else {
+            return Ok(None);
+        };
+        let Some(commit) = run.goal.scoped_commit.as_ref() else {
+            return Ok(None);
+        };
+        if commit.receipt.kind != ScopedCommitKind::Automatic
+            || run.goal.scoped_revisit.is_none()
+            || self
+                .next_subgoal()
+                .is_none_or(|subgoal| subgoal.skill != "ui.revisit")
+        {
+            return Ok(None);
+        }
+        let Some(input_end_ms) = run.verification.last_input_end_ms() else {
+            return self.end_scoped_commit_unverified(
+                "the automatic-save target changed without a recorded input",
+            );
+        };
+        let ctx = EvidenceContext {
+            state: &self.state,
+            bindings: &self.bindings,
+            pack: &run.pack,
+            goal: &run.goal,
+            now_ms: self.now_ms,
+            max_age_ms: self.cfg.evidence_max_age_ms,
+        };
+        if run.verification.scoped_commit_receipt_status(&ctx)
+            == ScopedCommitReceiptStatus::Confirmed
+        {
+            return Ok(None);
+        }
+        let earliest_receipt_ms = input_end_ms.saturating_add(SCOPED_AUTO_SAVE_SETTLE_MS);
+        let local_deadline = input_end_ms.saturating_add(SCOPED_AUTO_SAVE_MAX_WAIT_MS);
+        let root_deadline = run.goal.budget.deadline_ms;
+        let poll_deadline = local_deadline.min(root_deadline);
+        let latest_observed_ms = self.state.latest().map(|env| env.snapshot.observed_ms);
+        if latest_observed_ms.is_some_and(|observed| observed >= poll_deadline)
+            || self.now_ms >= poll_deadline
+        {
+            return self.end_scoped_commit_unverified(
+                "the automatic-save receipt did not advance within the bounded Source wait",
+            );
+        }
+        let settle_floor = latest_observed_ms
+            .map(|observed| {
+                earliest_receipt_ms.max(observed.saturating_add(SCOPED_AUTO_SAVE_POLL_INTERVAL_MS))
+            })
+            .unwrap_or(earliest_receipt_ms)
+            .min(poll_deadline);
+        self.await_source(
+            settle_floor,
+            "waiting for the automatic-save receipt in fresh Source evidence",
+            true,
+        )
+        .map(Some)
+    }
+
+    fn end_scoped_commit_unverified(&mut self, reason: &str) -> Result<Option<bool>, EngineError> {
+        self.note(reason);
+        self.abandon_work()?;
+        self.tasks
+            .input_ended_unverified(&mut self.storage, self.now_ms, reason)?;
+        Ok(Some(true))
+    }
+
     fn choose_next(&mut self, verdict: GoalVerdict) -> Step {
         let Some(env) = self.state.latest().cloned() else {
             return Ok(false);
         };
+        if let Some(run) = self.run.as_ref().filter(|run| {
+            run.goal.scoped_revisit.is_some()
+                || run
+                    .goal
+                    .scoped_commit
+                    .as_ref()
+                    .is_some_and(|commit| commit.action.is_some())
+        }) {
+            let allowed = self
+                .tasks
+                .active()
+                .and_then(|active| active.row.plan.as_ref())
+                .is_some_and(|plan| scoped_revisit_plan_is_allowed(&run.goal, &run.pack, plan));
+            if !allowed {
+                self.fail_root("the scoped revisit plan is outside its frozen target and steps")?;
+                return Ok(true);
+            }
+        }
         if modal_in_front(&env) {
             return self.decide_layer(&env);
         }
@@ -239,10 +892,13 @@ impl Engine {
         let run = self.run.as_ref().expect("a running root has a run");
         TargetDescription {
             label: run.goal.target.label.clone(),
-            group: run
-                .refined_group
-                .clone()
-                .or_else(|| run.goal.target.group.clone()),
+            group: if run.goal.allowed_scope.is_some() {
+                run.goal.target.group.clone()
+            } else {
+                run.refined_group
+                    .clone()
+                    .or_else(|| run.goal.target.group.clone())
+            },
             role_hint: run.goal.target.role_hint.clone(),
         }
     }
@@ -252,6 +908,19 @@ impl Engine {
         let run = self.run.as_ref().expect("a running root has a run");
         if target == &run.goal.target.semantic_target {
             return self.goal_description();
+        }
+        if let Some(action) = run
+            .goal
+            .scoped_commit
+            .as_ref()
+            .and_then(|commit| commit.action.as_ref())
+            .filter(|action| &action.semantic_target == target)
+        {
+            return TargetDescription {
+                label: action.label.clone(),
+                group: action.group.clone(),
+                role_hint: action.role_hint.clone(),
+            };
         }
         match run.pack.control(target) {
             Some(control) => TargetDescription {
@@ -274,8 +943,108 @@ impl Engine {
         description: TargetDescription,
         env: &EnvSnapshot,
     ) -> Resolution {
+        if let Some(run) = self.run.as_ref().filter(|run| {
+            run.goal.execution_domain
+                == interaction_contracts::desktop::domain::ExecutionDomain::BackgroundAx
+        }) {
+            let frozen = run.goal.target.clone();
+            let pack = run.pack.clone();
+            if target != &frozen.semantic_target
+                || frozen.row.is_some()
+                || env.snapshot.app.bundle_id != run.goal.scope.app
+                || env.snapshot.app.bundle_id != pack.bundle_id
+                || pack.control(&frozen.semantic_target).is_none_or(|control| {
+                    normalize_label(&frozen.label) != normalize_label(&control.label)
+                        || frozen.role_hint.as_deref() != Some(control.role.as_str())
+                        || pack.effect_class(&control.role, &control.label)
+                            != interaction_contracts::desktop::effect::EffectClass::ReversibleEdit
+                })
+                || !self.background_ax_evidence_usable(None)
+            {
+                return Resolution::Unavailable(
+                    "BackgroundAX resolution is outside the frozen registered target scope".into(),
+                );
+            }
+            return self
+                .bindings
+                .bind_background_ax(
+                    env,
+                    &frozen,
+                    self.now_ms,
+                    self.cfg.evidence_max_age_ms.min(2_000),
+                )
+                .map(|binding| Resolution::Bound(Box::new(binding)))
+                .unwrap_or_else(Resolution::Unavailable);
+        }
+        if self.run.as_ref().is_some_and(|run| {
+            target == &run.goal.target.semantic_target && run.goal.target.row.is_some()
+        }) {
+            self.bindings.invalidate(
+                target,
+                "row target cannot be resolved through generic role/label binding",
+            );
+            return Resolution::Unavailable(
+                "row target requires its dedicated viewport binding and input proof".into(),
+            );
+        }
+        let radio_goal = self.run.as_ref().and_then(|run| {
+            (target == &run.goal.target.semantic_target
+                && scoped_radio_choice_values(&run.goal, &run.pack).is_some())
+            .then(|| (run.goal.clone(), run.pack.clone()))
+        });
+        if let Some((goal, pack)) = radio_goal {
+            if !self.state.usable(self.now_ms, self.cfg.evidence_max_age_ms)
+                || env.snapshot.observed_ms > self.now_ms
+            {
+                self.bindings.invalidate(
+                    target,
+                    "radio-group target needs a current complete Source read",
+                );
+                return Resolution::Unavailable(
+                    "radio-group target needs a current complete Source read".into(),
+                );
+            }
+            let Some(radio) = scoped_radio_choice_control(&goal, &pack, env) else {
+                self.bindings.invalidate(
+                    target,
+                    "the exact registered radio group and desired child are not uniquely bound",
+                );
+                return Resolution::Unavailable(
+                    "the exact registered radio group and desired child are not uniquely bound"
+                        .into(),
+                );
+            };
+            let Some(binding) =
+                self.bindings
+                    .bind_instance(env, target.clone(), &radio.desired.instance_ref)
+            else {
+                self.bindings.invalidate(
+                    target,
+                    "the registered desired radio child has no Native Device binding proof",
+                );
+                return Resolution::Unavailable(
+                    "the registered desired radio child has no Native Device binding proof".into(),
+                );
+            };
+            if scoped_revisit_primary_binding_object(&goal, &pack, env, &binding).is_none() {
+                self.bindings.invalidate(
+                    target,
+                    "the child binding does not prove the frozen radio-group target",
+                );
+                return Resolution::Unavailable(
+                    "the child binding does not prove the frozen radio-group target".into(),
+                );
+            }
+            if let Some(run) = self.run.as_mut() {
+                run.verification.visits.set_target_page(env.page.clone());
+                run.verification
+                    .visits
+                    .note_bound(env.snapshot.observed_ms, env.page.as_deref());
+            }
+            return Resolution::Bound(Box::new(binding));
+        }
         if let Some(binding) = self.bindings.current(target) {
-            return Resolution::Bound(binding.clone());
+            return Resolution::Bound(Box::new(binding.clone()));
         }
         let now = self.now_ms;
         let max_age = self.cfg.evidence_max_age_ms;
@@ -293,7 +1062,7 @@ impl Engine {
                 app: run.goal.scope.app.clone(),
                 account: run.goal.scope.account.clone(),
             },
-            choice: if is_goal_target {
+            choice: if is_goal_target && run.goal.allowed_scope.is_none() {
                 run.chosen.take()
             } else {
                 None
@@ -314,7 +1083,7 @@ impl Engine {
                         .visits
                         .note_bound(env.snapshot.observed_ms, env.page.as_deref());
                 }
-                Resolution::Bound(binding)
+                Resolution::Bound(Box::new(binding))
             }
             BindingOutcome::Ambiguous { candidates } => Resolution::Ambiguous(candidates),
             BindingOutcome::NotFound {
@@ -323,6 +1092,53 @@ impl Engine {
                 observation_complete,
             },
             BindingOutcome::Rejected { reason, .. } => Resolution::Unavailable(reason),
+        }
+    }
+
+    /// Resolve a frozen row semantic through the typed, viewport-scoped
+    /// resolver. This intentionally never installs a generic Binding.
+    fn resolve_row(&mut self, target: &SemanticTargetRef, env: &EnvSnapshot) -> Resolution {
+        let Some(run) = self.run.as_ref() else {
+            return Resolution::Unavailable("there is no running row task".into());
+        };
+        if target != &run.goal.target.semantic_target
+            || run.goal.target.row.is_none()
+            || env.snapshot.app.bundle_id != run.goal.scope.app
+            || env.snapshot.app.bundle_id != run.pack.bundle_id
+        {
+            return Resolution::Unavailable(
+                "the row target is outside its frozen task and application scope".into(),
+            );
+        }
+        if !self.state.row_scope_usable(
+            &run.goal
+                .target
+                .row
+                .as_ref()
+                .expect("row goal was checked")
+                .table_scope,
+            self.now_ms,
+            self.cfg.evidence_max_age_ms,
+        ) {
+            return Resolution::Unavailable(
+                "row selection needs healthy fresh Source evidence".into(),
+            );
+        }
+        let target = run.goal.target.clone();
+        match self
+            .bindings
+            .bind_row(env, &target, self.now_ms, self.cfg.evidence_max_age_ms)
+        {
+            Ok(binding) => {
+                if let Some(run) = self.run.as_mut() {
+                    run.verification.visits.set_target_page(env.page.clone());
+                    run.verification
+                        .visits
+                        .note_bound(binding.observed_ms, env.page.as_deref());
+                }
+                Resolution::Row(Box::new(binding))
+            }
+            Err(reason) => Resolution::Unavailable(reason),
         }
     }
 
@@ -338,8 +1154,83 @@ impl Engine {
                 .semantic_target
                 .clone()
         });
-        let description = self.describe_target(&target);
-        let resolution = self.resolve(&target, description, env);
+        let (input_target, description) = if let Some(scroll) = &subgoal.scroll {
+            (
+                scroll.container.semantic_target.clone(),
+                TargetDescription {
+                    label: scroll.container.label.clone(),
+                    group: scroll.container.group.clone(),
+                    role_hint: scroll.container.role_hint.clone(),
+                },
+            )
+        } else {
+            (target.clone(), self.describe_target(&target))
+        };
+        let owned_target = self.run.as_ref().and_then(|run| {
+            let expected_text = match &run.goal.desired {
+                interaction_contracts::desktop::task::ExpectedValue::Text { value } => value,
+                _ => return None,
+            };
+            if !matches!(subgoal.skill.as_str(), "ui.enter_text" | "ui.save_document")
+                || (subgoal.skill == "ui.save_document" && !self.cfg.allow_owned_document_save)
+                || subgoal.scroll.is_some()
+                || subgoal.select.is_some()
+                || input_target != run.goal.target.semantic_target
+                || subgoal
+                    .target
+                    .as_ref()
+                    .is_some_and(|target| target != &run.goal.target.semantic_target)
+                || (subgoal.skill == "ui.enter_text"
+                    && interaction_contracts::desktop::owned_input::OwnedDocumentBindingProof::
+                        validate_setter_value(expected_text)
+                        .is_err())
+            {
+                return None;
+            }
+            let proof = self.owned_document_proof_for(&run.goal.target.semantic_target)?;
+            if subgoal.skill == "ui.save_document"
+                && OwnedDocumentActionPlan::save(proof.clone(), expected_text.clone()).is_err()
+            {
+                return None;
+            }
+            Some(Resolution::OwnedDocument(proof.binding))
+        });
+        let row_goal = self
+            .run
+            .as_ref()
+            .is_some_and(|run| run.goal.target.row.is_some());
+        let resolution = if let Some(owned) = owned_target {
+            owned
+        } else if row_goal {
+            if !matches!(subgoal.skill.as_str(), "ui.select_row" | "ui.revisit")
+                || input_target != target
+                || target
+                    != self
+                        .run
+                        .as_ref()
+                        .expect("row goal has a run")
+                        .goal
+                        .target
+                        .semantic_target
+                || subgoal.scroll.is_some()
+                || subgoal.select.is_some()
+            {
+                self.fail_root("the row plan step does not match the frozen row workflow")?;
+                return Ok(true);
+            }
+            self.resolve_row(&target, env)
+        } else {
+            self.resolve(&input_target, description, env)
+        };
+        if self
+            .run
+            .as_ref()
+            .is_some_and(|run| run.goal.allowed_scope.is_some())
+            && matches!(&resolution, Resolution::Ambiguous(_))
+        {
+            self.fail_root("the allowed control is ambiguous in the current Source read")?;
+            return Ok(true);
+        }
         let candidates = {
             let run = self.run.as_ref().expect("a running root has a run");
             build(
@@ -356,6 +1247,28 @@ impl Engine {
             )
         };
         match &resolution {
+            Resolution::Row(_) => {
+                if let Some(step) = candidates
+                    .iter()
+                    .find(|candidate| candidate.skill == subgoal.skill)
+                {
+                    match &step.precondition {
+                        Precondition::Executable => return self.run_direct(step.clone()),
+                        Precondition::NeedsObservation => {
+                            let now = self.now_ms;
+                            return self.request_refresh(
+                                now,
+                                "the row selection needs a fresh Source read",
+                            );
+                        }
+                        Precondition::Rejected { reason } => {
+                            let reason = format!("the row plan step is not allowed: {reason}");
+                            self.fail_root(&reason)?;
+                            return Ok(true);
+                        }
+                    }
+                }
+            }
             Resolution::Bound(_) => {
                 if let Some(step) = candidates.iter().find(|c| c.skill == subgoal.skill) {
                     match &step.precondition {
@@ -369,6 +1282,28 @@ impl Engine {
                         }
                         Precondition::Rejected { reason } => {
                             let reason = format!("the plan step is not allowed: {reason}");
+                            self.fail_root(&reason)?;
+                            return Ok(true);
+                        }
+                    }
+                }
+            }
+            Resolution::OwnedDocument(_) => {
+                if let Some(step) = candidates
+                    .iter()
+                    .find(|candidate| candidate.skill == subgoal.skill)
+                {
+                    match &step.precondition {
+                        Precondition::Executable => return self.run_direct(step.clone()),
+                        Precondition::NeedsObservation => {
+                            let now = self.now_ms;
+                            return self.request_refresh(
+                                now,
+                                "the owned text step needs current evidence",
+                            );
+                        }
+                        Precondition::Rejected { reason } => {
+                            let reason = format!("the owned text step is not allowed: {reason}");
                             self.fail_root(&reason)?;
                             return Ok(true);
                         }
@@ -669,6 +1604,7 @@ impl Engine {
     /// A failure nothing can recover from.
     pub(super) fn fail_root(&mut self, reason: &str) -> Result<(), EngineError> {
         self.note(format!("the task failed: {reason}"));
+        self.clear_source_table_scope(false);
         self.abandon_work()?;
         match self.tasks.active_state() {
             Some(RootState::Running | RootState::WaitingEvidence | RootState::WaitingPlan) => {
@@ -686,6 +1622,15 @@ impl Engine {
 
     pub(super) fn expire_root(&mut self) -> Step {
         self.note("the task ran out of time");
+        self.clear_source_table_scope(false);
+        if let Some(transition_id) = self.owned_revisit_transition_id().map(str::to_owned) {
+            self.cancel_owned_revisit(&transition_id, self.now_ms, "the root deadline passed")
+                .map_err(|error| {
+                    EngineError::Store(crate::infrastructure::storage::StoreError::Corrupt(
+                        error.to_string(),
+                    ))
+                })?;
+        }
         self.abandon_work()?;
         let root = self.tasks.active().map(|active| active.row.root_id.clone());
         self.tasks
@@ -699,11 +1644,17 @@ impl Engine {
 
     /// The root ended in a final state: what was kept for it goes away.
     pub(super) fn finish_root(&mut self) {
+        if self.run.is_some() {
+            self.clear_source_table_scope(false);
+        }
+        self.cancel_computer_lane("the root task ended");
         let ended = self.tasks.last_finished().map(|row| row.state);
         let Some(run) = self.run.take() else {
             return;
         };
         self.bindings.invalidate_all("the task ended");
+        self.permit_bindings.clear();
+        self.permit_owned_proofs.clear();
         if let Some(session) = self.device.session_epoch() {
             for permit in run.permits {
                 self.send(
@@ -724,6 +1675,27 @@ impl Engine {
     // ---- Time -----------------------------------------------------------------------------------------------
 
     pub(super) fn on_tick(&mut self) -> Result<(), EngineError> {
+        if self.owned_revisit.is_some()
+            && self
+                .tasks
+                .active_state()
+                .is_some_and(|state| self.deadline_passed(state))
+        {
+            self.expire_root()?;
+            return Ok(());
+        }
+        if self
+            .owned_revisit
+            .as_ref()
+            .is_some_and(|progress| self.now_ms >= progress.challenge.deadline_ms)
+            && matches!(
+                self.tasks.active_state(),
+                Some(RootState::Running | RootState::WaitingEvidence)
+            )
+        {
+            self.advance_owned_revisit()?;
+            return Ok(());
+        }
         self.planner_timed_out()?;
         self.retry_stale_wait()?;
         self.retry_or_expire_decision()?;
@@ -773,7 +1745,7 @@ impl Engine {
     }
 
     pub(super) fn renew_lease(&mut self) {
-        if self.device.manifest().is_none() {
+        if self.owned_revisit.is_some() || self.device.manifest().is_none() {
             return;
         }
         let every = (self.cfg.lease_ms / 2).max(1);
@@ -793,4 +1765,46 @@ impl Engine {
             }),
         );
     }
+}
+
+/// A retained result descriptor never exempts the new actual ancestry from
+/// the ordinary secure/root boundary, even when focus has left the control.
+pub(super) fn keyboard_read_path_safe(
+    snapshot: &interaction_contracts::desktop::source::StructureSnapshot,
+    target: &interaction_contracts::desktop::source::UiObject,
+    context: &interaction_contracts::desktop::source::FocusContext,
+) -> bool {
+    let mut current = target;
+    let mut seen = std::collections::BTreeSet::new();
+    for _ in 0..32 {
+        if !seen.insert(current.instance_ref.clone())
+            || current.secure
+            || current.role == "AXSecureTextField"
+            || current.subrole.as_deref() == Some("AXSecureTextField")
+            || current.window_id != context.origin_window_id
+            || matches!(
+                current.role.as_str(),
+                "AXMenu" | "AXMenuItem" | "AXSheet" | "AXDialog"
+            )
+        {
+            return false;
+        }
+        let Some(parent) = &current.parent else {
+            return current.role == "AXWindow"
+                && current.subrole.as_deref() == Some("AXStandardWindow")
+                && current.frame == context.origin_window_frame;
+        };
+        let mut parents = snapshot
+            .objects
+            .iter()
+            .filter(|object| &object.instance_ref == parent);
+        let Some(next) = parents.next() else {
+            return false;
+        };
+        if parents.next().is_some() {
+            return false;
+        }
+        current = next;
+    }
+    false
 }

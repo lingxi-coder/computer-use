@@ -12,8 +12,11 @@ repository.workspace = true
 desktop-ipc = { path = "../desktop-ipc" }
 interaction-contracts.workspace = true
 interaction-engine = { path = "../interaction-engine" }
-# The planner is scripted in this build; the real S2 adapter replaces it once
-# the integration route is chosen in M0.
+harness-adapter.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+zeroize.workspace = true
+# Explicit test backends remain available for the simulator/native fixture.
 sim-world.workspace = true
 
 [[bin]]
@@ -22,3 +25,11 @@ path = "src/bin/cu_host.rs"
 
 [lints]
 workspace = true
+
+[dev-dependencies]
+execution-core = { path = "../execution-core" }
+lingxi-llm-client.workspace = true
+async-trait = "0.1"
+futures = "0.3"
+bytes = "1"
+tempfile.workspace = true

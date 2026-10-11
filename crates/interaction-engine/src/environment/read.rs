@@ -3,20 +3,27 @@
 //! is wanted; they must agree on how, so the rules live here once.
 
 use interaction_contracts::desktop::binding::instance_fingerprint;
-use interaction_contracts::desktop::source::{UiObject, UiValue};
-use interaction_contracts::desktop::task::ExpectedValue;
+use interaction_contracts::desktop::source::{StructureSnapshot, UiObject, UiValue};
+use interaction_contracts::desktop::task::{ExpectedValue, MAX_SCOPED_FORM_SAFE_INTEGER};
 
 use super::state_core::EnvSnapshot;
 
 /// The control whose fingerprint is `digest`, looked up only in the layer that
 /// receives input. A secure field is never returned: its value is not read.
 pub fn object_for<'a>(env: &'a EnvSnapshot, digest: &str) -> Option<&'a UiObject> {
-    let active = env.snapshot.active_layer.as_deref()?;
+    let active = focused_window_id(&env.snapshot)?;
     env.snapshot.objects.iter().find(|object| {
         object.window_id == active
             && !object.secure
             && instance_fingerprint(&env.snapshot, object).digest() == digest
     })
+}
+
+/// A foreground window is known only when this same Source read reports both
+/// the globally focused app and its focused window. TargetContext is a
+/// separate authority domain and cannot fill either missing fact.
+pub fn focused_window_id(snapshot: &StructureSnapshot) -> Option<&str> {
+    snapshot.global_focus.known_window_for_app(&snapshot.app)
 }
 
 /// Whether `actual` is the wanted value. A value of another kind proves
@@ -30,6 +37,43 @@ pub fn values_equal(actual: &UiValue, expected: &ExpectedValue) -> Option<bool> 
         }
         _ => None,
     }
+}
+
+/// Parse the canonical AXTextField representation of a registered integer
+/// form control. Callers must first establish the exact Pack registration;
+/// this deliberately does not extend generic Text/Number equality.
+pub(crate) fn scoped_number_text_i64(raw: &str) -> Option<i64> {
+    let value = raw.parse::<i64>().ok()?;
+    if !(-MAX_SCOPED_FORM_SAFE_INTEGER..=MAX_SCOPED_FORM_SAFE_INTEGER).contains(&value)
+        || value.to_string() != raw
+    {
+        return None;
+    }
+    Some(value)
+}
+
+/// Compare the Source Text of a registered numeric form field with its frozen
+/// integer Goal. Noncanonical or unsafe text remains unknown.
+pub(crate) fn scoped_number_text_matches(
+    actual: &UiValue,
+    expected: &ExpectedValue,
+) -> Option<bool> {
+    let (UiValue::Text(raw), ExpectedValue::Number { value }) = (actual, expected) else {
+        return None;
+    };
+    if !(-MAX_SCOPED_FORM_SAFE_INTEGER..=MAX_SCOPED_FORM_SAFE_INTEGER).contains(value) {
+        return None;
+    }
+    scoped_number_text_i64(raw).map(|actual| actual == *value)
+}
+
+/// Convert only the canonical Text encoding of a safe integer to the existing
+/// Source numeric value type. Exact FORM-07 registration gates every caller.
+pub(crate) fn scoped_number_text_value(actual: &UiValue) -> Option<UiValue> {
+    let UiValue::Text(raw) = actual else {
+        return None;
+    };
+    scoped_number_text_i64(raw).map(|value| UiValue::Number(value as f64))
 }
 
 /// The wanted value as the string an accessibility set-value action carries.

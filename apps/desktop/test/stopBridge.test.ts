@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import { test } from 'node:test';
 
-import type { BridgeStopStatus, OperatorCommand, StopAck, StopDisposition, StopScope, StopSource } from '@computer-user/desktop-api';
+import type { BridgeStopStatus, OperatorCommand, RootState, StopAck, StopDisposition, StopScope, StopSource, UiProjection } from '@computer-use/desktop-api';
 
 import { DEFAULT_ACCELERATOR, StopBridge, type HotkeyRegistry, type StopTransport } from '../src/main/stopBridge.js';
+import { simulatedOnlyDomains } from './capabilityFixtures.js';
 
 class FakeTransport extends EventEmitter implements StopTransport {
   calls: string[] = [];
@@ -131,4 +132,85 @@ test('a device that does not answer leaves the stop unconfirmed after the wait',
   transport.ack('global_hotkey', 'not_needed');
   assert.equal(bridge.status, 'confirmed');
   bridge.dispose();
+});
+
+function projection(rootId: string, state: RootState, stopStatus: UiProjection['stop_status'] = 'not_stopped', epoch = 1): UiProjection {
+  return {
+    revision: 1, mode: 'execute',
+    root: { root_task_id: rootId, task_revision: 1, root_epoch: 1, state, headline: '', attempts_used: 0, attempts_max: 10 },
+    stop_status: stopStatus, cleanup: 'not_needed', pending_confirmation: null, timeline: [], observation: null,
+    capabilities: {
+      identity: { session_epoch: epoch, surface: { id: 'main', epoch }, clock_domain: `sim/${epoch}`, dependencies: {} },
+      backend: 'simulated', execution_domain: 'simulated', domains: simulatedOnlyDomains(),
+      policy: 'atomic_only', human_input: 'available', hit_test: 'available', input: 'available', max_uninterruptible_ms: 100,
+    },
+  };
+}
+
+test('confirmed direct release survives a lagging host but clears for a new task', () => {
+  const transport = new FakeTransport();
+  const bridge = new StopBridge(transport, new FakeHotkeys());
+  bridge.start();
+  bridge.observeProjection(projection('root-1', 'running'));
+  bridge.press('operator_button');
+  transport.ack('operator_button');
+  bridge.observeProjection(projection('root-1', 'running'));
+  assert.equal(bridge.status, 'confirmed', 'the frozen host does not erase the direct device acknowledgement');
+  bridge.observeProjection(projection('root-1', 'cancelled', 'stopped_confirmed'));
+  bridge.observeProjection(projection('root-2', 'compiling_goal'));
+  assert.equal(bridge.status, 'idle');
+  transport.ack('operator_button');
+  assert.equal(bridge.status, 'idle', 'a duplicate old acknowledgement does not restore the banner');
+  bridge.dispose();
+});
+
+test('an explicit resume or a new device session clears an old confirmed release', () => {
+  for (const next of [projection('root-1', 'needs_revalidation'), projection('root-1', 'running', 'not_stopped', 2)]) {
+    const transport = new FakeTransport();
+    const bridge = new StopBridge(transport, new FakeHotkeys());
+    bridge.start();
+    bridge.observeProjection(projection('root-1', 'running'));
+    bridge.press('operator_button');
+    transport.ack('operator_button');
+    bridge.observeProjection(projection('root-1', 'suspended', 'stopped_confirmed'));
+    bridge.observeProjection(next);
+    assert.equal(bridge.status, 'idle');
+    bridge.dispose();
+  }
+});
+
+test('new work does not erase an unconfirmed input cleanup', () => {
+  const transport = new FakeTransport();
+  const bridge = new StopBridge(transport, new FakeHotkeys());
+  bridge.start();
+  bridge.observeProjection(projection('root-1', 'running'));
+  bridge.press('operator_button');
+  transport.ack('operator_button', 'unknown');
+  bridge.observeProjection(projection('root-2', 'compiling_goal'));
+  assert.equal(bridge.status, 'unconfirmed');
+  bridge.dispose();
+});
+
+test('a late confirmed acknowledgement cannot mark a new task as stopped', () => {
+  const transport = new FakeTransport();
+  const bridge = new StopBridge(transport, new FakeHotkeys());
+  bridge.start();
+  bridge.observeProjection(projection('root-1', 'running'));
+  bridge.press('operator_button');
+  bridge.observeProjection(projection('root-2', 'ready'));
+  assert.equal(bridge.status, 'stopping', 'until cleanup is known, it still needs an acknowledgement');
+  transport.ack('operator_button', 'released');
+  assert.equal(bridge.status, 'idle', 'the confirmed cleanup belongs to the old task');
+  bridge.dispose();
+});
+
+test('replacement discards old confirmations while preserving unknown cleanup', () => {
+  for (const cleanup of ['released', 'unknown'] as const) {
+    const transport = new FakeTransport(); const bridge = new StopBridge(transport, new FakeHotkeys());
+    bridge.start(); bridge.press('operator_button'); transport.ack('operator_button', cleanup);
+    bridge.resetSession(); assert.equal(bridge.status, cleanup === 'released' ? 'idle' : 'unconfirmed');
+    transport.ack('operator_button', 'released');
+    assert.equal(bridge.status, cleanup === 'released' ? 'idle' : 'unconfirmed', 'an old acknowledgement is not a new device acknowledgement');
+    bridge.dispose();
+  }
 });

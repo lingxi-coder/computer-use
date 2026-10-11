@@ -1,0 +1,2831 @@
+{
+  "snapshot_id": "3deed9cebb0eeb5a3771255b06ea53ad-tree-6",
+  "session_epoch": 1,
+  "surface": {
+    "id": "main",
+    "epoch": 1
+  },
+  "clock_domain": "macos/1/wall",
+  "identity_boundary": {
+    "namespace": "d80e35d2-2873-4baa-992a-8c8fb113d042",
+    "generation": 2
+  },
+  "frame_ref": "frame-3deed9cebb0eeb5a3771255b06ea53ad-5",
+  "source_sequence": 6,
+  "observed_ms": 3325,
+  "app": {
+    "bundle_id": "com.lingxi.computer-user.mvp-fixture",
+    "name": "Interaction Fixture",
+    "pid": 81166
+  },
+  "windows": [
+    {
+      "window_id": "window-23405",
+      "title": "Window",
+      "frame": {
+        "x": 184.0,
+        "y": 86.0,
+        "width": 52.0,
+        "height": 20.0
+      },
+      "z_index": 11,
+      "kind": "window",
+      "modal": false,
+      "owner_bundle_id": "com.lingxi.computer-user.mvp-fixture"
+    },
+    {
+      "window_id": "window-23403",
+      "title": "Interaction Fixture",
+      "frame": {
+        "x": 176.0,
+        "y": 82.0,
+        "width": 1160.0,
+        "height": 768.0
+      },
+      "z_index": 12,
+      "kind": "window",
+      "modal": false,
+      "owner_bundle_id": "com.lingxi.computer-user.mvp-fixture"
+    }
+  ],
+  "complete": false,
+  "incomplete_reason": "AX table row subtree omitted for scoped census",
+  "objects": [
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e1",
+      "parent": null,
+      "window_id": "window-23405",
+      "role": "AXWindow",
+      "subrole": "AXDialog",
+      "title": "Window",
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 184.0,
+        "y": 86.0,
+        "width": 52.0,
+        "height": 20.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e2",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e1",
+      "window_id": "window-23405",
+      "role": "AXButton",
+      "subrole": null,
+      "title": "WindowSharingSessionButton",
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": false,
+      "frame": {
+        "x": 183.0,
+        "y": 85.0,
+        "width": 54.0,
+        "height": 22.0
+      },
+      "actions": [
+        "press"
+      ],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e3",
+      "parent": null,
+      "window_id": "window-23403",
+      "role": "AXWindow",
+      "subrole": "AXStandardWindow",
+      "title": "Interaction Fixture",
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 176.0,
+        "y": 82.0,
+        "width": 1160.0,
+        "height": 768.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e4",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e3",
+      "window_id": "window-23403",
+      "role": "AXScrollArea",
+      "subrole": null,
+      "title": null,
+      "description": "偏好设置内容",
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 200.0,
+        "y": 166.0,
+        "width": 1112.0,
+        "height": 660.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": {
+        "horizontal": null,
+        "vertical": {
+          "value": 0.0,
+          "min": null,
+          "max": null
+        }
+      },
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e5",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e4",
+      "window_id": "window-23403",
+      "role": "AXStaticText",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": {
+        "type": "text",
+        "value": "偏好设置"
+      },
+      "enabled": true,
+      "focused": false,
+      "frame": {
+        "x": 223.0,
+        "y": 189.0,
+        "width": 90.0,
+        "height": 29.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e6",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e4",
+      "window_id": "window-23403",
+      "role": "AXStaticText",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": {
+        "type": "text",
+        "value": "归档"
+      },
+      "enabled": true,
+      "focused": false,
+      "frame": {
+        "x": 223.0,
+        "y": 232.0,
+        "width": 46.0,
+        "height": 29.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e7",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e4",
+      "window_id": "window-23403",
+      "role": "AXScrollArea",
+      "subrole": null,
+      "title": null,
+      "description": "归档",
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 224.0,
+        "y": 276.0,
+        "width": 780.0,
+        "height": 500.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": {
+        "horizontal": null,
+        "vertical": {
+          "value": 0.0,
+          "min": null,
+          "max": null
+        }
+      },
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e7",
+      "window_id": "window-23403",
+      "role": "AXTable",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": true,
+      "frame": {
+        "x": 224.0,
+        "y": 304.0,
+        "width": 765.0,
+        "height": 4402.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e9",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "window_id": "window-23403",
+      "role": "AXRow",
+      "subrole": "AXTableRow",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 225.0,
+        "y": 305.0,
+        "width": 763.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e300",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e9",
+      "window_id": "window-23403",
+      "role": "AXCell",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": true,
+      "frame": {
+        "x": 231.0,
+        "y": 305.0,
+        "width": 751.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e11",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "window_id": "window-23403",
+      "role": "AXRow",
+      "subrole": "AXTableRow",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 225.0,
+        "y": 327.0,
+        "width": 763.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e301",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e11",
+      "window_id": "window-23403",
+      "role": "AXCell",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": true,
+      "frame": {
+        "x": 231.0,
+        "y": 327.0,
+        "width": 751.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e13",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "window_id": "window-23403",
+      "role": "AXRow",
+      "subrole": "AXTableRow",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 225.0,
+        "y": 349.0,
+        "width": 763.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e302",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e13",
+      "window_id": "window-23403",
+      "role": "AXCell",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": true,
+      "frame": {
+        "x": 231.0,
+        "y": 349.0,
+        "width": 751.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e15",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "window_id": "window-23403",
+      "role": "AXRow",
+      "subrole": "AXTableRow",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 225.0,
+        "y": 371.0,
+        "width": 763.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e303",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e15",
+      "window_id": "window-23403",
+      "role": "AXCell",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": true,
+      "frame": {
+        "x": 231.0,
+        "y": 371.0,
+        "width": 751.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e17",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "window_id": "window-23403",
+      "role": "AXRow",
+      "subrole": "AXTableRow",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 225.0,
+        "y": 393.0,
+        "width": 763.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e304",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e17",
+      "window_id": "window-23403",
+      "role": "AXCell",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": true,
+      "frame": {
+        "x": 231.0,
+        "y": 393.0,
+        "width": 751.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e19",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "window_id": "window-23403",
+      "role": "AXRow",
+      "subrole": "AXTableRow",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 225.0,
+        "y": 415.0,
+        "width": 763.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e305",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e19",
+      "window_id": "window-23403",
+      "role": "AXCell",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": true,
+      "frame": {
+        "x": 231.0,
+        "y": 415.0,
+        "width": 751.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e21",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "window_id": "window-23403",
+      "role": "AXRow",
+      "subrole": "AXTableRow",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 225.0,
+        "y": 437.0,
+        "width": 763.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e306",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e21",
+      "window_id": "window-23403",
+      "role": "AXCell",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": true,
+      "frame": {
+        "x": 231.0,
+        "y": 437.0,
+        "width": 751.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e23",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "window_id": "window-23403",
+      "role": "AXRow",
+      "subrole": "AXTableRow",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 225.0,
+        "y": 459.0,
+        "width": 763.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e307",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e23",
+      "window_id": "window-23403",
+      "role": "AXCell",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": true,
+      "frame": {
+        "x": 231.0,
+        "y": 459.0,
+        "width": 751.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e25",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "window_id": "window-23403",
+      "role": "AXRow",
+      "subrole": "AXTableRow",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 225.0,
+        "y": 481.0,
+        "width": 763.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e308",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e25",
+      "window_id": "window-23403",
+      "role": "AXCell",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": true,
+      "frame": {
+        "x": 231.0,
+        "y": 481.0,
+        "width": 751.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e27",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "window_id": "window-23403",
+      "role": "AXRow",
+      "subrole": "AXTableRow",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 225.0,
+        "y": 503.0,
+        "width": 763.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e309",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e27",
+      "window_id": "window-23403",
+      "role": "AXCell",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": true,
+      "frame": {
+        "x": 231.0,
+        "y": 503.0,
+        "width": 751.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e29",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "window_id": "window-23403",
+      "role": "AXRow",
+      "subrole": "AXTableRow",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 225.0,
+        "y": 525.0,
+        "width": 763.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e310",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e29",
+      "window_id": "window-23403",
+      "role": "AXCell",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": true,
+      "frame": {
+        "x": 231.0,
+        "y": 525.0,
+        "width": 751.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e31",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "window_id": "window-23403",
+      "role": "AXRow",
+      "subrole": "AXTableRow",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 225.0,
+        "y": 547.0,
+        "width": 763.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e311",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e31",
+      "window_id": "window-23403",
+      "role": "AXCell",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": true,
+      "frame": {
+        "x": 231.0,
+        "y": 547.0,
+        "width": 751.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e33",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "window_id": "window-23403",
+      "role": "AXRow",
+      "subrole": "AXTableRow",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 225.0,
+        "y": 569.0,
+        "width": 763.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e312",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e33",
+      "window_id": "window-23403",
+      "role": "AXCell",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": true,
+      "frame": {
+        "x": 231.0,
+        "y": 569.0,
+        "width": 751.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e35",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "window_id": "window-23403",
+      "role": "AXRow",
+      "subrole": "AXTableRow",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 225.0,
+        "y": 591.0,
+        "width": 763.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e313",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e35",
+      "window_id": "window-23403",
+      "role": "AXCell",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": true,
+      "frame": {
+        "x": 231.0,
+        "y": 591.0,
+        "width": 751.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e37",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "window_id": "window-23403",
+      "role": "AXRow",
+      "subrole": "AXTableRow",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 225.0,
+        "y": 613.0,
+        "width": 763.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e314",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e37",
+      "window_id": "window-23403",
+      "role": "AXCell",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": true,
+      "frame": {
+        "x": 231.0,
+        "y": 613.0,
+        "width": 751.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e39",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "window_id": "window-23403",
+      "role": "AXRow",
+      "subrole": "AXTableRow",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 225.0,
+        "y": 635.0,
+        "width": 763.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e315",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e39",
+      "window_id": "window-23403",
+      "role": "AXCell",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": true,
+      "frame": {
+        "x": 231.0,
+        "y": 635.0,
+        "width": 751.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e41",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "window_id": "window-23403",
+      "role": "AXRow",
+      "subrole": "AXTableRow",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 225.0,
+        "y": 657.0,
+        "width": 763.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e316",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e41",
+      "window_id": "window-23403",
+      "role": "AXCell",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": true,
+      "frame": {
+        "x": 231.0,
+        "y": 657.0,
+        "width": 751.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e43",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "window_id": "window-23403",
+      "role": "AXRow",
+      "subrole": "AXTableRow",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 225.0,
+        "y": 679.0,
+        "width": 763.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e317",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e43",
+      "window_id": "window-23403",
+      "role": "AXCell",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": true,
+      "frame": {
+        "x": 231.0,
+        "y": 679.0,
+        "width": 751.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e45",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "window_id": "window-23403",
+      "role": "AXRow",
+      "subrole": "AXTableRow",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 225.0,
+        "y": 701.0,
+        "width": 763.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e318",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e45",
+      "window_id": "window-23403",
+      "role": "AXCell",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": true,
+      "frame": {
+        "x": 231.0,
+        "y": 701.0,
+        "width": 751.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e47",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "window_id": "window-23403",
+      "role": "AXRow",
+      "subrole": "AXTableRow",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 225.0,
+        "y": 723.0,
+        "width": 763.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e319",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e47",
+      "window_id": "window-23403",
+      "role": "AXCell",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": true,
+      "frame": {
+        "x": 231.0,
+        "y": 723.0,
+        "width": 751.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e49",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "window_id": "window-23403",
+      "role": "AXRow",
+      "subrole": "AXTableRow",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 225.0,
+        "y": 745.0,
+        "width": 763.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e320",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e49",
+      "window_id": "window-23403",
+      "role": "AXCell",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": true,
+      "frame": {
+        "x": 231.0,
+        "y": 745.0,
+        "width": 751.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e51",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "window_id": "window-23403",
+      "role": "AXRow",
+      "subrole": "AXTableRow",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 225.0,
+        "y": 767.0,
+        "width": 763.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e321",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e51",
+      "window_id": "window-23403",
+      "role": "AXCell",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": true,
+      "frame": {
+        "x": 231.0,
+        "y": 767.0,
+        "width": 751.0,
+        "height": 22.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e53",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "window_id": "window-23403",
+      "role": "AXColumn",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 225.0,
+        "y": 305.0,
+        "width": 763.0,
+        "height": 4400.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e54",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "window_id": "window-23403",
+      "role": "AXGroup",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 225.0,
+        "y": 277.0,
+        "width": 763.0,
+        "height": 28.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e322",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e54",
+      "window_id": "window-23403",
+      "role": "AXButton",
+      "subrole": "AXSortButton",
+      "title": "归档项目",
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": false,
+      "frame": {
+        "x": 225.0,
+        "y": 277.0,
+        "width": 763.0,
+        "height": 28.0
+      },
+      "actions": [
+        "press"
+      ],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e56",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e7",
+      "window_id": "window-23403",
+      "role": "AXScrollBar",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": {
+        "type": "number",
+        "value": 0.0
+      },
+      "enabled": true,
+      "focused": false,
+      "frame": {
+        "x": 987.0,
+        "y": 304.0,
+        "width": 17.0,
+        "height": 472.0
+      },
+      "actions": [
+        "set_value"
+      ],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e323",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e56",
+      "window_id": "window-23403",
+      "role": "AXValueIndicator",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": {
+        "type": "number",
+        "value": 0.0
+      },
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 988.0,
+        "y": 307.0,
+        "width": 15.0,
+        "height": 52.0
+      },
+      "actions": [
+        "set_value"
+      ],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e324",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e56",
+      "window_id": "window-23403",
+      "role": "AXButton",
+      "subrole": "AXIncrementArrow",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 988.0,
+        "y": 305.0,
+        "width": 0.0,
+        "height": 0.0
+      },
+      "actions": [
+        "press"
+      ],
+      "in_view": false,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e325",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e56",
+      "window_id": "window-23403",
+      "role": "AXButton",
+      "subrole": "AXDecrementArrow",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 988.0,
+        "y": 305.0,
+        "width": 0.0,
+        "height": 0.0
+      },
+      "actions": [
+        "press"
+      ],
+      "in_view": false,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e326",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e56",
+      "window_id": "window-23403",
+      "role": "AXButton",
+      "subrole": "AXIncrementPage",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 988.0,
+        "y": 359.5,
+        "width": 15.0,
+        "height": 415.5
+      },
+      "actions": [
+        "press"
+      ],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e327",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e56",
+      "window_id": "window-23403",
+      "role": "AXButton",
+      "subrole": "AXDecrementPage",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 988.0,
+        "y": 305.0,
+        "width": 15.0,
+        "height": 2.0
+      },
+      "actions": [
+        "press"
+      ],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e62",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e4",
+      "window_id": "window-23403",
+      "role": "AXScrollBar",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": {
+        "type": "number",
+        "value": 0.0
+      },
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 1296.0,
+        "y": 165.0,
+        "width": 17.0,
+        "height": 662.0
+      },
+      "actions": [
+        "set_value"
+      ],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e63",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e3",
+      "window_id": "window-23403",
+      "role": "AXRadioButton",
+      "subrole": null,
+      "title": "设置",
+      "description": "设置",
+      "value": {
+        "type": "bool",
+        "value": true
+      },
+      "enabled": true,
+      "focused": false,
+      "frame": {
+        "x": 199.0,
+        "y": 133.0,
+        "width": 52.0,
+        "height": 18.0
+      },
+      "actions": [
+        "press"
+      ],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e64",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e3",
+      "window_id": "window-23403",
+      "role": "AXRadioButton",
+      "subrole": null,
+      "title": "概览",
+      "description": "概览",
+      "value": {
+        "type": "bool",
+        "value": false
+      },
+      "enabled": true,
+      "focused": false,
+      "frame": {
+        "x": 281.0,
+        "y": 133.0,
+        "width": 52.0,
+        "height": 18.0
+      },
+      "actions": [
+        "press"
+      ],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e65",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e3",
+      "window_id": "window-23403",
+      "role": "AXButton",
+      "subrole": "AXCloseButton",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": false,
+      "frame": {
+        "x": 182.0,
+        "y": 88.0,
+        "width": 16.0,
+        "height": 16.0
+      },
+      "actions": [
+        "press"
+      ],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e66",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e3",
+      "window_id": "window-23403",
+      "role": "AXButton",
+      "subrole": "AXFullScreenButton",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": false,
+      "frame": {
+        "x": 222.0,
+        "y": 88.0,
+        "width": 16.0,
+        "height": 16.0
+      },
+      "actions": [
+        "press",
+        "show_menu"
+      ],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e67",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e66",
+      "window_id": "window-23403",
+      "role": "AXGroup",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 223.0,
+        "y": 88.0,
+        "width": 14.0,
+        "height": 16.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e68",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e67",
+      "window_id": "window-23403",
+      "role": "AXGroup",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": false,
+      "focused": false,
+      "frame": {
+        "x": 223.0,
+        "y": 88.0,
+        "width": 14.0,
+        "height": 16.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e69",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e3",
+      "window_id": "window-23403",
+      "role": "AXButton",
+      "subrole": "AXMinimizeButton",
+      "title": null,
+      "description": null,
+      "value": null,
+      "enabled": true,
+      "focused": false,
+      "frame": {
+        "x": 202.0,
+        "y": 88.0,
+        "width": 16.0,
+        "height": 16.0
+      },
+      "actions": [
+        "press"
+      ],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "notification_covered"
+    },
+    {
+      "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e328",
+      "parent": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e3",
+      "window_id": "window-23403",
+      "role": "AXStaticText",
+      "subrole": null,
+      "title": null,
+      "description": null,
+      "value": {
+        "type": "text",
+        "value": "Interaction Fixture"
+      },
+      "enabled": true,
+      "focused": false,
+      "frame": {
+        "x": 694.0,
+        "y": 87.0,
+        "width": 124.0,
+        "height": 16.0
+      },
+      "actions": [],
+      "in_view": true,
+      "group": null,
+      "secure": false,
+      "scroll": null,
+      "identity_continuity": "read_scoped"
+    }
+  ],
+  "observer_coverage": {
+    "state": "degraded",
+    "covered_objects": 41,
+    "read_scoped_objects": 29,
+    "failed_registrations": 29,
+    "failures": [
+      {
+        "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e300",
+        "notification": "ui_element_destroyed",
+        "error_code": -25207
+      },
+      {
+        "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e301",
+        "notification": "ui_element_destroyed",
+        "error_code": -25207
+      },
+      {
+        "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e302",
+        "notification": "ui_element_destroyed",
+        "error_code": -25207
+      },
+      {
+        "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e303",
+        "notification": "ui_element_destroyed",
+        "error_code": -25207
+      },
+      {
+        "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e304",
+        "notification": "ui_element_destroyed",
+        "error_code": -25207
+      },
+      {
+        "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e305",
+        "notification": "ui_element_destroyed",
+        "error_code": -25207
+      },
+      {
+        "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e306",
+        "notification": "ui_element_destroyed",
+        "error_code": -25207
+      },
+      {
+        "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e307",
+        "notification": "ui_element_destroyed",
+        "error_code": -25207
+      },
+      {
+        "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e308",
+        "notification": "ui_element_destroyed",
+        "error_code": -25207
+      },
+      {
+        "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e309",
+        "notification": "ui_element_destroyed",
+        "error_code": -25207
+      },
+      {
+        "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e310",
+        "notification": "ui_element_destroyed",
+        "error_code": -25207
+      },
+      {
+        "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e311",
+        "notification": "ui_element_destroyed",
+        "error_code": -25207
+      },
+      {
+        "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e312",
+        "notification": "ui_element_destroyed",
+        "error_code": -25207
+      },
+      {
+        "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e313",
+        "notification": "ui_element_destroyed",
+        "error_code": -25207
+      },
+      {
+        "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e314",
+        "notification": "ui_element_destroyed",
+        "error_code": -25207
+      },
+      {
+        "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e315",
+        "notification": "ui_element_destroyed",
+        "error_code": -25207
+      }
+    ]
+  },
+  "menu_anchors": [],
+  "menu_context": null,
+  "focus_context": null,
+  "window_context": {
+    "source_session_id": "268be6e6-3d0a-4deb-bab7-785da87de620",
+    "session_epoch": 1,
+    "process": {
+      "pid": 81166,
+      "start_seconds": 1791316796,
+      "start_micros": 726184
+    },
+    "origin_window_id": "window-23403",
+    "origin_window_frame": {
+      "x": 176.0,
+      "y": 82.0,
+      "width": 1160.0,
+      "height": 768.0
+    },
+    "verified_source_sequence": 6,
+    "verified_observed_ms": 3325
+  },
+  "table_viewports": [
+    {
+      "table_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+      "scroll_container_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e7",
+      "process_id": 81166,
+      "ax_enabled": "enabled",
+      "table_frame": {
+        "x": 224.0,
+        "y": 304.0,
+        "width": 765.0,
+        "height": 4402.0
+      },
+      "viewport_frame": {
+        "x": 224.0,
+        "y": 276.0,
+        "width": 780.0,
+        "height": 500.0
+      },
+      "visible_rows_complete": true,
+      "visible_rows": [
+        {
+          "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e9",
+          "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+          "frame": {
+            "x": 225.0,
+            "y": 305.0,
+            "width": 763.0,
+            "height": 22.0
+          },
+          "ax_enabled": "attribute_unsupported",
+          "accessibility_identifier": null,
+          "ax_index": 0,
+          "selected": false,
+          "ax_selected_settable": true,
+          "cells_complete": true,
+          "cells": [
+            {
+              "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e300",
+              "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e9",
+              "frame": {
+                "x": 231.0,
+                "y": 305.0,
+                "width": 751.0,
+                "height": 22.0
+              },
+              "row_ax_index": 0,
+              "column_ax_index": 0,
+              "column_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e53",
+              "header_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e322",
+              "column_header": "归档项目",
+              "value": {
+                "type": "text",
+                "value": "已归档项目 1"
+              }
+            }
+          ]
+        },
+        {
+          "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e11",
+          "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+          "frame": {
+            "x": 225.0,
+            "y": 327.0,
+            "width": 763.0,
+            "height": 22.0
+          },
+          "ax_enabled": "attribute_unsupported",
+          "accessibility_identifier": null,
+          "ax_index": 1,
+          "selected": false,
+          "ax_selected_settable": true,
+          "cells_complete": true,
+          "cells": [
+            {
+              "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e301",
+              "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e11",
+              "frame": {
+                "x": 231.0,
+                "y": 327.0,
+                "width": 751.0,
+                "height": 22.0
+              },
+              "row_ax_index": 1,
+              "column_ax_index": 0,
+              "column_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e53",
+              "header_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e322",
+              "column_header": "归档项目",
+              "value": {
+                "type": "text",
+                "value": "已归档项目 2"
+              }
+            }
+          ]
+        },
+        {
+          "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e13",
+          "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+          "frame": {
+            "x": 225.0,
+            "y": 349.0,
+            "width": 763.0,
+            "height": 22.0
+          },
+          "ax_enabled": "attribute_unsupported",
+          "accessibility_identifier": null,
+          "ax_index": 2,
+          "selected": false,
+          "ax_selected_settable": true,
+          "cells_complete": true,
+          "cells": [
+            {
+              "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e302",
+              "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e13",
+              "frame": {
+                "x": 231.0,
+                "y": 349.0,
+                "width": 751.0,
+                "height": 22.0
+              },
+              "row_ax_index": 2,
+              "column_ax_index": 0,
+              "column_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e53",
+              "header_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e322",
+              "column_header": "归档项目",
+              "value": {
+                "type": "text",
+                "value": "已归档项目 3"
+              }
+            }
+          ]
+        },
+        {
+          "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e15",
+          "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+          "frame": {
+            "x": 225.0,
+            "y": 371.0,
+            "width": 763.0,
+            "height": 22.0
+          },
+          "ax_enabled": "attribute_unsupported",
+          "accessibility_identifier": null,
+          "ax_index": 3,
+          "selected": false,
+          "ax_selected_settable": true,
+          "cells_complete": true,
+          "cells": [
+            {
+              "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e303",
+              "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e15",
+              "frame": {
+                "x": 231.0,
+                "y": 371.0,
+                "width": 751.0,
+                "height": 22.0
+              },
+              "row_ax_index": 3,
+              "column_ax_index": 0,
+              "column_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e53",
+              "header_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e322",
+              "column_header": "归档项目",
+              "value": {
+                "type": "text",
+                "value": "已归档项目 4"
+              }
+            }
+          ]
+        },
+        {
+          "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e17",
+          "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+          "frame": {
+            "x": 225.0,
+            "y": 393.0,
+            "width": 763.0,
+            "height": 22.0
+          },
+          "ax_enabled": "attribute_unsupported",
+          "accessibility_identifier": null,
+          "ax_index": 4,
+          "selected": false,
+          "ax_selected_settable": true,
+          "cells_complete": true,
+          "cells": [
+            {
+              "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e304",
+              "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e17",
+              "frame": {
+                "x": 231.0,
+                "y": 393.0,
+                "width": 751.0,
+                "height": 22.0
+              },
+              "row_ax_index": 4,
+              "column_ax_index": 0,
+              "column_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e53",
+              "header_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e322",
+              "column_header": "归档项目",
+              "value": {
+                "type": "text",
+                "value": "已归档项目 5"
+              }
+            }
+          ]
+        },
+        {
+          "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e19",
+          "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+          "frame": {
+            "x": 225.0,
+            "y": 415.0,
+            "width": 763.0,
+            "height": 22.0
+          },
+          "ax_enabled": "attribute_unsupported",
+          "accessibility_identifier": null,
+          "ax_index": 5,
+          "selected": false,
+          "ax_selected_settable": true,
+          "cells_complete": true,
+          "cells": [
+            {
+              "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e305",
+              "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e19",
+              "frame": {
+                "x": 231.0,
+                "y": 415.0,
+                "width": 751.0,
+                "height": 22.0
+              },
+              "row_ax_index": 5,
+              "column_ax_index": 0,
+              "column_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e53",
+              "header_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e322",
+              "column_header": "归档项目",
+              "value": {
+                "type": "text",
+                "value": "已归档项目 6"
+              }
+            }
+          ]
+        },
+        {
+          "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e21",
+          "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+          "frame": {
+            "x": 225.0,
+            "y": 437.0,
+            "width": 763.0,
+            "height": 22.0
+          },
+          "ax_enabled": "attribute_unsupported",
+          "accessibility_identifier": null,
+          "ax_index": 6,
+          "selected": false,
+          "ax_selected_settable": true,
+          "cells_complete": true,
+          "cells": [
+            {
+              "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e306",
+              "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e21",
+              "frame": {
+                "x": 231.0,
+                "y": 437.0,
+                "width": 751.0,
+                "height": 22.0
+              },
+              "row_ax_index": 6,
+              "column_ax_index": 0,
+              "column_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e53",
+              "header_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e322",
+              "column_header": "归档项目",
+              "value": {
+                "type": "text",
+                "value": "已归档项目 7"
+              }
+            }
+          ]
+        },
+        {
+          "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e23",
+          "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+          "frame": {
+            "x": 225.0,
+            "y": 459.0,
+            "width": 763.0,
+            "height": 22.0
+          },
+          "ax_enabled": "attribute_unsupported",
+          "accessibility_identifier": null,
+          "ax_index": 7,
+          "selected": false,
+          "ax_selected_settable": true,
+          "cells_complete": true,
+          "cells": [
+            {
+              "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e307",
+              "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e23",
+              "frame": {
+                "x": 231.0,
+                "y": 459.0,
+                "width": 751.0,
+                "height": 22.0
+              },
+              "row_ax_index": 7,
+              "column_ax_index": 0,
+              "column_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e53",
+              "header_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e322",
+              "column_header": "归档项目",
+              "value": {
+                "type": "text",
+                "value": "已归档项目 8"
+              }
+            }
+          ]
+        },
+        {
+          "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e25",
+          "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+          "frame": {
+            "x": 225.0,
+            "y": 481.0,
+            "width": 763.0,
+            "height": 22.0
+          },
+          "ax_enabled": "attribute_unsupported",
+          "accessibility_identifier": null,
+          "ax_index": 8,
+          "selected": false,
+          "ax_selected_settable": true,
+          "cells_complete": true,
+          "cells": [
+            {
+              "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e308",
+              "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e25",
+              "frame": {
+                "x": 231.0,
+                "y": 481.0,
+                "width": 751.0,
+                "height": 22.0
+              },
+              "row_ax_index": 8,
+              "column_ax_index": 0,
+              "column_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e53",
+              "header_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e322",
+              "column_header": "归档项目",
+              "value": {
+                "type": "text",
+                "value": "已归档项目 9"
+              }
+            }
+          ]
+        },
+        {
+          "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e27",
+          "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+          "frame": {
+            "x": 225.0,
+            "y": 503.0,
+            "width": 763.0,
+            "height": 22.0
+          },
+          "ax_enabled": "attribute_unsupported",
+          "accessibility_identifier": null,
+          "ax_index": 9,
+          "selected": false,
+          "ax_selected_settable": true,
+          "cells_complete": true,
+          "cells": [
+            {
+              "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e309",
+              "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e27",
+              "frame": {
+                "x": 231.0,
+                "y": 503.0,
+                "width": 751.0,
+                "height": 22.0
+              },
+              "row_ax_index": 9,
+              "column_ax_index": 0,
+              "column_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e53",
+              "header_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e322",
+              "column_header": "归档项目",
+              "value": {
+                "type": "text",
+                "value": "已归档项目 10"
+              }
+            }
+          ]
+        },
+        {
+          "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e29",
+          "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+          "frame": {
+            "x": 225.0,
+            "y": 525.0,
+            "width": 763.0,
+            "height": 22.0
+          },
+          "ax_enabled": "attribute_unsupported",
+          "accessibility_identifier": null,
+          "ax_index": 10,
+          "selected": false,
+          "ax_selected_settable": true,
+          "cells_complete": true,
+          "cells": [
+            {
+              "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e310",
+              "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e29",
+              "frame": {
+                "x": 231.0,
+                "y": 525.0,
+                "width": 751.0,
+                "height": 22.0
+              },
+              "row_ax_index": 10,
+              "column_ax_index": 0,
+              "column_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e53",
+              "header_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e322",
+              "column_header": "归档项目",
+              "value": {
+                "type": "text",
+                "value": "已归档项目 11"
+              }
+            }
+          ]
+        },
+        {
+          "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e31",
+          "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+          "frame": {
+            "x": 225.0,
+            "y": 547.0,
+            "width": 763.0,
+            "height": 22.0
+          },
+          "ax_enabled": "attribute_unsupported",
+          "accessibility_identifier": null,
+          "ax_index": 11,
+          "selected": false,
+          "ax_selected_settable": true,
+          "cells_complete": true,
+          "cells": [
+            {
+              "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e311",
+              "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e31",
+              "frame": {
+                "x": 231.0,
+                "y": 547.0,
+                "width": 751.0,
+                "height": 22.0
+              },
+              "row_ax_index": 11,
+              "column_ax_index": 0,
+              "column_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e53",
+              "header_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e322",
+              "column_header": "归档项目",
+              "value": {
+                "type": "text",
+                "value": "已归档项目 12"
+              }
+            }
+          ]
+        },
+        {
+          "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e33",
+          "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+          "frame": {
+            "x": 225.0,
+            "y": 569.0,
+            "width": 763.0,
+            "height": 22.0
+          },
+          "ax_enabled": "attribute_unsupported",
+          "accessibility_identifier": null,
+          "ax_index": 12,
+          "selected": false,
+          "ax_selected_settable": true,
+          "cells_complete": true,
+          "cells": [
+            {
+              "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e312",
+              "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e33",
+              "frame": {
+                "x": 231.0,
+                "y": 569.0,
+                "width": 751.0,
+                "height": 22.0
+              },
+              "row_ax_index": 12,
+              "column_ax_index": 0,
+              "column_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e53",
+              "header_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e322",
+              "column_header": "归档项目",
+              "value": {
+                "type": "text",
+                "value": "已归档项目 13"
+              }
+            }
+          ]
+        },
+        {
+          "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e35",
+          "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+          "frame": {
+            "x": 225.0,
+            "y": 591.0,
+            "width": 763.0,
+            "height": 22.0
+          },
+          "ax_enabled": "attribute_unsupported",
+          "accessibility_identifier": null,
+          "ax_index": 13,
+          "selected": false,
+          "ax_selected_settable": true,
+          "cells_complete": true,
+          "cells": [
+            {
+              "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e313",
+              "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e35",
+              "frame": {
+                "x": 231.0,
+                "y": 591.0,
+                "width": 751.0,
+                "height": 22.0
+              },
+              "row_ax_index": 13,
+              "column_ax_index": 0,
+              "column_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e53",
+              "header_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e322",
+              "column_header": "归档项目",
+              "value": {
+                "type": "text",
+                "value": "已归档项目 14"
+              }
+            }
+          ]
+        },
+        {
+          "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e37",
+          "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+          "frame": {
+            "x": 225.0,
+            "y": 613.0,
+            "width": 763.0,
+            "height": 22.0
+          },
+          "ax_enabled": "attribute_unsupported",
+          "accessibility_identifier": null,
+          "ax_index": 14,
+          "selected": false,
+          "ax_selected_settable": true,
+          "cells_complete": true,
+          "cells": [
+            {
+              "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e314",
+              "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e37",
+              "frame": {
+                "x": 231.0,
+                "y": 613.0,
+                "width": 751.0,
+                "height": 22.0
+              },
+              "row_ax_index": 14,
+              "column_ax_index": 0,
+              "column_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e53",
+              "header_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e322",
+              "column_header": "归档项目",
+              "value": {
+                "type": "text",
+                "value": "已归档项目 15"
+              }
+            }
+          ]
+        },
+        {
+          "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e39",
+          "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+          "frame": {
+            "x": 225.0,
+            "y": 635.0,
+            "width": 763.0,
+            "height": 22.0
+          },
+          "ax_enabled": "attribute_unsupported",
+          "accessibility_identifier": null,
+          "ax_index": 15,
+          "selected": false,
+          "ax_selected_settable": true,
+          "cells_complete": true,
+          "cells": [
+            {
+              "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e315",
+              "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e39",
+              "frame": {
+                "x": 231.0,
+                "y": 635.0,
+                "width": 751.0,
+                "height": 22.0
+              },
+              "row_ax_index": 15,
+              "column_ax_index": 0,
+              "column_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e53",
+              "header_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e322",
+              "column_header": "归档项目",
+              "value": {
+                "type": "text",
+                "value": "已归档项目 16"
+              }
+            }
+          ]
+        },
+        {
+          "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e41",
+          "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+          "frame": {
+            "x": 225.0,
+            "y": 657.0,
+            "width": 763.0,
+            "height": 22.0
+          },
+          "ax_enabled": "attribute_unsupported",
+          "accessibility_identifier": null,
+          "ax_index": 16,
+          "selected": false,
+          "ax_selected_settable": true,
+          "cells_complete": true,
+          "cells": [
+            {
+              "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e316",
+              "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e41",
+              "frame": {
+                "x": 231.0,
+                "y": 657.0,
+                "width": 751.0,
+                "height": 22.0
+              },
+              "row_ax_index": 16,
+              "column_ax_index": 0,
+              "column_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e53",
+              "header_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e322",
+              "column_header": "归档项目",
+              "value": {
+                "type": "text",
+                "value": "已归档项目 17"
+              }
+            }
+          ]
+        },
+        {
+          "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e43",
+          "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+          "frame": {
+            "x": 225.0,
+            "y": 679.0,
+            "width": 763.0,
+            "height": 22.0
+          },
+          "ax_enabled": "attribute_unsupported",
+          "accessibility_identifier": null,
+          "ax_index": 17,
+          "selected": false,
+          "ax_selected_settable": true,
+          "cells_complete": true,
+          "cells": [
+            {
+              "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e317",
+              "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e43",
+              "frame": {
+                "x": 231.0,
+                "y": 679.0,
+                "width": 751.0,
+                "height": 22.0
+              },
+              "row_ax_index": 17,
+              "column_ax_index": 0,
+              "column_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e53",
+              "header_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e322",
+              "column_header": "归档项目",
+              "value": {
+                "type": "text",
+                "value": "已归档项目 18"
+              }
+            }
+          ]
+        },
+        {
+          "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e45",
+          "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+          "frame": {
+            "x": 225.0,
+            "y": 701.0,
+            "width": 763.0,
+            "height": 22.0
+          },
+          "ax_enabled": "attribute_unsupported",
+          "accessibility_identifier": null,
+          "ax_index": 18,
+          "selected": false,
+          "ax_selected_settable": true,
+          "cells_complete": true,
+          "cells": [
+            {
+              "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e318",
+              "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e45",
+              "frame": {
+                "x": 231.0,
+                "y": 701.0,
+                "width": 751.0,
+                "height": 22.0
+              },
+              "row_ax_index": 18,
+              "column_ax_index": 0,
+              "column_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e53",
+              "header_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e322",
+              "column_header": "归档项目",
+              "value": {
+                "type": "text",
+                "value": "已归档项目 19"
+              }
+            }
+          ]
+        },
+        {
+          "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e47",
+          "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+          "frame": {
+            "x": 225.0,
+            "y": 723.0,
+            "width": 763.0,
+            "height": 22.0
+          },
+          "ax_enabled": "attribute_unsupported",
+          "accessibility_identifier": null,
+          "ax_index": 19,
+          "selected": false,
+          "ax_selected_settable": true,
+          "cells_complete": true,
+          "cells": [
+            {
+              "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e319",
+              "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e47",
+              "frame": {
+                "x": 231.0,
+                "y": 723.0,
+                "width": 751.0,
+                "height": 22.0
+              },
+              "row_ax_index": 19,
+              "column_ax_index": 0,
+              "column_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e53",
+              "header_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e322",
+              "column_header": "归档项目",
+              "value": {
+                "type": "text",
+                "value": "已归档项目 20"
+              }
+            }
+          ]
+        },
+        {
+          "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e49",
+          "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+          "frame": {
+            "x": 225.0,
+            "y": 745.0,
+            "width": 763.0,
+            "height": 22.0
+          },
+          "ax_enabled": "attribute_unsupported",
+          "accessibility_identifier": null,
+          "ax_index": 20,
+          "selected": false,
+          "ax_selected_settable": true,
+          "cells_complete": true,
+          "cells": [
+            {
+              "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e320",
+              "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e49",
+              "frame": {
+                "x": 231.0,
+                "y": 745.0,
+                "width": 751.0,
+                "height": 22.0
+              },
+              "row_ax_index": 20,
+              "column_ax_index": 0,
+              "column_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e53",
+              "header_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e322",
+              "column_header": "归档项目",
+              "value": {
+                "type": "text",
+                "value": "已归档项目 21"
+              }
+            }
+          ]
+        },
+        {
+          "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e51",
+          "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+          "frame": {
+            "x": 225.0,
+            "y": 767.0,
+            "width": 763.0,
+            "height": 22.0
+          },
+          "ax_enabled": "attribute_unsupported",
+          "accessibility_identifier": null,
+          "ax_index": 21,
+          "selected": false,
+          "ax_selected_settable": true,
+          "cells_complete": true,
+          "cells": [
+            {
+              "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e321",
+              "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e51",
+              "frame": {
+                "x": 231.0,
+                "y": 767.0,
+                "width": 751.0,
+                "height": 22.0
+              },
+              "row_ax_index": 21,
+              "column_ax_index": 0,
+              "column_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e53",
+              "header_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e322",
+              "column_header": "归档项目",
+              "value": {
+                "type": "text",
+                "value": "已归档项目 22"
+              }
+            }
+          ]
+        }
+      ],
+      "columns_complete": true,
+      "columns": [
+        {
+          "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e53",
+          "parent_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+          "frame": {
+            "x": 225.0,
+            "y": 305.0,
+            "width": 763.0,
+            "height": 4400.0
+          },
+          "header_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-r6-e322",
+          "header": "归档项目",
+          "ax_index": 0
+        }
+      ]
+    }
+  ],
+  "table_scope_search": {
+    "requested_scope": {
+      "scroll_path": [
+        {
+          "role": "ax_scroll_area",
+          "label": "偏好设置内容"
+        },
+        {
+          "role": "ax_scroll_area",
+          "label": "归档"
+        }
+      ],
+      "column_headers": [
+        "归档项目"
+      ]
+    },
+    "process_id": 81166,
+    "window_id": "window-23403",
+    "state": {
+      "state": "complete"
+    },
+    "candidates": [
+      {
+        "table_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e8",
+        "scroll_container_instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e7",
+        "scroll_path": [
+          {
+            "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e4",
+            "label": "偏好设置内容",
+            "frame": {
+              "x": 200.0,
+              "y": 166.0,
+              "width": 1112.0,
+              "height": 660.0
+            }
+          },
+          {
+            "instance_ref": "ax-d80e35d2-2873-4baa-992a-8c8fb113d042-g2-e7",
+            "label": "归档",
+            "frame": {
+              "x": 224.0,
+              "y": 276.0,
+              "width": 780.0,
+              "height": 500.0
+            }
+          }
+        ],
+        "column_headers": [
+          "归档项目"
+        ]
+      }
+    ]
+  },
+  "global_focus": {
+    "app": {
+      "state": "known",
+      "value": {
+        "bundle_id": "com.lingxi.computer-user.mvp-fixture",
+        "name": "Interaction Fixture",
+        "pid": 81166
+      }
+    },
+    "window_id": {
+      "state": "known",
+      "value": "window-23403"
+    }
+  }
+}

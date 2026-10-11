@@ -5,6 +5,7 @@ use std::collections::BTreeMap;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use super::browser::BrowserPageProfile;
 use super::device::CapabilityManifest;
 use super::require_nonempty;
 
@@ -70,6 +71,25 @@ pub struct Configure {
     pub role: PeerRole,
     pub session_epoch: u64,
     pub settings: BTreeMap<String, String>,
+    /// Frozen by the trusted host for the owned browser fixture. It is never
+    /// read from arbitrary settings or model-authored goal text.
+    pub browser_page_profile: Option<BrowserPageProfile>,
+}
+
+impl Configure {
+    pub fn validate(&self) -> Result<(), String> {
+        if self.session_epoch == 0 || self.session_epoch > 9_007_199_254_740_991 {
+            return Err("configure session_epoch must be positive and JS-safe".into());
+        }
+        if self.browser_page_profile.is_some()
+            && !matches!(self.role, PeerRole::Host | PeerRole::Device)
+        {
+            return Err(
+                "browser page profile is only valid for trusted Host or Device configure".into(),
+            );
+        }
+        Ok(())
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -199,6 +219,7 @@ pub fn verify_hello(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::desktop::browser::BrowserPageProfile;
 
     const TOKEN: &str = "0123456789abcdef0123";
 
@@ -216,6 +237,20 @@ mod tests {
             worker_epoch: 1,
             token: TOKEN.into(),
         }
+    }
+
+    #[test]
+    fn browser_profile_configure_is_limited_to_trusted_host_and_device_roles() {
+        let configure = Configure {
+            role: PeerRole::Device,
+            session_epoch: 3,
+            settings: BTreeMap::new(),
+            browser_page_profile: Some(BrowserPageProfile::FixtureBackgroundOption),
+        };
+        assert!(configure.validate().is_ok());
+        let mut source = configure;
+        source.role = PeerRole::Source;
+        assert!(source.validate().is_err());
     }
 
     fn expected() -> ExpectedPeer {

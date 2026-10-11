@@ -5,21 +5,26 @@
 use std::collections::{BTreeSet, VecDeque};
 
 use interaction_contracts::desktop::device::{ReleaseStatus, RootGrant};
+use interaction_contracts::desktop::domain::ExecutionDomain;
 use interaction_contracts::desktop::ids::{AttemptId, ConfirmationId, DecisionId, RootTaskId};
 use interaction_contracts::desktop::operator::{
     ActionSummary, ConfirmationKind, ConfirmationRequest, RootView,
 };
 use interaction_contracts::desktop::planning::{GoalDraft, PlanBundle};
 use interaction_contracts::desktop::task::{
-    Activation, AdmitAttempt, AdmitOutcome, AdmitRejection, AttemptState, GoalSpec, RootBudgetSpec,
-    RootEvent, RootState,
+    Activation, AdmitAttempt, AdmitOutcome, AdmitRejection, AllowedControlScope, AttemptState,
+    FrozenTaskProfile, GoalSpec, RootBudgetSpec, RootEvent, RootState,
 };
 use rusqlite::Transaction;
 
 use super::budget::{BudgetKind, BudgetState};
-use super::goal::{CompileError, PlanRejection, compile_goal, confirmation_for, validate_plan};
+use super::goal::{
+    CompileError, HostGoalCompileContext, PlanRejection, compile_goal_with_context,
+    confirmation_for, validate_plan,
+};
 use super::state_machine::{TransitionError, transition};
 use super::store::{AttemptRow, RootRow, TaskStore};
+use crate::deliberation::accounting::PlanningRequestAttribution;
 use crate::environment::pack::AppPack;
 use crate::infrastructure::storage::{Storage, StoreError};
 use crate::ports::{ConsumeOutcome, ConsumeRequest, DecisionLedger, DecisionLifecycle};
@@ -41,6 +46,7 @@ impl TaskConfig {
                 "ui.ensure_value",
                 "ui.enter_text",
                 "ui.scroll_to",
+                "ui.select_by_label",
                 "ui.activate",
                 "ui.activate_window",
                 "ui.revisit",
@@ -201,6 +207,16 @@ pub struct RecoveryReport {
     pub unknown_attempts: Vec<AttemptRow>,
 }
 
+/// A queued request keeps its immutable scope and Host-resolved application
+/// binding until the existing serial root slot becomes available.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct QueuedTask {
+    pub text: String,
+    pub allowed_scope: Option<AllowedControlScope>,
+    pub allowed_scope_app: Option<String>,
+    pub frozen_profile: Option<FrozenTaskProfile>,
+}
+
 /// Where a test may make the admission transaction fail.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AdmitFault {
@@ -243,7 +259,7 @@ pub struct TaskRuntime {
     finished: Option<RootRow>,
     /// What the finished root had spent, so its view still tells the truth.
     finished_budget: Option<BudgetState>,
-    queue: VecDeque<String>,
+    queue: VecDeque<QueuedTask>,
     /// Effect confirmations the user approved, by the decision they covered.
     approved: BTreeSet<DecisionId>,
     fault: Option<AdmitFault>,
@@ -283,7 +299,7 @@ impl TaskRuntime {
         self.finished.as_ref()
     }
 
-    pub fn next_queued(&mut self) -> Option<String> {
+    pub fn next_queued_task(&mut self) -> Option<QueuedTask> {
         self.queue.pop_front()
     }
 
@@ -369,11 +385,84 @@ impl TaskRuntime {
         now_ms: u64,
         text: &str,
     ) -> Result<CreateOutcome, TaskError> {
-        if text.trim().is_empty() {
-            return Err(TaskError::Invalid("a task needs some text".into()));
+        self.create_root_from_request(
+            storage,
+            now_ms,
+            QueuedTask {
+                text: text.to_string(),
+                allowed_scope: None,
+                allowed_scope_app: None,
+                frozen_profile: None,
+            },
+        )
+    }
+
+    #[cfg(test)]
+    pub(crate) fn create_scoped_root(
+        &mut self,
+        storage: &mut Storage,
+        now_ms: u64,
+        objective: &str,
+        allowed_scope: AllowedControlScope,
+        allowed_scope_app: String,
+    ) -> Result<CreateOutcome, TaskError> {
+        self.create_root_from_request(
+            storage,
+            now_ms,
+            QueuedTask {
+                text: objective.to_string(),
+                allowed_scope: Some(allowed_scope),
+                allowed_scope_app: Some(allowed_scope_app),
+                frozen_profile: None,
+            },
+        )
+    }
+
+    pub(crate) fn create_root_from_request(
+        &mut self,
+        storage: &mut Storage,
+        now_ms: u64,
+        request: QueuedTask,
+    ) -> Result<CreateOutcome, TaskError> {
+        let QueuedTask {
+            text,
+            allowed_scope,
+            allowed_scope_app,
+            frozen_profile,
+        } = request;
+        interaction_contracts::desktop::task::validate_user_text(&text)
+            .map_err(TaskError::Invalid)?;
+        match (&allowed_scope, &allowed_scope_app) {
+            (Some(scope), Some(app)) => {
+                scope.validate().map_err(TaskError::Invalid)?;
+                if app.trim().is_empty() || app.len() > 256 || app.chars().any(char::is_control) {
+                    return Err(TaskError::Invalid(
+                        "invalid trusted application binding".into(),
+                    ));
+                }
+            }
+            (None, None) => {}
+            _ => {
+                return Err(TaskError::Invalid(
+                    "incomplete allowed control scope binding".into(),
+                ));
+            }
+        }
+        if let Some(profile) = &frozen_profile {
+            profile.validate().map_err(TaskError::Invalid)?;
+            if allowed_scope.is_none() {
+                return Err(TaskError::Invalid(
+                    "frozen profile requires an immutable control scope".into(),
+                ));
+            }
         }
         if self.active.is_some() {
-            self.queue.push_back(text.to_string());
+            self.queue.push_back(QueuedTask {
+                text,
+                allowed_scope,
+                allowed_scope_app,
+                frozen_profile,
+            });
             return Ok(CreateOutcome::Queued);
         }
         let seq = TaskStore::next_seq(storage.read())?;
@@ -383,7 +472,10 @@ impl TaskRuntime {
         let mut row = RootRow {
             root_id: root_id.clone(),
             seq,
-            user_text: text.to_string(),
+            user_text: text,
+            allowed_scope,
+            allowed_scope_app,
+            frozen_profile,
             state: RootState::Draft,
             state_origin: None,
             task_revision: 1,
@@ -427,20 +519,79 @@ impl TaskRuntime {
         storage: &mut Storage,
         now_ms: u64,
         draft: &GoalDraft,
+        execution_domain: ExecutionDomain,
         bundle: &PlanBundle,
+    ) -> Result<ConfirmationRequest, DraftError> {
+        self.accept_draft_with_profile(storage, now_ms, draft, execution_domain, None, bundle)
+    }
+
+    /// Accept a draft using a page profile supplied by the trusted Host, not
+    /// by the planner's GoalDraft.
+    pub fn accept_draft_with_profile(
+        &mut self,
+        storage: &mut Storage,
+        now_ms: u64,
+        draft: &GoalDraft,
+        execution_domain: ExecutionDomain,
+        browser_page_profile: Option<interaction_contracts::desktop::browser::BrowserPageProfile>,
+        bundle: &PlanBundle,
+    ) -> Result<ConfirmationRequest, DraftError> {
+        self.accept_draft_with_profile_attribution(
+            storage,
+            now_ms,
+            draft,
+            execution_domain,
+            browser_page_profile,
+            bundle,
+            None,
+        )
+    }
+
+    /// Accept a GoalCompile proposal while retaining its Host request identity
+    /// for the plan installation that happens atomically with user confirmation.
+    // Keep Host attribution separate from the planner's draft and bundle.
+    #[allow(clippy::too_many_arguments)]
+    pub fn accept_draft_with_profile_attribution(
+        &mut self,
+        storage: &mut Storage,
+        now_ms: u64,
+        draft: &GoalDraft,
+        execution_domain: ExecutionDomain,
+        browser_page_profile: Option<interaction_contracts::desktop::browser::BrowserPageProfile>,
+        bundle: &PlanBundle,
+        attribution: Option<&PlanningRequestAttribution>,
     ) -> Result<ConfirmationRequest, DraftError> {
         let root = self.active.as_ref().ok_or(TaskError::NoActiveRoot)?;
         transition(root.row.state, RootEvent::DraftPassed, None).map_err(TaskError::from)?;
-        let (goal, pack) = compile_goal(
+        let compile_context = match (
+            root.row.allowed_scope.as_ref(),
+            root.row.allowed_scope_app.as_deref(),
+        ) {
+            (None, None) => {
+                HostGoalCompileContext::free_text(execution_domain, browser_page_profile)
+            }
+            (Some(scope), Some(app)) => {
+                HostGoalCompileContext::scoped(execution_domain, browser_page_profile, scope, app)
+            }
+            _ => {
+                return Err(TaskError::Invalid(
+                    "root has an incomplete allowed control scope binding".into(),
+                )
+                .into());
+            }
+        };
+        let (goal, pack) = compile_goal_with_context(
             &root.row.root_id,
             &root.row.user_text,
             draft,
+            compile_context,
             self.config.default_budget,
             &self.config.packs,
         )?;
         validate_plan(&goal, bundle, &pack, &self.config.registered_skills)
             .map_err(CompileError::Plan)?;
         let request = confirmation_for(&goal);
+        let root_id = root.row.root_id.clone();
         self.step(
             storage,
             now_ms,
@@ -449,7 +600,7 @@ impl TaskRuntime {
                 row.draft = Some(goal.clone());
                 row.plan = Some(bundle.clone());
             },
-            |_| Ok(()),
+            |tx| TaskStore::insert_plan_installation(tx, &root_id, 1, None, attribution),
         )?;
         let active = self.active.as_mut().expect("the step kept the root active");
         active.pending = Some(Pending::Goal(request.clone()));
@@ -570,7 +721,10 @@ impl TaskRuntime {
                 row.frozen_ms = Some(now_ms);
                 row.plan_revision = 1;
             },
-            |tx| TaskStore::init_budget(tx, root_id.as_str()),
+            |tx| {
+                TaskStore::init_budget(tx, root_id.as_str())?;
+                TaskStore::install_proposed_plan(tx, &root_id, 1, now_ms)
+            },
         )?;
         self.active.as_mut().expect("still active").budget = Some(BudgetState::new(goal.budget));
         Ok(ConfirmOutcome::GoalFrozen {
@@ -644,6 +798,29 @@ impl TaskRuntime {
         now_ms: u64,
         bundle: Option<&PlanBundle>,
     ) -> Result<RootState, PlanInstallError> {
+        self.install_plan_with_attribution(storage, now_ms, bundle, None)
+    }
+
+    /// Install an accepted escalation plan with the exact S2 request identity.
+    /// The ledger write shares the root revision transaction; any mismatch
+    /// rolls back both writes.
+    pub fn install_plan_from_request(
+        &mut self,
+        storage: &mut Storage,
+        now_ms: u64,
+        bundle: &PlanBundle,
+        attribution: &PlanningRequestAttribution,
+    ) -> Result<RootState, PlanInstallError> {
+        self.install_plan_with_attribution(storage, now_ms, Some(bundle), Some(attribution))
+    }
+
+    fn install_plan_with_attribution(
+        &mut self,
+        storage: &mut Storage,
+        now_ms: u64,
+        bundle: Option<&PlanBundle>,
+        attribution: Option<&PlanningRequestAttribution>,
+    ) -> Result<RootState, PlanInstallError> {
         let active = self.active.as_ref().ok_or(TaskError::NoActiveRoot)?;
         if active.row.state != RootState::WaitingPlan {
             return Err(TaskError::Invalid("no plan is being waited for".into()).into());
@@ -663,7 +840,9 @@ impl TaskRuntime {
         } else {
             active.row.plan_revision
         };
+        let installs_new_plan = bundle.is_some();
         let bundle = bundle.cloned();
+        let root_id = active.row.root_id.clone();
         Ok(self.step(
             storage,
             now_ms,
@@ -674,7 +853,18 @@ impl TaskRuntime {
                     row.plan = Some(bundle);
                 }
             },
-            |_| Ok(()),
+            |tx| {
+                if installs_new_plan {
+                    TaskStore::insert_plan_installation(
+                        tx,
+                        &root_id,
+                        revision,
+                        Some(now_ms),
+                        attribution,
+                    )?;
+                }
+                Ok(())
+            },
         )?)
     }
 
@@ -1126,7 +1316,7 @@ impl TaskRuntime {
                     .filter(|attempt| {
                         matches!(
                             attempt.state,
-                            AttemptState::Active | AttemptState::Dispatched
+                            AttemptState::Active | AttemptState::Dispatched | AttemptState::Unknown
                         )
                     })
                     .collect();
@@ -1183,5 +1373,421 @@ impl TaskRuntime {
             )?),
             None => Ok(Vec::new()),
         }
+    }
+}
+
+#[cfg(test)]
+mod scoped_task_tests {
+    use super::*;
+
+    fn scope() -> AllowedControlScope {
+        AllowedControlScope {
+            application: "Browser fixture".into(),
+            targets: vec![interaction_contracts::desktop::task::AllowedControlTarget {
+                control: "Background option".into(),
+                group: None,
+                form: None,
+                disambiguator: None,
+            }],
+            no_unrelated_controls: true,
+        }
+    }
+
+    #[test]
+    fn scoped_scope_and_trusted_app_binding_persist_and_survive_queueing() {
+        let mut storage = Storage::open_in_memory().unwrap();
+        let mut runtime = TaskRuntime::new(TaskConfig::new(vec![]));
+        let allowed_scope = scope();
+        let CreateOutcome::Started(root_id) = runtime
+            .create_scoped_root(
+                &mut storage,
+                1,
+                "Turn off the background option",
+                allowed_scope.clone(),
+                "browser.fixture".into(),
+            )
+            .unwrap()
+        else {
+            panic!("first scoped task should start")
+        };
+
+        let row = TaskStore::load_root(storage.read(), root_id.as_str())
+            .unwrap()
+            .unwrap();
+        assert_eq!(row.allowed_scope, Some(allowed_scope.clone()));
+        assert_eq!(row.allowed_scope_app.as_deref(), Some("browser.fixture"));
+        assert_eq!(row.user_text, "Turn off the background option");
+
+        assert_eq!(
+            runtime
+                .create_scoped_root(
+                    &mut storage,
+                    2,
+                    "Turn on the background option",
+                    allowed_scope.clone(),
+                    "browser.fixture".into(),
+                )
+                .unwrap(),
+            CreateOutcome::Queued,
+        );
+        let queued = runtime
+            .next_queued_task()
+            .expect("queued scope is retained");
+        assert_eq!(queued.text, "Turn on the background option");
+        assert_eq!(queued.allowed_scope, Some(allowed_scope));
+        assert_eq!(queued.allowed_scope_app.as_deref(), Some("browser.fixture"));
+    }
+
+    fn profile() -> FrozenTaskProfile {
+        FrozenTaskProfile {
+            catalog_id: "a".repeat(64),
+            selector: "b".repeat(64),
+            source_freeze_sha256: "c".repeat(64),
+            source_request_sha256: "d".repeat(64),
+            goals_sha256: "e".repeat(64),
+            suite: "fixture".into(),
+            task_id: "SET-02".into(),
+            seed: 1,
+        }
+    }
+
+    fn frozen_request() -> QueuedTask {
+        QueuedTask {
+            text: "Turn off the background option".into(),
+            allowed_scope: Some(scope()),
+            allowed_scope_app: Some("browser.fixture".into()),
+            frozen_profile: Some(profile()),
+        }
+    }
+
+    #[test]
+    fn frozen_provenance_is_immutable_and_survives_queue_and_recovery() {
+        let mut storage = Storage::open_in_memory().unwrap();
+        let mut runtime = TaskRuntime::new(TaskConfig::new(vec![]));
+        let CreateOutcome::Started(root) = runtime
+            .create_root_from_request(&mut storage, 1, frozen_request())
+            .unwrap()
+        else {
+            panic!("first root must start")
+        };
+        let mut row = TaskStore::load_root(storage.read(), root.as_str())
+            .unwrap()
+            .unwrap();
+        assert_eq!(row.frozen_profile, Some(profile()));
+        row.frozen_profile.as_mut().unwrap().selector = "f".repeat(64);
+        storage
+            .transaction::<_, StoreError>(|tx| TaskStore::save_root(tx, &row))
+            .unwrap();
+        assert_eq!(
+            TaskStore::load_root(storage.read(), root.as_str())
+                .unwrap()
+                .unwrap()
+                .frozen_profile,
+            Some(profile())
+        );
+        assert_eq!(
+            runtime
+                .create_root_from_request(&mut storage, 2, frozen_request())
+                .unwrap(),
+            CreateOutcome::Queued
+        );
+        assert_eq!(
+            runtime.next_queued_task().unwrap().frozen_profile,
+            Some(profile())
+        );
+        let mut restarted = TaskRuntime::new(TaskConfig::new(vec![]));
+        restarted.recover(&mut storage, 3).unwrap();
+        assert_eq!(
+            TaskStore::load_root(storage.read(), root.as_str())
+                .unwrap()
+                .unwrap()
+                .frozen_profile,
+            Some(profile())
+        );
+    }
+
+    #[test]
+    fn invalid_or_unscoped_frozen_provenance_has_no_admission_side_effect() {
+        let mut storage = Storage::open_in_memory().unwrap();
+        let mut runtime = TaskRuntime::new(TaskConfig::new(vec![]));
+        for invalid in [
+            {
+                let mut r = frozen_request();
+                r.frozen_profile.as_mut().unwrap().seed = 6;
+                r
+            },
+            {
+                let mut r = frozen_request();
+                r.allowed_scope = None;
+                r.allowed_scope_app = None;
+                r
+            },
+        ] {
+            assert!(matches!(
+                runtime.create_root_from_request(&mut storage, 1, invalid),
+                Err(TaskError::Invalid(_))
+            ));
+            assert!(runtime.active().is_none());
+            assert!(runtime.next_queued_task().is_none());
+        }
+        let roots: i64 = storage
+            .read()
+            .query_row("SELECT COUNT(*) FROM root_tasks", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(roots, 0);
+        storage.read().execute_batch("CREATE TRIGGER fail_admission BEFORE INSERT ON root_tasks BEGIN SELECT RAISE(ABORT, 'fail admission'); END;").unwrap();
+        assert!(
+            runtime
+                .create_root_from_request(&mut storage, 2, frozen_request())
+                .is_err()
+        );
+        assert!(runtime.active().is_none());
+        assert_eq!(
+            storage
+                .read()
+                .query_row("SELECT COUNT(*) FROM root_tasks", [], |row| row
+                    .get::<_, i64>(0))
+                .unwrap(),
+            0
+        );
+    }
+}
+
+#[cfg(test)]
+mod plan_installation_ledger_tests {
+    use super::*;
+    use crate::deliberation::accounting::PlanningRequestAttribution;
+    use crate::environment::pack::AppPack;
+    use interaction_contracts::desktop::browser::BrowserPageProfile;
+    use interaction_contracts::desktop::effect::EffectClass;
+    use interaction_contracts::desktop::ids::RequestId;
+    use interaction_contracts::desktop::planning::{GoalDraft, PlanningReason, Subgoal};
+    use interaction_contracts::desktop::task::{ConfirmationScope, ExpectedValue, TargetSpec};
+
+    fn attribution(
+        root: &RootTaskId,
+        request: &str,
+        generation: u64,
+    ) -> PlanningRequestAttribution {
+        PlanningRequestAttribution {
+            root: root.clone(),
+            request: RequestId::new(request).unwrap(),
+            generation,
+            reason: PlanningReason::Escalation,
+        }
+    }
+
+    #[test]
+    fn a_completed_exact_s2_request_is_retained_through_goal_freeze() {
+        let mut storage = Storage::open_in_memory().unwrap();
+        let profile = BrowserPageProfile::FixtureBackgroundOption;
+        let mut runtime = TaskRuntime::new(TaskConfig::new(vec![AppPack::browser_fixture()]));
+        let allowed_scope = AllowedControlScope {
+            application: "Browser fixture".into(),
+            targets: vec![interaction_contracts::desktop::task::AllowedControlTarget {
+                control: profile.label().into(),
+                group: None,
+                form: None,
+                disambiguator: None,
+            }],
+            no_unrelated_controls: true,
+        };
+        let CreateOutcome::Started(root) = runtime
+            .create_scoped_root(
+                &mut storage,
+                1,
+                "turn off the background option",
+                allowed_scope,
+                profile.app().into(),
+            )
+            .unwrap()
+        else {
+            panic!("root should start")
+        };
+        let request = PlanningRequestAttribution {
+            root: root.clone(),
+            request: RequestId::new("plan-request").unwrap(),
+            generation: 4,
+            reason: PlanningReason::GoalCompile,
+        };
+        storage
+            .transaction::<_, StoreError>(|tx| {
+                tx.execute(
+                    "INSERT INTO model_calls(root_id, request_id, generation, provider, model,
+                        started_ms, finished_ms, outcome, usage_json, reason)
+                     VALUES (?1, ?2, ?3, 'open_ai', 'fixture', 10, 20, 'proposal',
+                        '{\"input_tokens\":null,\"output_tokens\":null,\"cost_micros\":null}', 'goal_compile')",
+                    rusqlite::params![root.as_str(), request.request.as_str(), request.generation as i64],
+                )?;
+                Ok(())
+            })
+            .unwrap();
+        let target = TargetSpec {
+            semantic_target: interaction_contracts::desktop::ids::SemanticTargetRef::new(
+                profile.semantic_target(),
+            )
+            .unwrap(),
+            label: profile.label().into(),
+            group: None,
+            role_hint: Some(profile.role().into()),
+            row: None,
+        };
+        let draft = GoalDraft {
+            app: profile.app().into(),
+            account: None,
+            target: target.clone(),
+            desired: ExpectedValue::Bool { value: false },
+            confirmation_scope: ConfirmationScope::CurrentUi,
+            max_effect_class: EffectClass::ReversibleEdit,
+        };
+        let bundle = PlanBundle {
+            subgoals: vec![Subgoal {
+                id: "ensure".into(),
+                description: "ensure target value".into(),
+                skill: "ui.ensure_value".into(),
+                target: Some(target.semantic_target.clone()),
+                expects: vec![],
+                scroll: None,
+                select: None,
+            }],
+            dependencies: vec![],
+            required_observations: vec![],
+            expected_effects: vec![],
+            recovery_branches: vec![],
+            termination: vec![],
+        };
+        let confirmation = runtime
+            .accept_draft_with_profile_attribution(
+                &mut storage,
+                21,
+                &draft,
+                ExecutionDomain::HeadlessBrowser,
+                Some(profile),
+                &bundle,
+                Some(&request),
+            )
+            .unwrap();
+        runtime
+            .answer_confirmation(&mut storage, 30, &confirmation.confirmation_id, true)
+            .unwrap();
+        assert_eq!(
+            TaskStore::load_root(storage.read(), root.as_str())
+                .unwrap()
+                .unwrap()
+                .plan_revision,
+            1,
+        );
+        let (state, attribution_status, request_id, generation, reason, installed_ms): (
+            String,
+            String,
+            Option<String>,
+            Option<i64>,
+            Option<String>,
+            Option<i64>,
+        ) = storage
+            .read()
+            .query_row(
+                "SELECT state, attribution_status, request_id, generation, reason, installed_ms
+                 FROM plan_installations WHERE root_id = ?1 AND plan_revision = 1",
+                [root.as_str()],
+                |row| {
+                    Ok((
+                        row.get(0)?,
+                        row.get(1)?,
+                        row.get(2)?,
+                        row.get(3)?,
+                        row.get(4)?,
+                        row.get(5)?,
+                    ))
+                },
+            )
+            .unwrap();
+        assert_eq!(state, "installed");
+        assert_eq!(attribution_status, "model_request");
+        assert_eq!(request_id.as_deref(), Some("plan-request"));
+        assert_eq!(generation, Some(4));
+        assert_eq!(reason.as_deref(), Some("goal_compile"));
+        assert_eq!(installed_ms, Some(30));
+    }
+
+    #[test]
+    fn a_request_with_the_same_root_and_id_but_wrong_generation_rolls_back_installation() {
+        let mut storage = Storage::open_in_memory().unwrap();
+        let mut runtime = TaskRuntime::new(TaskConfig::new(vec![]));
+        let CreateOutcome::Started(root) = runtime.create_root(&mut storage, 1, "inspect").unwrap()
+        else {
+            panic!("root should start")
+        };
+        storage
+            .transaction::<_, StoreError>(|tx| {
+                tx.execute(
+                    "INSERT INTO model_calls(root_id, request_id, generation, provider, model,
+                        started_ms, finished_ms, outcome, usage_json, reason)
+                     VALUES (?1, 'plan-request', 3, 'open_ai', 'fixture', 10, 20, 'proposal',
+                        '{\"input_tokens\":null,\"output_tokens\":null,\"cost_micros\":null}', 'escalation')",
+                    [root.as_str()],
+                )?;
+                Ok(())
+            })
+            .unwrap();
+        let mut changed_root = TaskStore::load_root(storage.read(), root.as_str())
+            .unwrap()
+            .unwrap();
+        changed_root.plan_revision = 1;
+        let wrong_generation = attribution(&root, "plan-request", 4);
+        let result = storage.transaction::<_, StoreError>(|tx| {
+            TaskStore::save_root(tx, &changed_root)?;
+            TaskStore::insert_plan_installation(tx, &root, 1, Some(25), Some(&wrong_generation))
+        });
+        assert!(matches!(result, Err(StoreError::Conflict(_))));
+        assert_eq!(
+            TaskStore::load_root(storage.read(), root.as_str())
+                .unwrap()
+                .unwrap()
+                .plan_revision,
+            0,
+            "a rejected S2 identity rolls back the plan revision update"
+        );
+        let installations: i64 = storage
+            .read()
+            .query_row(
+                "SELECT COUNT(*) FROM plan_installations WHERE root_id = ?1",
+                [root.as_str()],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(installations, 0);
+    }
+
+    #[test]
+    fn missing_model_accounting_remains_explicitly_unknown() {
+        let mut storage = Storage::open_in_memory().unwrap();
+        let mut runtime = TaskRuntime::new(TaskConfig::new(vec![]));
+        let CreateOutcome::Started(root) = runtime.create_root(&mut storage, 1, "inspect").unwrap()
+        else {
+            panic!("root should start")
+        };
+        let missing = attribution(&root, "unrecorded-request", 7);
+        storage
+            .transaction::<_, StoreError>(|tx| {
+                TaskStore::insert_plan_installation(tx, &root, 1, Some(25), Some(&missing))
+            })
+            .unwrap();
+        let (status, request_id, generation, reason): (
+            String,
+            Option<String>,
+            Option<i64>,
+            Option<String>,
+        ) = storage
+            .read()
+            .query_row(
+                "SELECT attribution_status, request_id, generation, reason
+                 FROM plan_installations WHERE root_id = ?1 AND plan_revision = 1",
+                [root.as_str()],
+                |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?)),
+            )
+            .unwrap();
+        assert_eq!(status, "unknown");
+        assert_eq!((request_id, generation, reason), (None, None, None));
     }
 }

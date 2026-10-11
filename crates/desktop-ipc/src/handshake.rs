@@ -110,6 +110,8 @@ pub fn accept_hello(
             conn.link
                 .reply(&envelope.message_id, Message::HelloAck(ack))
                 .map_err(|error| HandshakeFailure::Io(error.to_string()))?;
+            conn.set_read_timeout(None)
+                .map_err(|error| HandshakeFailure::Io(error.to_string()))?;
             Ok(hello)
         }
         Err(error) => {
@@ -136,7 +138,13 @@ pub fn send_hello(conn: &mut Connection, hello: Hello) -> Result<HelloAck, Hands
         .read_next()?
         .ok_or_else(|| HandshakeFailure::Io("the peer closed without answering".into()))?;
     match envelope.message {
-        Message::HelloAck(ack) => Ok(ack),
+        Message::HelloAck(ack) if ack.negotiated_version == PROTOCOL_VERSION => Ok(ack),
+        Message::HelloAck(ack) => Err(HandshakeFailure::Protocol(
+            HandshakeError::NoCommonVersion {
+                theirs: (ack.negotiated_version, ack.negotiated_version),
+                ours: (PROTOCOL_VERSION, PROTOCOL_VERSION),
+            },
+        )),
         Message::Shutdown(Shutdown { reason }) => Err(HandshakeFailure::Refused(reason)),
         other => Err(HandshakeFailure::Unexpected(other.name().into())),
     }
@@ -213,7 +221,9 @@ pub fn spawn_acceptor<E: Send + 'static>(
 mod tests {
     use super::*;
     use crate::socket;
+    use interaction_contracts::desktop::frame::encode_frame;
     use interaction_contracts::desktop::handshake::PeerRole;
+    use std::io::Write;
 
     const TOKEN: &str = "0123456789abcdef0123456789abcdef";
 
@@ -240,7 +250,13 @@ mod tests {
         let (mut client, mut server) = pair();
         let clock = SharedClock::starting_now();
         let handle = std::thread::spawn(move || {
-            let hello = accept_hello(&mut server, &expected(PeerRole::Host), (1, 1)).unwrap();
+            let hello = accept_hello(
+                &mut server,
+                &expected(PeerRole::Host),
+                (PROTOCOL_VERSION, PROTOCOL_VERSION),
+            )
+            .unwrap();
+            assert_eq!(server.link.get_ref().read_timeout().unwrap(), None);
             server
                 .link
                 .send(Message::Ready(Ready {
@@ -252,7 +268,7 @@ mod tests {
             hello
         });
         let ack = send_hello(&mut client, make_hello(PeerRole::Host, TOKEN, 1, clock)).unwrap();
-        assert_eq!(ack.negotiated_version, 1);
+        assert_eq!(ack.negotiated_version, PROTOCOL_VERSION);
         let ready = read_ready(&mut client).unwrap();
         assert_eq!(ready.role, PeerRole::Device);
         let hello = handle.join().unwrap();
@@ -273,7 +289,12 @@ mod tests {
         ] {
             let (mut client, mut server) = pair();
             let handle = std::thread::spawn(move || {
-                accept_hello(&mut server, &expected(PeerRole::Host), (1, 1)).unwrap_err()
+                accept_hello(
+                    &mut server,
+                    &expected(PeerRole::Host),
+                    (PROTOCOL_VERSION, PROTOCOL_VERSION),
+                )
+                .unwrap_err()
             });
             let error = send_hello(&mut client, hello).unwrap_err();
             assert!(
@@ -292,10 +313,15 @@ mod tests {
         let (mut client, mut server) = pair();
         let clock = SharedClock::starting_now();
         let mut hello = make_hello(PeerRole::Host, TOKEN, 1, clock);
-        hello.protocol_min = 2;
-        hello.protocol_max = 3;
+        hello.protocol_min = 1;
+        hello.protocol_max = 1;
         let handle = std::thread::spawn(move || {
-            accept_hello(&mut server, &expected(PeerRole::Host), (1, 1)).unwrap_err()
+            accept_hello(
+                &mut server,
+                &expected(PeerRole::Host),
+                (PROTOCOL_VERSION, PROTOCOL_VERSION),
+            )
+            .unwrap_err()
         });
         let error = send_hello(&mut client, hello).unwrap_err();
         assert!(
@@ -312,8 +338,75 @@ mod tests {
             .link
             .send(Message::Shutdown(Shutdown { reason: "x".into() }))
             .unwrap();
-        let error = accept_hello(&mut server, &expected(PeerRole::Host), (1, 1)).unwrap_err();
+        let error = accept_hello(
+            &mut server,
+            &expected(PeerRole::Host),
+            (PROTOCOL_VERSION, PROTOCOL_VERSION),
+        )
+        .unwrap_err();
         assert!(matches!(error, HandshakeFailure::Unexpected(_)), "{error}");
+    }
+
+    #[test]
+    fn a_hello_ack_for_an_unoffered_version_is_rejected_before_ready() {
+        let (mut client, mut server) = pair();
+        let handle = std::thread::spawn(move || {
+            let envelope = server.reader.read_next().unwrap().unwrap();
+            let Message::Hello(hello) = envelope.message else {
+                panic!("the client must send Hello first");
+            };
+            server
+                .link
+                .reply(
+                    &envelope.message_id,
+                    Message::HelloAck(HelloAck {
+                        negotiated_version: PROTOCOL_VERSION.saturating_sub(1),
+                        role: hello.role,
+                        session_epoch: hello.session_epoch,
+                    }),
+                )
+                .unwrap();
+        });
+
+        let error = send_hello(
+            &mut client,
+            make_hello(PeerRole::Host, TOKEN, 1, SharedClock::starting_now()),
+        )
+        .unwrap_err();
+        assert!(
+            matches!(
+                error,
+                HandshakeFailure::Protocol(HandshakeError::NoCommonVersion { .. })
+            ),
+            "{error}"
+        );
+        handle.join().unwrap();
+    }
+
+    #[test]
+    fn a_legacy_v1_envelope_is_rejected_during_hello_read() {
+        let (mut legacy_peer, server_peer) = UnixStream::pair().unwrap();
+        let clock = SharedClock::starting_now();
+        let mut server = Connection::new(server_peer, "device", clock).unwrap();
+        let mut envelope = interaction_contracts::desktop::samples::envelope_for(Message::Hello(
+            make_hello(PeerRole::Host, TOKEN, 1, SharedClock::starting_now()),
+        ));
+        envelope.protocol_version = 1;
+        legacy_peer
+            .write_all(&encode_frame(&envelope).unwrap())
+            .unwrap();
+
+        let error = accept_hello(
+            &mut server,
+            &expected(PeerRole::Host),
+            (PROTOCOL_VERSION, PROTOCOL_VERSION),
+        )
+        .unwrap_err();
+        assert!(
+            matches!(error, HandshakeFailure::Io(_))
+                && error.to_string().contains("protocol_version 1"),
+            "{error}"
+        );
     }
 
     #[test]
@@ -325,7 +418,12 @@ mod tests {
         let handle = std::thread::spawn(move || {
             let (stream, _) = listener.accept().unwrap();
             let mut conn = Connection::new(stream, "device", clock).unwrap();
-            accept_hello(&mut conn, &expected(PeerRole::Host), (1, 1)).map(|hello| hello.role)
+            accept_hello(
+                &mut conn,
+                &expected(PeerRole::Host),
+                (PROTOCOL_VERSION, PROTOCOL_VERSION),
+            )
+            .map(|hello| hello.role)
         });
         let stream = socket::connect(&path, Duration::from_secs(1)).unwrap();
         let mut conn = Connection::new(stream, "host", clock).unwrap();

@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use super::error::FailureCode;
 use super::ids::{RequestId, RootTaskId, SemanticTargetRef};
-use super::task::{ConfirmationScope, ExpectedValue, TargetSpec};
+use super::task::{AllowedControlScope, ConfirmationScope, ExpectedValue, TargetSpec};
 use super::verification::EvidenceNeed;
 use crate::desktop::effect::EffectClass;
 
@@ -27,6 +27,10 @@ pub enum PlanningReason {
 #[serde(deny_unknown_fields)]
 pub struct PlanningContext {
     pub user_text: String,
+    /// Host-authored scope constraints accompany typed scoped objectives in
+    /// every planning phase. The planner may refine a plan, never this scope.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub allowed_scope: Option<AllowedControlScope>,
     pub unknown_items: Vec<String>,
     pub allowed_skills: Vec<String>,
     pub recent_failures: Vec<String>,
@@ -58,6 +62,67 @@ pub struct GoalDraft {
     pub max_effect_class: EffectClass,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum ScrollDirection {
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct ScrollToSpec {
+    pub container: TargetSpec,
+    pub direction: ScrollDirection,
+    #[schemars(range(min = 1, max = 120))]
+    pub pixels: u32,
+    #[schemars(range(min = 1, max = 16))]
+    pub max_actions: u32,
+}
+
+impl ScrollToSpec {
+    pub fn validate(&self) -> Result<(), String> {
+        self.container.validate()?;
+        if self.container.row.is_some() {
+            return Err("a scroll container cannot carry row-selection conditions".into());
+        }
+        if self.container.label.trim().is_empty()
+            || self.container.role_hint.as_deref() != Some("AXScrollArea")
+            || !(1..=120).contains(&self.pixels)
+            || !(1..=16).contains(&self.max_actions)
+        {
+            return Err(
+                "scroll requires a described AXScrollArea and bounded pixels/actions".into(),
+            );
+        }
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct SelectByLabelSpec {
+    #[schemars(length(min = 1, max = 512))]
+    pub choice_label: String,
+}
+
+impl SelectByLabelSpec {
+    pub fn validate(&self) -> Result<(), String> {
+        if self.choice_label.trim().is_empty()
+            || self.choice_label.len() > 512
+            || self.choice_label.chars().any(char::is_control)
+        {
+            return Err(
+                "menu choice label must be nonblank, at most 512 bytes, and contain no controls"
+                    .into(),
+            );
+        }
+        Ok(())
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Subgoal {
@@ -68,6 +133,9 @@ pub struct Subgoal {
     pub skill: String,
     pub target: Option<SemanticTargetRef>,
     pub expects: Vec<String>,
+    /// Input container and bounded search profile, distinct from destination.
+    pub scroll: Option<ScrollToSpec>,
+    pub select: Option<SelectByLabelSpec>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -135,6 +203,43 @@ impl PlanBundle {
         }
         let mut ids = BTreeSet::new();
         for subgoal in &self.subgoals {
+            if subgoal.skill == "ui.select_row" && subgoal.target.is_none() {
+                return Err("row selection requires an explicit semantic target".into());
+            }
+            match (subgoal.skill.as_str(), &subgoal.select) {
+                ("ui.select_by_label", Some(spec)) => {
+                    spec.validate()?;
+                    if subgoal.target.is_none() || subgoal.scroll.is_some() {
+                        return Err(
+                            "menu selection requires an opener target and no scroll profile".into(),
+                        );
+                    }
+                }
+                ("ui.select_by_label", None) => {
+                    return Err("menu selection requires a typed choice label".into());
+                }
+                (_, Some(_)) => {
+                    return Err("menu selection profile supplied to another skill".into());
+                }
+                _ => {}
+            }
+            match (subgoal.skill.as_str(), &subgoal.scroll) {
+                ("ui.scroll_to", Some(spec)) => {
+                    spec.validate()?;
+                    let target = subgoal
+                        .target
+                        .as_ref()
+                        .ok_or("scroll requires a semantic destination")?;
+                    if target == &spec.container.semantic_target {
+                        return Err("scroll destination and container must differ".into());
+                    }
+                }
+                ("ui.scroll_to", None) => {
+                    return Err("scroll requires a typed search profile".into());
+                }
+                (_, Some(_)) => return Err("scroll profile supplied to another skill".into()),
+                _ => {}
+            }
             if subgoal.id.trim().is_empty() {
                 return Err("sub-goal ids must not be blank".into());
             }
@@ -208,11 +313,13 @@ mod tests {
 
     fn subgoal(id: &str) -> Subgoal {
         Subgoal {
+            select: None,
             id: id.into(),
             description: id.into(),
             skill: "ui.ensure_value".into(),
             target: None,
             expects: vec![],
+            scroll: None,
         }
     }
 
@@ -254,6 +361,72 @@ mod tests {
         let mut empty = bundle(&[]);
         empty.subgoals.clear();
         assert!(empty.validate().is_err());
+    }
+
+    #[test]
+    fn scroll_plans_require_typed_container_bounds_and_distinct_destination() {
+        let mut plan = bundle(&[]);
+        plan.subgoals[0].skill = "ui.scroll_to".into();
+        plan.subgoals[0].target = Some(SemanticTargetRef::new("destination").unwrap());
+        assert!(plan.validate().is_err());
+        plan.subgoals[0].scroll = Some(ScrollToSpec {
+            container: TargetSpec {
+                row: None,
+                semantic_target: SemanticTargetRef::new("container").unwrap(),
+                label: "List".into(),
+                group: None,
+                role_hint: Some("AXScrollArea".into()),
+            },
+            direction: ScrollDirection::Down,
+            pixels: 120,
+            max_actions: 4,
+        });
+        assert!(plan.validate().is_ok());
+        for (pixels, actions) in [(0, 4), (121, 4), (120, 0), (120, 17)] {
+            let mut bad = plan.clone();
+            let spec = bad.subgoals[0].scroll.as_mut().unwrap();
+            spec.pixels = pixels;
+            spec.max_actions = actions;
+            assert!(bad.validate().is_err());
+        }
+        let mut bad = plan.clone();
+        bad.subgoals[0].skill = "ui.activate".into();
+        assert!(bad.validate().is_err());
+        let mut bad = plan.clone();
+        bad.subgoals[0].target = Some(SemanticTargetRef::new("container").unwrap());
+        assert!(bad.validate().is_err());
+        let mut bad = plan;
+        bad.subgoals[0].scroll.as_mut().unwrap().container.role_hint = Some("AXButton".into());
+        assert!(bad.validate().is_err());
+    }
+
+    #[test]
+    fn row_selection_requires_a_target_and_rejects_other_input_profiles() {
+        let mut plan = bundle(&[]);
+        plan.subgoals[0].skill = "ui.select_row".into();
+        assert!(plan.validate().is_err());
+        plan.subgoals[0].target = Some(SemanticTargetRef::new("saved-view-row").unwrap());
+        assert!(plan.validate().is_ok());
+
+        let mut menu = plan.clone();
+        menu.subgoals[0].select = Some(SelectByLabelSpec {
+            choice_label: "Review".into(),
+        });
+        assert!(menu.validate().is_err());
+
+        plan.subgoals[0].scroll = Some(ScrollToSpec {
+            container: TargetSpec {
+                semantic_target: SemanticTargetRef::new("scroll-saved-views").unwrap(),
+                label: "Saved views".into(),
+                group: None,
+                role_hint: Some("AXScrollArea".into()),
+                row: None,
+            },
+            direction: ScrollDirection::Down,
+            pixels: 20,
+            max_actions: 1,
+        });
+        assert!(plan.validate().is_err());
     }
 
     #[test]

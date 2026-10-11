@@ -1,0 +1,7 @@
+{
+  "origin": "artifacts/background-ax-5bcdf9e4-2d3d-4468-adf0-9a7f92675a2e/live-08/source-snapshots/72092c0f7acc7c4f46c6f5230b8bd1e8eb37404c6688ab8d020f36e4f97a0670.json",
+  "sha256": "8595b91e24bceaa7c738a860c56c7265b30458b9cdc29f48a451f1f20e2ef335",
+  "bytes": 5519,
+  "scope": "Actual Source read of ordinary visible background Guard fixture; no target input submitted in this run",
+  "use": "Read-only contract/candidate replay; excluded from successful live input and MVP acceptance"
+}

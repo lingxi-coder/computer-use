@@ -2,10 +2,16 @@
 //! evidence plumbing around it.
 
 use interaction_contracts::desktop::binding::{BindRequest, BindScope, TargetDescription};
-use interaction_contracts::desktop::device::SurfaceRef;
+use interaction_contracts::desktop::device::{
+    CapabilityState, ExecutionDomainCapability, SurfaceRef,
+};
+use interaction_contracts::desktop::domain::{DomainAction, ExecutionDomain};
 use interaction_contracts::desktop::effect::EffectClass;
 use interaction_contracts::desktop::ids::{RequestId, RootTaskId, SemanticTargetRef};
 use interaction_contracts::desktop::planning::{PlanBundle, PlannerOutput};
+use interaction_contracts::desktop::source::{
+    AppIdentity, GlobalFocusObservation, ObservationFact, StructureSnapshot,
+};
 use interaction_contracts::desktop::task::{
     ConfirmationScope, ExpectedValue, GoalSpec, Predicate, RootBudgetSpec, TargetSpec, TaskScope,
 };
@@ -17,6 +23,89 @@ use crate::environment::pack::AppPack;
 use crate::environment::state_core::{EnvSnapshot, StateCore};
 
 pub const TARGET: &str = "push/daily-picks";
+
+pub fn domain_capabilities_for_test_profile(
+    active_domain: ExecutionDomain,
+) -> Vec<ExecutionDomainCapability> {
+    ExecutionDomain::ALL
+        .into_iter()
+        .map(|domain| {
+            let actions = if domain == active_domain {
+                match domain {
+                    ExecutionDomain::ForegroundNative => vec![
+                        DomainAction::NativePointer,
+                        DomainAction::NativeKeyboard,
+                        DomainAction::NativeScroll,
+                        DomainAction::WindowActivation,
+                        DomainAction::ForegroundAx,
+                    ],
+                    ExecutionDomain::BackgroundAx => vec![DomainAction::BackgroundAxPress],
+                    ExecutionDomain::HeadlessBrowser => {
+                        vec![DomainAction::HeadlessBrowserAction]
+                    }
+                    ExecutionDomain::AppIntegration => vec![DomainAction::AppIntegrationAction],
+                    ExecutionDomain::Simulated => vec![DomainAction::SimulatedAction],
+                }
+            } else {
+                Vec::new()
+            };
+            let supported = matches!(
+                domain,
+                ExecutionDomain::ForegroundNative
+                    | ExecutionDomain::BackgroundAx
+                    | ExecutionDomain::Simulated
+            );
+            ExecutionDomainCapability {
+                domain,
+                state: if domain == active_domain && supported {
+                    CapabilityState::Available
+                } else {
+                    CapabilityState::Unavailable
+                },
+                actions: if domain == active_domain && supported {
+                    actions
+                } else {
+                    Vec::new()
+                },
+            }
+        })
+        .collect()
+}
+
+pub fn focus_elsewhere(snapshot: &mut StructureSnapshot) {
+    snapshot.global_focus = GlobalFocusObservation {
+        app: ObservationFact::Known {
+            value: AppIdentity {
+                bundle_id: "test.other".into(),
+                name: "Other application".into(),
+                pid: 9000,
+            },
+        },
+        window_id: ObservationFact::Known {
+            value: "other-window".into(),
+        },
+    };
+}
+
+pub fn focus_snapshot_window(snapshot: &mut StructureSnapshot, window_id: impl Into<String>) {
+    snapshot.global_focus = GlobalFocusObservation {
+        app: ObservationFact::Known {
+            value: snapshot.app.clone(),
+        },
+        window_id: ObservationFact::Known {
+            value: window_id.into(),
+        },
+    };
+}
+
+pub fn focus_window_absent(snapshot: &mut StructureSnapshot) {
+    snapshot.global_focus = GlobalFocusObservation {
+        app: ObservationFact::Known {
+            value: snapshot.app.clone(),
+        },
+        window_id: ObservationFact::Absent,
+    };
+}
 
 pub fn meta(sequence: u64, observed_ms: u64) -> SnapshotMeta {
     SnapshotMeta {
@@ -45,6 +134,7 @@ pub fn goal(scope: ConfirmationScope, max: EffectClass) -> GoalSpec {
         },
     ];
     checks.push(match scope {
+        ConfirmationScope::CurrentUi => unreachable!("root goals require revisit or commit"),
         ConfirmationScope::UiRevisit => Predicate::Revisited {
             target: target.clone(),
         },
@@ -55,12 +145,18 @@ pub fn goal(scope: ConfirmationScope, max: EffectClass) -> GoalSpec {
     GoalSpec {
         root_task_id: RootTaskId::new("root-1").unwrap(),
         task_revision: 1,
+        execution_domain: ExecutionDomain::Simulated,
+        browser_page_profile: None,
         user_text: "turn off the daily picks in Push".into(),
         scope: TaskScope {
             app: "test.settings".into(),
             account: None,
         },
+        allowed_scope: None,
+        scoped_revisit: None,
+        scoped_commit: None,
         target: TargetSpec {
+            row: None,
             semantic_target: target,
             label: "Daily picks".into(),
             group: Some("Push".into()),

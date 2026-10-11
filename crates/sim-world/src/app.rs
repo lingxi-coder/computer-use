@@ -5,12 +5,15 @@
 //! modal sheets. It reports itself as [`StructureSnapshot`]s and reacts to
 //! inputs the simulated device backend applied.
 
+use std::collections::BTreeMap;
+
 use interaction_contracts::desktop::binding::instance_fingerprint;
 use interaction_contracts::desktop::device::SurfaceRef;
 use interaction_contracts::desktop::ids::{ObjectRef, RequestId};
 use interaction_contracts::desktop::primitive::{AxActionKind, Primitive};
 use interaction_contracts::desktop::source::{
-    AppIdentity, AxActionName, LayerKind, Rect, StructureSnapshot, UiObject, UiValue, WindowInfo,
+    AppIdentity, AxActionName, GlobalFocusObservation, LayerKind, ObjectIdentityContinuity,
+    ObservationFact, ObserverCoverage, Rect, StructureSnapshot, UiObject, UiValue, WindowInfo,
 };
 
 pub const BUNDLE_ID: &str = "test.settings";
@@ -18,6 +21,13 @@ pub const APP_NAME: &str = "Settings";
 pub const SIDEBAR_GROUP: &str = "Sidebar";
 const MAIN_WINDOW: &str = "w1";
 const SHEET_WINDOW: &str = "w2";
+
+/// Recompute the explicit synthetic observer summary after a test replaces or
+/// filters the projected objects. This does not infer persistent coverage:
+/// every object's `identity_continuity` must already be set.
+pub fn refresh_simulated_observer_coverage(snapshot: &mut StructureSnapshot) {
+    snapshot.observer_coverage = ObserverCoverage::for_projected_objects(&snapshot.objects);
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Page {
@@ -98,6 +108,9 @@ pub struct SimApp {
     pending_page: Option<Page>,
     /// Leaving the Notifications page with unsaved changes opens a sheet.
     pub sheet_on_unsaved_navigation: bool,
+    /// The simulator explicitly models which logical objects survive reads.
+    /// Unlisted objects are covered by its deterministic notification model.
+    identity_modes: BTreeMap<String, ObjectIdentityContinuity>,
 }
 
 impl Default for SimApp {
@@ -169,6 +182,7 @@ impl SimApp {
             modal: None,
             pending_page: None,
             sheet_on_unsaved_navigation: false,
+            identity_modes: BTreeMap::new(),
         }
     }
 
@@ -198,6 +212,17 @@ impl SimApp {
     /// Put a modal sheet in front of the window, as a surprise would.
     pub fn inject_modal(&mut self, modal: Modal) {
         self.modal = Some(modal);
+    }
+
+    /// Set the synthetic observer continuity for one logical object.
+    /// Read-scoped objects get a new opaque Source ref on every snapshot.
+    pub fn set_object_identity_continuity(
+        &mut self,
+        logical_reference: impl Into<String>,
+        continuity: ObjectIdentityContinuity,
+    ) {
+        self.identity_modes
+            .insert(logical_reference.into(), continuity);
     }
 
     pub fn dismiss_modal(&mut self) {
@@ -241,9 +266,12 @@ impl SimApp {
                 focused: false,
                 frame,
                 actions: actions.to_vec(),
+                ax_action_names: None,
                 in_view: true,
                 group: group.map(String::from),
                 secure: false,
+                scroll: None,
+                identity_continuity: ObjectIdentityContinuity::NotificationCovered,
             });
         };
 
@@ -251,7 +279,7 @@ impl SimApp {
             "group-sidebar",
             None,
             MAIN_WINDOW,
-            "group",
+            "AXGroup",
             Some(SIDEBAR_GROUP),
             None,
             None,
@@ -283,7 +311,7 @@ impl SimApp {
                     "group-push",
                     None,
                     MAIN_WINDOW,
-                    "group",
+                    "AXGroup",
                     Some("Push"),
                     None,
                     None,
@@ -295,7 +323,7 @@ impl SimApp {
                     "group-email",
                     None,
                     MAIN_WINDOW,
-                    "group",
+                    "AXGroup",
                     Some("Email"),
                     None,
                     None,
@@ -433,19 +461,105 @@ impl SimApp {
                 );
             }
         }
+        // Every projected object has an actual ancestry to its AXWindow.
+        // The logical tree keeps stable synthetic refs until `build` applies
+        // per-object read-scoped token rotation for the requested Source read.
+        for window in windows.iter().rev() {
+            let root_ref = ObjectRef::new(format!("sim-window-{}", window.window_id))
+                .expect("fixed synthetic window id is valid");
+            let (root_role, root_subrole) = match window.kind {
+                LayerKind::Window => ("AXWindow", Some("AXStandardWindow")),
+                LayerKind::Sheet => ("AXSheet", None),
+                LayerKind::Dialog => ("AXDialog", None),
+                LayerKind::Popover => ("AXPopover", None),
+                LayerKind::Menu => ("AXMenu", None),
+            };
+            for object in &mut objects {
+                if object.window_id == window.window_id && object.parent.is_none() {
+                    object.parent = Some(root_ref.clone());
+                }
+            }
+            objects.insert(
+                0,
+                UiObject {
+                    instance_ref: root_ref,
+                    parent: None,
+                    window_id: window.window_id.clone(),
+                    role: root_role.into(),
+                    subrole: root_subrole.map(str::to_owned),
+                    title: window.title.clone(),
+                    description: None,
+                    value: None,
+                    enabled: true,
+                    focused: window.window_id == active,
+                    frame: window.frame,
+                    actions: Vec::new(),
+                    ax_action_names: None,
+                    in_view: true,
+                    group: None,
+                    secure: false,
+                    scroll: None,
+                    identity_continuity: ObjectIdentityContinuity::NotificationCovered,
+                },
+            );
+        }
         (windows, objects, active)
     }
 
     fn build(&self, meta: &SnapshotMeta, complete: bool, keep: Option<usize>) -> StructureSnapshot {
         let (windows, mut objects, active) = self.layout();
+        let mut refs = BTreeMap::new();
+        for object in &objects {
+            let continuity = self
+                .identity_modes
+                .get(object.instance_ref.as_str())
+                .copied()
+                .unwrap_or(ObjectIdentityContinuity::NotificationCovered);
+            let instance_ref = if continuity == ObjectIdentityContinuity::ReadScoped {
+                ObjectRef::new(format!(
+                    "sim-read-{}-{}",
+                    meta.source_sequence,
+                    object.instance_ref.as_str()
+                ))
+                .expect("bounded synthetic read-scoped id is valid")
+            } else {
+                object.instance_ref.clone()
+            };
+            refs.insert(object.instance_ref.as_str().to_string(), instance_ref);
+        }
+        for object in &mut objects {
+            let logical_ref = object.instance_ref.as_str().to_string();
+            object.identity_continuity = self
+                .identity_modes
+                .get(&logical_ref)
+                .copied()
+                .unwrap_or(ObjectIdentityContinuity::NotificationCovered);
+            object.instance_ref = refs
+                .get(&logical_ref)
+                .expect("every synthetic object has a Source ref")
+                .clone();
+            object.parent = object.parent.as_ref().map(|parent| {
+                refs.get(parent.as_str())
+                    .expect("synthetic parent has a Source ref")
+                    .clone()
+            });
+        }
         if let Some(keep) = keep {
             objects.truncate(keep);
         }
         StructureSnapshot {
+            menu_anchors: vec![],
+            menu_context: None,
+            focus_context: None,
+            window_context: None,
             snapshot_id: RequestId::new(meta.snapshot_id.clone()).expect("snapshot ids are valid"),
             session_epoch: meta.session_epoch,
             surface: meta.surface.clone(),
             clock_domain: meta.clock_domain.clone(),
+            identity_boundary: None,
+            frame_ref: None,
+            observer_coverage: ObserverCoverage::for_projected_objects(&objects),
+            owned_document_evidence: None,
             source_sequence: meta.source_sequence,
             observed_ms: meta.observed_ms,
             app: AppIdentity {
@@ -454,10 +568,22 @@ impl SimApp {
                 pid: 4242,
             },
             windows,
-            active_layer: Some(active),
+            global_focus: GlobalFocusObservation {
+                app: ObservationFact::Known {
+                    value: AppIdentity {
+                        bundle_id: BUNDLE_ID.into(),
+                        name: APP_NAME.into(),
+                        pid: 4242,
+                    },
+                },
+                window_id: ObservationFact::Known { value: active },
+            },
+            target_context: None,
             complete,
             incomplete_reason: (!complete).then(|| "accessibility read timed out".to_string()),
             objects,
+            table_scope_search: None,
+            table_viewports: vec![],
         }
     }
 
@@ -491,7 +617,10 @@ impl SimApp {
         expected_fingerprint: &str,
     ) -> Option<String> {
         let snapshot = self.snapshot(meta);
-        let active = snapshot.active_layer.clone()?;
+        let active = snapshot
+            .global_focus
+            .known_window_for_app(&snapshot.app)?
+            .to_owned();
         let digest_of = |object: &UiObject| instance_fingerprint(&snapshot, object).digest();
         let in_layer = || snapshot.objects.iter().filter(|o| o.window_id == active);
         let modal = snapshot.windows.iter().any(|window| window.modal);
@@ -520,7 +649,11 @@ impl SimApp {
     /// React to one input the device applied.
     pub fn apply(&mut self, meta: &SnapshotMeta, applied: &Applied) -> ApplyEffect {
         let snapshot = self.snapshot(meta);
-        let active = snapshot.active_layer.clone().unwrap_or_default();
+        let active = snapshot
+            .global_focus
+            .known_window_for_app(&snapshot.app)
+            .unwrap_or_default()
+            .to_owned();
         let target = match &applied.primitive {
             Primitive::AxAction { .. } => {
                 let Some(proof) = &applied.binding_fingerprint else {
@@ -552,13 +685,16 @@ impl SimApp {
             return ApplyEffect::Ignored("blocked by the modal sheet");
         }
         let id = target.instance_ref.as_str().to_string();
+        let logical_id = id
+            .strip_prefix(&format!("sim-read-{}-", meta.source_sequence))
+            .unwrap_or(&id);
         let value = match &applied.primitive {
             Primitive::AxAction {
                 action: AxActionKind::SetValue { value },
             } => Some(value.clone()),
             _ => None,
         };
-        self.act(&id, value)
+        self.act(logical_id, value)
     }
 
     fn set_switch(&mut self, id: &str, on: bool) -> ApplyEffect {
@@ -659,6 +795,7 @@ impl SimApp {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use interaction_contracts::desktop::source::SourceState;
 
     fn meta(sequence: u64) -> SnapshotMeta {
         SnapshotMeta {
@@ -700,6 +837,80 @@ mod tests {
             .collect();
         assert_eq!(daily.len(), 2);
         assert_ne!(daily[0].group, daily[1].group);
+        for switch in daily {
+            let parent = switch.parent.as_ref().unwrap();
+            let group = snapshot
+                .objects
+                .iter()
+                .find(|object| &object.instance_ref == parent)
+                .unwrap();
+            assert_eq!(group.role, "AXGroup");
+            assert_eq!(group.title.as_deref(), switch.group.as_deref());
+        }
+    }
+
+    #[test]
+    fn a_read_scoped_ancestor_rotates_its_token_and_degrades_the_coverage_summary() {
+        let mut app = SimApp::new();
+        app.set_object_identity_continuity("group-push", ObjectIdentityContinuity::ReadScoped);
+        let first = app.snapshot(&meta(1));
+        let second = app.snapshot(&meta(2));
+        let first_group = first
+            .objects
+            .iter()
+            .find(|object| object.title.as_deref() == Some("Push") && object.role == "AXGroup")
+            .unwrap();
+        let second_group = second
+            .objects
+            .iter()
+            .find(|object| object.title.as_deref() == Some("Push") && object.role == "AXGroup")
+            .unwrap();
+        assert_ne!(first_group.instance_ref, second_group.instance_ref);
+        assert_eq!(
+            first_group.identity_continuity,
+            ObjectIdentityContinuity::ReadScoped
+        );
+        assert_eq!(first.observer_coverage.state, SourceState::Degraded);
+        assert_eq!(first.observer_coverage.read_scoped_objects, 1);
+        assert_eq!(
+            first.observer_coverage.covered_objects as usize + 1,
+            first.objects.len()
+        );
+
+        let target = first
+            .objects
+            .iter()
+            .find(|object| object.instance_ref.as_str() == "sw-push-daily")
+            .unwrap();
+        assert_eq!(
+            target.identity_continuity,
+            ObjectIdentityContinuity::NotificationCovered
+        );
+        let first_proof = interaction_contracts::desktop::binding::derive_binding_continuity(
+            &first,
+            target,
+            interaction_contracts::desktop::binding::BindingProofScope::WholeStructure,
+        )
+        .unwrap();
+        let second_target = second
+            .objects
+            .iter()
+            .find(|object| object.instance_ref.as_str() == "sw-push-daily")
+            .unwrap();
+        let second_proof = interaction_contracts::desktop::binding::derive_binding_continuity(
+            &second,
+            second_target,
+            interaction_contracts::desktop::binding::BindingProofScope::WholeStructure,
+        )
+        .unwrap();
+        assert_eq!(
+            first_proof.kind,
+            ObjectIdentityContinuity::ReadScoped,
+            "a covered leaf inherits the least continuity of its context closure"
+        );
+        assert_eq!(second_proof.kind, ObjectIdentityContinuity::ReadScoped);
+        assert_ne!(first_proof.context_digest, second_proof.context_digest);
+        assert_ne!(first_proof.source_sequence, second_proof.source_sequence);
     }
 
     #[test]
@@ -780,13 +991,38 @@ mod tests {
     }
 
     #[test]
-    fn a_modal_sheet_takes_the_active_layer_and_blocks_the_window_behind_it() {
+    fn a_modal_sheet_becomes_the_focused_window_and_blocks_the_window_behind_it() {
         let mut app = SimApp::new();
         let proof = app.fingerprint_of(&meta(1), "sw-push-daily").unwrap();
         app.inject_modal(Modal::UnsavedChanges);
         let snapshot = app.snapshot(&meta(2));
-        assert_eq!(snapshot.active_layer.as_deref(), Some("w2"));
+        assert_eq!(
+            snapshot.global_focus.known_window_for_app(&snapshot.app),
+            Some("w2")
+        );
         assert!(snapshot.windows.iter().any(|w| w.modal));
+        let sheet = snapshot
+            .windows
+            .iter()
+            .find(|window| window.kind == LayerKind::Sheet)
+            .unwrap();
+        let sheet_root = snapshot
+            .objects
+            .iter()
+            .find(|object| object.window_id == sheet.window_id && object.parent.is_none())
+            .unwrap();
+        assert_eq!(sheet_root.role, "AXSheet");
+        let apply = snapshot
+            .objects
+            .iter()
+            .find(|object| object.instance_ref.as_str() == "modal-apply")
+            .unwrap();
+        interaction_contracts::desktop::binding::derive_binding_continuity(
+            &snapshot,
+            apply,
+            interaction_contracts::desktop::binding::BindingProofScope::WholeStructure,
+        )
+        .expect("the actual modal AXSheet root proves its child closure");
         let effect = app.apply(&meta(3), &ax(Some("off"), proof));
         assert!(matches!(effect, ApplyEffect::Ignored(_)), "{effect:?}");
         assert_eq!(app.switch_on("Push", "Daily picks"), Some(true));

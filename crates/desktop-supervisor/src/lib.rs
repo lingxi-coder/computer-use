@@ -289,6 +289,7 @@ impl Session {
             role: PeerRole::Device,
             session_epoch: self.epoch,
             settings,
+            browser_page_profile: None,
         };
         let proc = self.spawn(Role::Device, &binaries().device, configure);
         self.device = Some(proc);
@@ -301,6 +302,7 @@ impl Session {
             role: PeerRole::Source,
             session_epoch: self.epoch,
             settings,
+            browser_page_profile: None,
         };
         let proc = self.spawn(Role::Source, &binaries().source, configure);
         self.source = Some(proc);
@@ -325,6 +327,7 @@ impl Session {
             role: PeerRole::Host,
             session_epoch: 1,
             settings,
+            browser_page_profile: None,
         };
         let proc = self.spawn(Role::Host, &binaries().host, configure);
         self.host = Some(proc);
@@ -343,7 +346,7 @@ impl Session {
                 (_, Message::Ready(_)) => {
                     self.ready.insert((role, generation));
                 }
-                (Role::Host, Message::UiProjection(ui)) => self.ui = Some(ui),
+                (Role::Host, Message::UiProjection(ui)) => self.ui = Some(*ui),
                 (Role::Host, Message::DecisionRequest(request)) => {
                     self.decisions.push(request.clone());
                     if self.teacher_answers {
@@ -542,6 +545,7 @@ impl Session {
             role: PeerRole::Host,
             session_epoch: 1,
             settings,
+            browser_page_profile: None,
         }));
     }
 

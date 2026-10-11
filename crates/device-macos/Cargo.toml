@@ -13,10 +13,19 @@ desktop-ipc = { path = "../desktop-ipc" }
 execution-core.workspace = true
 interaction-contracts.workspace = true
 sim-world.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+zeroize.workspace = true
+rustix = { version = "=1.1.5", features = ["fs", "process"] }
 
 [[bin]]
 name = "cu-device"
 path = "src/bin/cu_device.rs"
+
+[dev-dependencies]
+interaction-engine = { path = "../interaction-engine" }
+source-macos = { path = "../source-macos" }
+tempfile.workspace = true
 
 [lints]
 workspace = true

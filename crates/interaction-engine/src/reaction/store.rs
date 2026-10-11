@@ -28,8 +28,9 @@ impl ReactionStore {
         created_ms: u64,
     ) -> Result<(), StoreError> {
         tx.execute(
-            "INSERT INTO decisions (decision_id, root_id, generation, state, created_ms)
-             VALUES (?1, ?2, ?3, 'pending', ?4)",
+            "INSERT INTO decisions (decision_id, root_id, generation, state, created_ms, plan_revision)
+             VALUES (?1, ?2, ?3, 'pending', ?4,
+                (SELECT plan_revision FROM root_tasks WHERE root_id = ?2))",
             params![
                 decision.as_str(),
                 root.as_str(),
@@ -271,6 +272,51 @@ mod tests {
         storage
             .transaction(|tx| ReactionStore::open_decision(tx, &d, &r, 1, 10))
             .unwrap();
+    }
+
+    #[test]
+    fn opening_a_decision_captures_only_the_current_root_plan_revision() {
+        let mut storage = Storage::open_in_memory().unwrap();
+        let (decision, root, _) = ids();
+        storage
+            .transaction(|tx| {
+                tx.execute(
+                    "INSERT INTO root_tasks(root_id, seq, user_text, state, task_revision, root_epoch, plan_revision, created_ms)
+                     VALUES (?1, 1, 'goal', 'running', 1, 1, 7, 10)",
+                    [root.as_str()],
+                )?;
+                ReactionStore::open_decision(tx, &decision, &root, 1, 11)
+            })
+            .unwrap();
+        let revision: Option<i64> = storage
+            .read()
+            .query_row(
+                "SELECT plan_revision FROM decisions WHERE decision_id = ?1",
+                [decision.as_str()],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(revision, Some(7));
+
+        let missing_root = RootTaskId::new("missing-root").unwrap();
+        let missing_decision = DecisionId::new("d-missing-root").unwrap();
+        storage
+            .transaction(|tx| {
+                ReactionStore::open_decision(tx, &missing_decision, &missing_root, 1, 12)
+            })
+            .unwrap();
+        let missing_revision: Option<i64> = storage
+            .read()
+            .query_row(
+                "SELECT plan_revision FROM decisions WHERE decision_id = ?1",
+                [missing_decision.as_str()],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(
+            missing_revision, None,
+            "a synthetic decision cannot invent a plan revision"
+        );
     }
 
     #[test]

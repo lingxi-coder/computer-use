@@ -25,5 +25,13 @@ path = "src/bin/export_schema.rs"
 name = "export-desktop"
 path = "src/bin/export_desktop.rs"
 
+[[bin]]
+name = "export-computer"
+path = "src/bin/export_computer.rs"
+
+[[bin]]
+name = "export-browser"
+path = "src/bin/export_browser.rs"
+
 [lints]
 workspace = true
