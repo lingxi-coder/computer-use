@@ -9,8 +9,8 @@ const CALLBACK_PATH = '/auth/callback';
 const CALLBACK_PORTS = [1455, 1457] as const;
 const MAX_PRIVATE_LINE_BYTES = 32 * 1024;
 const DEFAULT_TIMEOUT_MS = 10 * 60 * 1000;
-const SUCCESS_PAGE = '<!doctype html><html><head><meta charset="utf-8"><title>Authorization received</title></head><body>Authorization received. Return to Computer Use to finish signing in.</body></html>';
-const ERROR_PAGE = 'Sign-in could not be completed. Return to Computer Use.';
+const SUCCESS_PAGE = '<!doctype html><html><head><meta charset="utf-8"><title>Authorization received</title></head><body>Authorization received. Return to LingXi Control to finish signing in.</body></html>';
+const ERROR_PAGE = 'Sign-in could not be completed. Return to LingXi Control.';
 
 type JsonObject = Record<string, unknown>;
 type SpawnHelper = typeof spawn;

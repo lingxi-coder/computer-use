@@ -165,7 +165,7 @@ export function App() {
   };
 
   if (presentation === 'indicator') return <main className="execution-indicator">
-    <div role="status"><strong>Computer Use · {view.stateLabel}</strong></div>
+    <div role="status"><strong>LingXi Control · {view.stateLabel}</strong></div>
     <button type="button" className="stop" onClick={() => run(() => window.desktop.stop())}>Stop</button>
     <span>⌘⇧Esc · Stop from the tray</span>
     {error ? <span role="alert">{error}</span> : null}

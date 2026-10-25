@@ -101,7 +101,7 @@ test('loopback callback exchanges through the private helper and returns only th
     assert.equal(wrongMethod.status, 405);
     const accepted = await postCallback(redirect);
     assert.equal(accepted.status, 200);
-    assert.match(accepted.body, /Authorization received\. Return to Computer Use to finish signing in\./);
+    assert.match(accepted.body, /Authorization received\. Return to LingXi Control to finish signing in\./);
     assert(!accepted.body.includes('fixture-access-token'));
     const duplicate = await postCallback(redirect);
     assert.equal(duplicate.status, 409);

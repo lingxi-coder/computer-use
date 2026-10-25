@@ -1,4 +1,4 @@
-# Computer Use
+# LingXi Control · 灵犀操控
 
 通用电脑与手机交互系统。一期开发 macOS 上的独立 Electron 桌面产品，使用 Rust 交互内核、MediaPipe 神经感知、S1 快速决策槽位（教师模型起步，本地 Laya 微调晋级后接管）与 Harness Runtime S2 规划。后续 S0 神经控制沿用 MediaPipe。
 
@@ -55,7 +55,7 @@ npm run package:mac:local --workspace @computer-use/desktop -- \
   --native-bin-dir /absolute/path/to/computer-use/target/debug
 ```
 
-输出路径必须位于项目内且尚不存在。脚本校验原生和 ONNX 架构、模型哈希及资源清单，生成 `Computer Use.app` 和完整文件哈希清单；应用最低 macOS 版本为 14.2，固定浏览器任务还需要标准位置安装的 Google Chrome。安装版仅使用自身 `Resources/bin`，资源缺失即失败。本命令生成本地开发包，仍使用 Electron 默认图标；签名发行、模型质量与业务门禁的状态见[首个 MVP 跟踪](docs/mvp-status.md)。
+输出路径必须位于项目内且尚不存在。脚本校验原生和 ONNX 架构、模型哈希及资源清单，生成 `LingXi Control.app` 和完整文件哈希清单；应用最低 macOS 版本为 14.2，固定浏览器任务还需要标准位置安装的 Google Chrome。安装版仅使用自身 `Resources/bin`，资源缺失即失败。本命令生成本地开发包，使用统一的灵犀操控品牌图标；签名发行、模型质量与业务门禁的状态见[首个 MVP 跟踪](docs/mvp-status.md)。
 
 已冻结的本地包可以复制到新的输出目录并使用本机 Apple Development 身份签名：
 

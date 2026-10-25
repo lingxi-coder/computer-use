@@ -6,6 +6,7 @@ import type { UiProjection } from '@computer-use/desktop-api';
 
 import { DecisionWorker } from '@computer-use/decision-worker';
 
+import { configureBrandIdentity } from './brandIdentity.js';
 import { Channels } from '../shared/channels.js';
 import { resolveBinaries } from './binaries.js';
 import { DecisionRelay } from './decisionRelay.js';
@@ -32,6 +33,8 @@ import { browserDiagnostics } from './browserDiagnostics.js';
 import { loadFrozenTaskCatalog } from './frozenTaskCatalog.js';
 
 const moduleDirectory = dirname(fileURLToPath(import.meta.url));
+configureBrandIdentity(app);
+const brandIconPath = join(app.getAppPath(), 'assets', 'brand', 'icon.png');
 // A 16 by 16 red square: the stop control's mark in the tray, made here so no binary asset ships with it.
 const TRAY_ICON = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGUlEQVR42mM4ISf3nxLMMGrAqAGjBgwXAwAG2gMfkOrhWAAAAABJRU5ErkJggg==';
 
@@ -79,7 +82,8 @@ function createWindow(devUrl: string | undefined): BrowserWindow {
     minHeight: 560,
     titleBarStyle: 'hiddenInset',
     show: false,
-    title: 'Computer Use',
+    title: 'LingXi Control',
+    icon: brandIconPath,
     webPreferences: {
       preload: join(moduleDirectory, '../preload/index.cjs'),
       // The renderer is a web page: no Node, isolated from the preload, sandboxed.
@@ -118,7 +122,7 @@ function secureSession(devUrl: string | undefined): void {
 
 function createTray(stop: StopBridge, showWindow: () => void): Tray {
   const tray = new Tray(nativeImage.createFromBuffer(Buffer.from(TRAY_ICON, 'base64')));
-  tray.setToolTip('Computer Use');
+  tray.setToolTip('LingXi Control');
   tray.setContextMenu(
     Menu.buildFromTemplate([
       // The same path as the button and the hotkey: the device first.
@@ -132,6 +136,7 @@ function createTray(stop: StopBridge, showWindow: () => void): Tray {
 }
 
 async function main(): Promise<void> {
+  app.dock?.setIcon(brandIconPath);
   const devUrl = developmentRendererUrl(process.env['ELECTRON_RENDERER_URL'], app.isPackaged);
   const frozenTaskCatalog = loadFrozenTaskCatalog(process.env);
   secureSession(devUrl);
@@ -186,8 +191,8 @@ async function main(): Promise<void> {
       type: 'question' as const,
       title: backgroundAx ? 'Allow background AXPress?' : 'Allow this window?',
       message: backgroundAx
-        ? 'Allow Computer Use to press verified controls in this background window?'
-        : 'Allow Computer Use to read ordinary text and edit registered controls in this window?',
+        ? 'Allow LingXi Control to press verified controls in this background window?'
+        : 'Allow LingXi Control to read ordinary text and edit registered controls in this window?',
       detail: backgroundAx
         ? `${target.window_title ?? 'Untitled window'}\n${target.app}\nProcess ${target.pid} · ${target.window_id}\n\nThis permission is bound to this process identity and background window until you revoke it or quit. It allows verified AXPress actions. Tasks still require separate goal confirmation and Execute mode. Revoking permission closes this input session.`
         : `${target.window_title ?? 'Untitled window'}\n${target.app}\nProcess ${target.pid} · ${target.window_id}\n\nThis permission lasts until you revoke it or quit. Tasks still require goal confirmation and Execute mode. Revoking permission cancels the current input session.`,
@@ -203,8 +208,8 @@ async function main(): Promise<void> {
       if (!window || window.isDestroyed()) return false;
       return (await dialog.showMessageBox(window, {
         type: 'question', title: 'Allow editing the temporary document?',
-        message: 'Allow Computer Use to edit its temporary TextEdit document?',
-        detail: 'This permission applies only to the new TextEdit document created by Computer Use. Task confirmation and Execute mode are still required. Saving has a separate permission. You can stop or revoke editing at any time.',
+        message: 'Allow LingXi Control to edit its temporary TextEdit document?',
+        detail: 'This permission applies only to the new TextEdit document created by LingXi Control. Task confirmation and Execute mode are still required. Saving has a separate permission. You can stop or revoke editing at any time.',
         buttons: ['Cancel', 'Allow editing'], defaultId: 0, cancelId: 0, noLink: true, signal,
       })).response === 1;
     },
@@ -212,8 +217,8 @@ async function main(): Promise<void> {
       if (!window || window.isDestroyed()) return false;
       return (await dialog.showMessageBox(window, {
         type: 'question', title: 'Allow saving the temporary document?',
-        message: 'Allow Computer Use to save and reopen its temporary TextEdit document?',
-        detail: 'This permission applies only to the temporary document created by Computer Use. After the task saves it, Computer Use may close that TextEdit instance and reopen the same file to verify the result. Reopening returns to observation and does not retain editing or saving permission. The temporary document is removed when the session is cleaned up; export or permanent-file tasks are not enabled by this permission.',
+        message: 'Allow LingXi Control to save and reopen its temporary TextEdit document?',
+        detail: 'This permission applies only to the temporary document created by LingXi Control. After the task saves it, LingXi Control may close that TextEdit instance and reopen the same file to verify the result. Reopening returns to observation and does not retain editing or saving permission. The temporary document is removed when the session is cleaned up; export or permanent-file tasks are not enabled by this permission.',
         buttons: ['Cancel', 'Allow saving and reopening'], defaultId: 0, cancelId: 0, noLink: true, signal,
       })).response === 1;
     },

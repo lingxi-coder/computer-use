@@ -144,11 +144,11 @@ async function noTaskAndObservation(name, requireNoInput = false) {
 function consentDetails(kind) {
   return {
     'owned-edit': {
-      message: 'Allow Computer Use to edit its temporary TextEdit document?',
+      message: 'Allow LingXi Control to edit its temporary TextEdit document?',
       button: 'Allow editing',
     },
     'owned-save': {
-      message: 'Allow Computer Use to save and reopen its temporary TextEdit document?',
+      message: 'Allow LingXi Control to save and reopen its temporary TextEdit document?',
       button: 'Allow saving and reopening',
     },
     model: {

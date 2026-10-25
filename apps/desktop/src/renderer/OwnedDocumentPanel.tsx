@@ -105,7 +105,7 @@ export function OwnedDocumentPanel({
   return <section className="panel owned-document" aria-labelledby="owned-document-title">
     <h2 id="owned-document-title">Temporary TextEdit document</h2>
     <p className="owned-document-copy">
-      Computer Use creates and manages a private temporary document in TextEdit for this flow. It does not select or edit an existing document.
+      LingXi Control creates and manages a private temporary document in TextEdit for this flow. It does not select or edit an existing document.
       Editing and saving each require separate native permission. Save permission does not mean the document has been saved or verified.
     </p>
     <div className="owned-document-state" role="status">{phaseLabel(status.phase)}</div>

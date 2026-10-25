@@ -1,9 +1,9 @@
 {
   "name": "@computer-use/desktop",
-  "productName": "Computer Use",
+  "productName": "LingXi Control",
   "version": "0.1.0",
   "private": true,
-  "description": "Computer Use Operator: the Electron shell that supervises the native processes and gives the person a way to start, watch and stop a task",
+  "description": "LingXi Control Operator: the Electron shell that supervises the native processes and gives the person a way to start, watch and stop a task",
   "license": "MIT",
   "type": "module",
   "main": "out/main/index.js",

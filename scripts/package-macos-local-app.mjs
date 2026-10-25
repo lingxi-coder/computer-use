@@ -30,7 +30,8 @@ import {
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(SCRIPT_DIR, '..');
 const DESKTOP_DIR = path.join(REPO_ROOT, 'apps', 'desktop');
-const PRODUCT_NAME = 'Computer Use';
+const PRODUCT_NAME = 'LingXi Control';
+const PRODUCT_ICON = path.join(DESKTOP_DIR, 'assets', 'brand', 'icon.icns');
 const BUNDLE_ID = 'com.lingxi.computer-use';
 const MINIMUM_MACOS_VERSION = '14.2';
 const TARGET_ARCH = 'arm64';
@@ -373,6 +374,7 @@ async function prepareAppSource(appSourceDir, desktopPackage, sourceRevision) {
 
   await mkdir(appSourceDir, { recursive: true });
   await copyTreeWithoutSymlinks(outDir, path.join(appSourceDir, 'out'));
+  await copyTreeWithoutSymlinks(path.join(DESKTOP_DIR, 'assets', 'brand'), path.join(appSourceDir, 'assets', 'brand'));
   const dependencies = await buildProductionDependencyTree(appSourceDir);
   if (dependencies['onnxruntime-node'] !== '1.30.0') {
     throw new Error(`The packaged Laya worker requires onnxruntime-node@1.30.0; found ${dependencies['onnxruntime-node']}.`);
@@ -507,6 +509,11 @@ async function verifyPackagedApp(appPath, resourceManifestPath, installedElectro
   if (info.CFBundleName !== PRODUCT_NAME) {
     throw new Error(`Unexpected app bundle name: ${info.CFBundleName}`);
   }
+  if (info.CFBundleIconFile !== 'icon.icns') throw new Error('Missing LingXi Control bundle icon');
+  const installedIcon = path.join(resourcesPath, 'icon.icns');
+  await assertRegularFile(installedIcon, 'LingXi Control bundle icon');
+  if (await hashFile(installedIcon) !== await hashFile(PRODUCT_ICON)) throw new Error('LingXi Control bundle icon mismatch');
+  await assertRegularFile(path.join(resourcesPath, 'app', 'assets', 'brand', 'icon.png'), 'LingXi Control window icon');
   if (info.LSMinimumSystemVersion !== MINIMUM_MACOS_VERSION) {
     throw new Error(`Expected LSMinimumSystemVersion=${MINIMUM_MACOS_VERSION}, found ${info.LSMinimumSystemVersion}`);
   }
@@ -560,7 +567,7 @@ async function verifyPackagedApp(appPath, resourceManifestPath, installedElectro
     .map((entry) => entry.name)
     .filter((name) => !RESOURCE_TOP_LEVEL_PATHS.includes(name));
   for (const name of allowedAdditionalTopLevelPaths) {
-    if (!installedElectronResourceNames.has(name) && name !== 'app') {
+    if (!installedElectronResourceNames.has(name) && name !== 'app' && name !== 'icon.icns') {
       throw new Error(`Unexpected app-owned Contents/Resources entry: ${name}`);
     }
   }
@@ -666,9 +673,10 @@ async function writeAssemblyManifest({
     nativeBinDir,
     resourceManifestPath: 'Contents/Resources/resource-manifest.json',
     icon: {
-      source: 'Electron runtime default icon',
-      productIconBundled: false,
-      defaultElectronIconLocal: true,
+      source: 'apps/desktop/assets/brand/icon.icns',
+      productIconBundled: true,
+      defaultElectronIconLocal: false,
+      sha256: await hashFile(PRODUCT_ICON),
     },
     resourceManifestSha256: await hashFile(path.join(appPath, 'Contents', 'Resources', 'resource-manifest.json')),
     compiledBuildKindAttested: false,
@@ -737,6 +745,7 @@ async function main(argv) {
     const packagedPaths = await packager({
       dir: appSourceDir,
       name: PRODUCT_NAME,
+      icon: PRODUCT_ICON,
       platform: 'darwin',
       arch: TARGET_ARCH,
       electronVersion: electronPackage.version,
@@ -749,7 +758,7 @@ async function main(argv) {
       helperBundleId: `${BUNDLE_ID}.helper`,
       appVersion: desktopPackage.version,
       buildVersion: desktopPackage.version,
-      extendInfo: { LSMinimumSystemVersion: MINIMUM_MACOS_VERSION },
+      extendInfo: { LSMinimumSystemVersion: MINIMUM_MACOS_VERSION, CFBundleIconFile: 'icon.icns' },
       extraResource: extras,
       quiet: false,
     });

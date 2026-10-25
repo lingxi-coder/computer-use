@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+const brandIcon = new URL('../../assets/brand/small.svg', import.meta.url).href;
 
 export type DesktopPage = 'tasks' | 'connection' | 'workspace' | 'observation';
 
@@ -20,12 +21,13 @@ export function DesktopShell({ activePage, onNavigate, toolbar, footer, children
     <main className="desktop-navigation" data-workspace="true">
       <div className="drag-region desktop-window-toolbar">
         <div className="desktop-sidebar-brand">
-          <strong>Computer Use</strong>
+          <img src={brandIcon} width={22} height={22} alt="" title="灵犀操控 / LingXi Control" />
+          <strong>LingXi Control</strong>
         </div>
         {toolbar}
       </div>
       <div className="desktop-body">
-        <aside className="desktop-sidebar" aria-label="Computer Use navigation">
+        <aside className="desktop-sidebar" aria-label="LingXi Control navigation">
           <nav className="no-drag desktop-sidebar-list" aria-label="Views">
             {NAV_ITEMS.map(({ page, label, title, icon }) => (
               <button
@@ -66,7 +68,7 @@ function NavIcon({ name }: { name: (typeof NAV_ITEMS)[number]['icon'] }) {
 
   switch (name) {
     // These paths match LingXi Electron's compose, plug, summary, and activity
-    // icons so the Computer Use shell uses the same quiet navigation language.
+    // icons so the LingXi Control shell uses the same quiet navigation language.
     case 'compose': return <svg {...common}><path d="M12 3H7a4 4 0 0 0-4 4v10a4 4 0 0 0 4 4h10a4 4 0 0 0 4-4v-5" /><path d="m10 14 1-4L18.5 2.5a2.12 2.12 0 0 1 3 3L14 13z" /></svg>;
     case 'plug': return <svg {...common}><path d="M9 2v6M15 2v6M7 8h10l-1 5a5 5 0 0 1-5 4 5 5 0 0 1-5-4z" /><path d="M12 19v3" /></svg>;
     case 'summary': return <svg {...common}><rect x="4" y="3" width="16" height="18" rx="3" /><path d="M8 8h8M8 12h8M8 16h5" /></svg>;
